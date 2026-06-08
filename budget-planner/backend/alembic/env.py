@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+import app.models  # noqa: F401 - cần import để đăng ký models vào metadata
+from alembic import context
 
 # Import app: nạp settings + toàn bộ models để Base.metadata đầy đủ.
 from app.core.config import settings
 from app.core.db import Base
-import app.models  # noqa: F401 - cần import để đăng ký models vào metadata
 
 config = context.config
 # Lấy URL từ settings thay vì hardcode trong alembic.ini.
