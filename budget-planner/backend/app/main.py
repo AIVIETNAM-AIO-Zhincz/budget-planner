@@ -1,0 +1,32 @@
+"""Khởi tạo FastAPI app: routers, health, đăng ký event handlers."""
+
+from __future__ import annotations
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api import audit, transactions
+from app.core.config import settings
+from app.events.handlers import register_handlers
+
+app = FastAPI(title=settings.app_name)
+
+# Cho phép frontend (Vite dev / domain cấu hình) gọi API.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Đăng ký handler cho event bus (Event-Driven Architecture).
+register_handlers()
+
+app.include_router(transactions.router)
+app.include_router(audit.router)
+
+
+@app.get("/health", tags=["system"])
+def health() -> dict[str, str]:
+    """Kiểm tra sống (smoke)."""
+    return {"status": "ok"}
