@@ -16,6 +16,7 @@ from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.transaction import TransactionCreate, TransactionRead, TransactionUpdate
 from app.services.budget import spent_for_period
 from app.services.categorizer import suggest_category
+from app.services.wallet import apply_effect, reverse_effect
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -79,6 +80,9 @@ def create_transaction(
     db.add(tx)
     db.commit()
     db.refresh(tx)
+
+    apply_effect(db, tx.space_id, tx.wallet_id, tx.type, tx.amount)
+    db.commit()
 
     event_bus.publish(
         TransactionCreated(
@@ -152,12 +156,18 @@ def update_transaction(
     db: Session = Depends(get_db),
     space_id: str = Depends(get_current_space_id),
 ) -> Transaction:
-    """Cập nhật giao dịch (member+). Nếu là chi → kiểm lại vượt ngân sách."""
+    """Cập nhật giao dịch (member+). Hoàn lại số dư cũ + áp mới; kiểm vượt ngân sách."""
     tx = _get_owned(db, transaction_id, space_id)
+    old = (tx.wallet_id, tx.type, tx.amount)
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(tx, field, value)
     db.commit()
     db.refresh(tx)
+
+    reverse_effect(db, space_id, old[0], old[1], old[2])
+    apply_effect(db, space_id, tx.wallet_id, tx.type, tx.amount)
+    db.commit()
+
     _check_budget_overflow(db, tx)
     return tx
 
@@ -173,8 +183,9 @@ def delete_transaction(
     space_id: str = Depends(get_current_space_id),
     user: User = Depends(get_current_user),
 ) -> None:
-    """Xoá giao dịch (member+) + ghi audit log."""
+    """Xoá giao dịch (member+): hoàn lại số dư ví + ghi audit log."""
     tx = _get_owned(db, transaction_id, space_id)
+    reverse_effect(db, space_id, tx.wallet_id, tx.type, tx.amount)
     db.delete(tx)
     db.add(
         AuditLog(

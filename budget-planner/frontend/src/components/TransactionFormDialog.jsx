@@ -3,6 +3,7 @@ import {
   Autocomplete,
   Button,
   InputAdornment,
+  MenuItem,
   Stack,
   TextField,
   ToggleButton,
@@ -15,6 +16,7 @@ import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import BrandDialog from "./BrandDialog.jsx";
 import { listCategories } from "../api/categories.js";
+import { listWallets } from "../api/wallets.js";
 
 /**
  * Dialog thêm/sửa giao dịch. `initial` có giá trị → chế độ sửa.
@@ -32,14 +34,19 @@ export default function TransactionFormDialog({ open, onClose, onSubmit, submitt
   const [date, setDate] = useState(dayjs());
   const [touched, setTouched] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [wallets, setWallets] = useState([]);
+  const [walletId, setWalletId] = useState("");
 
-  // Nạp danh mục để gợi ý (Autocomplete).
+  // Nạp danh mục (gợi ý) + ví (chọn) khi mở dialog.
   useEffect(() => {
     if (!open) return;
     let active = true;
     listCategories()
       .then((data) => active && setCategories(Array.isArray(data) ? data : []))
       .catch(() => active && setCategories([]));
+    listWallets()
+      .then((data) => active && setWallets(Array.isArray(data) ? data : []))
+      .catch(() => active && setWallets([]));
     return () => {
       active = false;
     };
@@ -53,6 +60,7 @@ export default function TransactionFormDialog({ open, onClose, onSubmit, submitt
       setNote(initial?.note ?? "");
       setCategory(initial?.category_name ?? "");
       setDate(initial?.date ? dayjs(initial.date) : dayjs());
+      setWalletId(initial?.wallet_id ?? "");
       setTouched(false);
     }
   }, [open, initial]);
@@ -75,6 +83,7 @@ export default function TransactionFormDialog({ open, onClose, onSubmit, submitt
       note: note.trim(),
       category_name: category.trim(),
       date: date ? date.format("YYYY-MM-DD") : null,
+      wallet_id: walletId || null,
     });
   };
 
@@ -155,6 +164,21 @@ export default function TransactionFormDialog({ open, onClose, onSubmit, submitt
             slotProps={{ textField: { fullWidth: true, size: "small" } }}
           />
         </LocalizationProvider>
+
+        <TextField
+          select
+          label={t("transactions.form.wallet")}
+          value={walletId}
+          onChange={(e) => setWalletId(e.target.value)}
+          fullWidth
+        >
+          <MenuItem value="">{t("transactions.form.walletNone")}</MenuItem>
+          {wallets.map((w) => (
+            <MenuItem key={w.id} value={w.id}>
+              {w.name}
+            </MenuItem>
+          ))}
+        </TextField>
       </Stack>
     </BrandDialog>
   );

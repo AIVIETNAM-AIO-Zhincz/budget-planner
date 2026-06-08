@@ -13,6 +13,7 @@
     "transactions": "Transactions",
     "categories": "Categories",
     "budgets": "Budgets",
+    "wallets": "Wallets",
     "reports": "Reports",
     "members": "Members",
     "settings": "Settings"
@@ -89,6 +90,8 @@
       "category": "Category",
       "categoryHint": "Leave empty for AI suggestion",
       "date": "Date",
+      "wallet": "Wallet",
+      "walletNone": "— No wallet —",
       "submit": "Save transaction",
       "amountRequired": "Amount must be greater than 0"
     },
@@ -223,11 +226,44 @@
     },
     "saveError": "Action failed"
   },
+  "wallets": {
+    "add": "Add wallet",
+    "empty": "No wallets yet. Click \"Add wallet\" to start.",
+    "total": "Total balance",
+    "transfer": "Transfer",
+    "types": { "cash": "Cash", "bank": "Bank", "e-wallet": "E-wallet" },
+    "created": "Wallet added",
+    "updated": "Wallet updated",
+    "deleted": "Wallet deleted",
+    "transferred": "Transfer done",
+    "loadError": "Could not load wallets",
+    "saveError": "Action failed",
+    "deleteTitle": "Delete wallet",
+    "deleteConfirm": "Delete wallet \"{{name}}\"? Linked transactions will be unlinked.",
+    "form": {
+      "addTitle": "Add wallet",
+      "editTitle": "Edit wallet",
+      "name": "Wallet name",
+      "type": "Type",
+      "balance": "Balance"
+    },
+    "transferForm": {
+      "title": "Transfer between wallets",
+      "from": "From wallet",
+      "to": "To wallet",
+      "amount": "Amount",
+      "submit": "Transfer",
+      "sameWallet": "Wallets must be different",
+      "amountRequired": "Amount must be greater than 0"
+    }
+  },
   "pages": {
     "categories": "Categories",
     "categoriesDesc": "Income/expense category tree (parent–child)",
     "budgets": "Budgets",
     "budgetsDesc": "Limits per category/month + overflow alerts",
+    "wallets": "Wallets",
+    "walletsDesc": "Manage wallets & balances, transfer between wallets",
     "reports": "Reports",
     "reportsDesc": "Charts & spending analysis",
     "members": "Members",

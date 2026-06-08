@@ -3,6 +3,7 @@ import {
   ArrowsRightLeftIcon,
   TagIcon,
   BanknotesIcon,
+  WalletIcon,
   ChartBarIcon,
   UsersIcon,
   Cog6ToothIcon,
@@ -27,6 +28,7 @@ export const navSections = [
     items: [
       { labelKey: "nav.categories", path: "/categories", icon: TagIcon },
       { labelKey: "nav.budgets", path: "/budgets", icon: BanknotesIcon },
+      { labelKey: "nav.wallets", path: "/wallets", icon: WalletIcon },
       { labelKey: "nav.members", path: "/members", icon: UsersIcon },
     ],
   },

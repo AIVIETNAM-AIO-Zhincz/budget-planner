@@ -1,0 +1,128 @@
+"""Router Wallets (CRUD + chuyển tiền, lọc theo space_id)."""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select, update
+from sqlalchemy.orm import Session
+
+from app.core.db import get_db
+from app.models import AuditLog, Membership, Transaction, Wallet
+from app.rbac import get_current_space_id, get_current_user, require_min_role
+from app.schemas.wallet import TransferRequest, WalletCreate, WalletRead, WalletUpdate
+
+router = APIRouter(prefix="/wallets", tags=["wallets"])
+
+
+def _get_owned(db: Session, wallet_id: str, space_id: str) -> Wallet:
+    """Lấy ví thuộc đúng không gian; 404 nếu không có."""
+    wallet = db.get(Wallet, wallet_id)
+    if wallet is None or wallet.space_id != space_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ví")
+    return wallet
+
+
+@router.post(
+    "",
+    response_model=WalletRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_min_role("admin"))],
+)
+def create_wallet(
+    payload: WalletCreate,
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+) -> Wallet:
+    """Tạo ví mới cho không gian hiện tại."""
+    wallet = Wallet(
+        space_id=space_id, name=payload.name, type=payload.type, balance=payload.balance
+    )
+    db.add(wallet)
+    db.commit()
+    db.refresh(wallet)
+    return wallet
+
+
+@router.get("", response_model=list[WalletRead])
+def list_wallets(
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+) -> list[Wallet]:
+    """Liệt kê ví của không gian hiện tại."""
+    stmt = select(Wallet).where(Wallet.space_id == space_id)
+    return list(db.scalars(stmt))
+
+
+@router.post("/transfer", response_model=dict[str, WalletRead])
+def transfer(
+    payload: TransferRequest,
+    current: Membership = Depends(require_min_role("member")),
+    db: Session = Depends(get_db),
+) -> dict[str, Wallet]:
+    """Chuyển tiền giữa hai ví (member+): trừ ví nguồn, cộng ví đích."""
+    if payload.from_wallet_id == payload.to_wallet_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Hai ví phải khác nhau")
+    src = _get_owned(db, payload.from_wallet_id, current.space_id)
+    dst = _get_owned(db, payload.to_wallet_id, current.space_id)
+    src.balance -= payload.amount
+    dst.balance += payload.amount
+    db.add(
+        AuditLog(
+            space_id=current.space_id,
+            actor_id=current.user_id,
+            action="wallet.transfer",
+            target=f"{src.id}->{dst.id}",
+        )
+    )
+    db.commit()
+    db.refresh(src)
+    db.refresh(dst)
+    return {"from": src, "to": dst}
+
+
+@router.get("/{wallet_id}", response_model=WalletRead)
+def get_wallet(
+    wallet_id: str,
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+) -> Wallet:
+    """Xem một ví (cô lập theo space_id)."""
+    return _get_owned(db, wallet_id, space_id)
+
+
+@router.patch(
+    "/{wallet_id}", response_model=WalletRead, dependencies=[Depends(require_min_role("admin"))]
+)
+def update_wallet(
+    wallet_id: str,
+    payload: WalletUpdate,
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+) -> Wallet:
+    """Cập nhật ví (partial)."""
+    wallet = _get_owned(db, wallet_id, space_id)
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(wallet, field, value)
+    db.commit()
+    db.refresh(wallet)
+    return wallet
+
+
+@router.delete(
+    "/{wallet_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_min_role("admin"))],
+)
+def delete_wallet(
+    wallet_id: str,
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+    user=Depends(get_current_user),
+) -> None:
+    """Xoá ví + gỡ liên kết giao dịch + ghi audit."""
+    wallet = _get_owned(db, wallet_id, space_id)
+    # Gỡ wallet_id khỏi các giao dịch trỏ tới ví này (tránh tham chiếu mồ côi).
+    db.execute(update(Transaction).where(Transaction.wallet_id == wallet_id).values(wallet_id=None))
+    db.delete(wallet)
+    db.add(AuditLog(space_id=space_id, actor_id=user.id, action="wallet.deleted", target=wallet_id))
+    db.commit()

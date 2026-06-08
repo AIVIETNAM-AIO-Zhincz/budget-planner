@@ -132,3 +132,48 @@ def test_search_by_note(client: TestClient, owner: dict) -> None:
     _create(client, owner["headers"], note="đổ xăng")
     items = client.get("/transactions", params={"q": "trưa"}, headers=owner["headers"]).json()
     assert len(items) == 1
+
+
+def _make_wallet(client: TestClient, headers: dict, balance: float = 0) -> str:
+    return client.post(
+        "/wallets", json={"name": "V", "type": "cash", "balance": balance}, headers=headers
+    ).json()["id"]
+
+
+def _balance(client: TestClient, headers: dict, wid: str) -> float:
+    return client.get(f"/wallets/{wid}", headers=headers).json()["balance"]
+
+
+def test_expense_decreases_wallet_balance(client: TestClient, owner: dict) -> None:
+    wid = _make_wallet(client, owner["headers"], balance=100000)
+    _create(client, owner["headers"], amount=30000, type="expense", wallet_id=wid)
+    assert _balance(client, owner["headers"], wid) == 70000
+
+
+def test_income_increases_wallet_balance(client: TestClient, owner: dict) -> None:
+    wid = _make_wallet(client, owner["headers"], balance=0)
+    _create(client, owner["headers"], amount=50000, type="income", wallet_id=wid)
+    assert _balance(client, owner["headers"], wid) == 50000
+
+
+def test_edit_amount_reflects_balance(client: TestClient, owner: dict) -> None:
+    wid = _make_wallet(client, owner["headers"], balance=100000)
+    tx = _create(client, owner["headers"], amount=30000, type="expense", wallet_id=wid)
+    client.patch(f"/transactions/{tx['id']}", json={"amount": 50000}, headers=owner["headers"])
+    assert _balance(client, owner["headers"], wid) == 50000
+
+
+def test_change_wallet_moves_effect(client: TestClient, owner: dict) -> None:
+    a = _make_wallet(client, owner["headers"], balance=100000)
+    b = _make_wallet(client, owner["headers"], balance=100000)
+    tx = _create(client, owner["headers"], amount=30000, type="expense", wallet_id=a)
+    client.patch(f"/transactions/{tx['id']}", json={"wallet_id": b}, headers=owner["headers"])
+    assert _balance(client, owner["headers"], a) == 100000
+    assert _balance(client, owner["headers"], b) == 70000
+
+
+def test_delete_restores_balance(client: TestClient, owner: dict) -> None:
+    wid = _make_wallet(client, owner["headers"], balance=100000)
+    tx = _create(client, owner["headers"], amount=30000, type="expense", wallet_id=wid)
+    client.delete(f"/transactions/{tx['id']}", headers=owner["headers"])
+    assert _balance(client, owner["headers"], wid) == 100000

@@ -13,6 +13,7 @@
     "transactions": "Giao dịch",
     "categories": "Danh mục",
     "budgets": "Ngân sách",
+    "wallets": "Ví",
     "reports": "Báo cáo",
     "members": "Thành viên",
     "settings": "Cài đặt"
@@ -89,6 +90,8 @@
       "category": "Danh mục",
       "categoryHint": "Để trống để AI tự gợi ý",
       "date": "Ngày",
+      "wallet": "Ví",
+      "walletNone": "— Không gắn ví —",
       "submit": "Lưu giao dịch",
       "amountRequired": "Số tiền phải lớn hơn 0"
     },
@@ -223,11 +226,44 @@
     },
     "saveError": "Thao tác thất bại"
   },
+  "wallets": {
+    "add": "Thêm ví",
+    "empty": "Chưa có ví. Bấm \"Thêm ví\" để bắt đầu.",
+    "total": "Tổng số dư",
+    "transfer": "Chuyển tiền",
+    "types": { "cash": "Tiền mặt", "bank": "Ngân hàng", "e-wallet": "Ví điện tử" },
+    "created": "Đã thêm ví",
+    "updated": "Đã cập nhật ví",
+    "deleted": "Đã xoá ví",
+    "transferred": "Đã chuyển tiền",
+    "loadError": "Không tải được danh sách ví",
+    "saveError": "Thao tác thất bại",
+    "deleteTitle": "Xoá ví",
+    "deleteConfirm": "Xoá ví \"{{name}}\"? Giao dịch liên quan sẽ bỏ gắn ví.",
+    "form": {
+      "addTitle": "Thêm ví",
+      "editTitle": "Sửa ví",
+      "name": "Tên ví",
+      "type": "Loại",
+      "balance": "Số dư"
+    },
+    "transferForm": {
+      "title": "Chuyển tiền giữa ví",
+      "from": "Từ ví",
+      "to": "Đến ví",
+      "amount": "Số tiền",
+      "submit": "Chuyển",
+      "sameWallet": "Hai ví phải khác nhau",
+      "amountRequired": "Số tiền phải lớn hơn 0"
+    }
+  },
   "pages": {
     "categories": "Danh mục",
     "categoriesDesc": "Cây danh mục thu/chi (cha–con)",
     "budgets": "Ngân sách",
     "budgetsDesc": "Hạn mức theo danh mục/tháng + cảnh báo vượt",
+    "wallets": "Ví",
+    "walletsDesc": "Quản lý ví & số dư, chuyển tiền giữa ví",
     "reports": "Báo cáo",
     "reportsDesc": "Biểu đồ & phân tích chi tiêu",
     "members": "Thành viên",
