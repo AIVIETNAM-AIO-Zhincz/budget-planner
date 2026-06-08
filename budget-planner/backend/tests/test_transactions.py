@@ -53,3 +53,82 @@ def test_create_emits_event_writes_audit_log(client: TestClient, owner: dict) ->
 def test_requires_token(client: TestClient) -> None:
     """Thiếu token → 401."""
     assert client.get("/transactions").status_code == 401
+
+
+def _create(client: TestClient, headers: dict, **kw) -> dict:
+    """Helper: tạo giao dịch, trả về body."""
+    payload = {"amount": 1000, "note": "x", **kw}
+    return client.post("/transactions", json=payload, headers=headers).json()
+
+
+def test_update_transaction(client: TestClient, owner: dict) -> None:
+    tx = _create(client, owner["headers"], amount=1000, note="cũ")
+    r = client.patch(
+        f"/transactions/{tx['id']}", json={"amount": 2000, "note": "mới"}, headers=owner["headers"]
+    )
+    assert r.status_code == 200
+    assert r.json()["amount"] == 2000
+    assert r.json()["note"] == "mới"
+
+
+def test_update_viewer_forbidden(client: TestClient, owner: dict, make_member) -> None:
+    tx = _create(client, owner["headers"])
+    v = make_member(owner, role="viewer", email="v@x.com")
+    r = client.patch(f"/transactions/{tx['id']}", json={"amount": 5}, headers=v["headers"])
+    assert r.status_code == 403
+
+
+def test_update_cross_space_404(client: TestClient, register) -> None:
+    u1 = register(email="u1@x.com")
+    u2 = register(email="u2@x.com")
+    tx = _create(client, u1["headers"])
+    r = client.patch(f"/transactions/{tx['id']}", json={"amount": 5}, headers=u2["headers"])
+    assert r.status_code == 404
+
+
+def test_delete_transaction(client: TestClient, owner: dict) -> None:
+    tx = _create(client, owner["headers"])
+    assert client.delete(f"/transactions/{tx['id']}", headers=owner["headers"]).status_code == 204
+    assert client.get(f"/transactions/{tx['id']}", headers=owner["headers"]).status_code == 404
+
+    logs = client.get("/audit-logs", headers=owner["headers"]).json()
+    assert any(log["action"] == "transaction.deleted" for log in logs)
+
+
+def test_delete_viewer_forbidden(client: TestClient, owner: dict, make_member) -> None:
+    tx = _create(client, owner["headers"])
+    v = make_member(owner, role="viewer", email="v@x.com")
+    assert client.delete(f"/transactions/{tx['id']}", headers=v["headers"]).status_code == 403
+
+
+def test_filter_by_type(client: TestClient, owner: dict) -> None:
+    _create(client, owner["headers"], amount=10, type="expense", note="a")
+    _create(client, owner["headers"], amount=20, type="income", note="b")
+    items = client.get("/transactions?type=income", headers=owner["headers"]).json()
+    assert len(items) == 1
+    assert items[0]["type"] == "income"
+
+
+def test_filter_by_category(client: TestClient, owner: dict) -> None:
+    _create(client, owner["headers"], note="x", category_name="Ăn uống")
+    _create(client, owner["headers"], note="y", category_name="Đi lại")
+    items = client.get(
+        "/transactions", params={"category": "Ăn uống"}, headers=owner["headers"]
+    ).json()
+    assert len(items) == 1
+    assert items[0]["category_name"] == "Ăn uống"
+
+
+def test_filter_by_month(client: TestClient, owner: dict) -> None:
+    _create(client, owner["headers"], note="a", date="2026-06-10")
+    _create(client, owner["headers"], note="b", date="2026-05-10")
+    items = client.get("/transactions?month=2026-06", headers=owner["headers"]).json()
+    assert len(items) == 1
+    assert items[0]["date"] == "2026-06-10"
+
+
+def test_search_by_note(client: TestClient, owner: dict) -> None:
+    _create(client, owner["headers"], note="ăn trưa cùng team")
+    _create(client, owner["headers"], note="đổ xăng")
+    items = client.get("/transactions", params={"q": "trưa"}, headers=owner["headers"]).json()
+    assert len(items) == 1

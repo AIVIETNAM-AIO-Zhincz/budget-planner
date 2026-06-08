@@ -22,6 +22,17 @@ class TransactionCreate(TransactionBase):
     """Payload tạo giao dịch. ``category_name`` bỏ trống → AI tự gợi ý."""
 
 
+class TransactionUpdate(BaseModel):
+    """Payload cập nhật giao dịch (partial — chỉ field gửi lên mới đổi)."""
+
+    amount: float | None = Field(default=None, gt=0)
+    type: str | None = Field(default=None, pattern="^(income|expense)$")
+    note: str | None = Field(default=None, max_length=500)
+    category_name: str | None = Field(default=None, max_length=255)
+    date: date_type | None = None
+    wallet_id: str | None = None
+
+
 class TransactionRead(TransactionBase):
     """Giao dịch trả về client."""
 

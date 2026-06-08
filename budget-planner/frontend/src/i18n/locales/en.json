@@ -93,8 +93,25 @@
       "amountRequired": "Amount must be greater than 0"
     },
     "created": "Transaction added",
+    "updated": "Transaction updated",
+    "deleted": "Transaction deleted",
     "loadError": "Could not load transactions",
-    "createError": "Could not create transaction"
+    "createError": "Could not create transaction",
+    "saveError": "Could not save transaction",
+    "editTitle": "Edit transaction",
+    "edit": "Edit",
+    "colActions": "Actions",
+    "deleteTitle": "Delete transaction",
+    "deleteConfirm": "Delete transaction \"{{note}}\" ({{amount}} ₫)?",
+    "filter": {
+      "all": "All",
+      "type": "Type",
+      "category": "Category",
+      "month": "Month",
+      "search": "Search note…",
+      "clear": "Clear filters"
+    },
+    "noResult": "No transactions match the filters."
   },
   "categories": {
     "add": "Add category",

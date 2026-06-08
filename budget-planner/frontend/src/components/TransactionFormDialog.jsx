@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  Autocomplete,
   Button,
   InputAdornment,
-  MenuItem,
   Stack,
   TextField,
   ToggleButton,
@@ -14,31 +14,51 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import BrandDialog from "./BrandDialog.jsx";
+import { listCategories } from "../api/categories.js";
 
 /**
- * Dialog form thêm giao dịch. Gọi `onSubmit(payload)` (async) khi lưu hợp lệ.
+ * Dialog thêm/sửa giao dịch. `initial` có giá trị → chế độ sửa.
  *
- * @param {{open:boolean, onClose:Function, onSubmit:Function, submitting:boolean}} props
+ * @param {{open:boolean, onClose:Function, onSubmit:Function, submitting:boolean,
+ *          initial?:object|null}} props
  */
-export default function TransactionFormDialog({ open, onClose, onSubmit, submitting }) {
+export default function TransactionFormDialog({ open, onClose, onSubmit, submitting, initial }) {
   const { t } = useTranslation();
+  const isEdit = Boolean(initial);
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
   const [note, setNote] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState(dayjs());
   const [touched, setTouched] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+  // Nạp danh mục để gợi ý (Autocomplete).
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    listCategories()
+      .then((data) => active && setCategories(Array.isArray(data) ? data : []))
+      .catch(() => active && setCategories([]));
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
+  // Nạp lại giá trị mỗi khi mở (thêm mới hoặc sửa).
+  useEffect(() => {
+    if (open) {
+      setAmount(initial?.amount != null ? String(initial.amount) : "");
+      setType(initial?.type ?? "expense");
+      setNote(initial?.note ?? "");
+      setCategory(initial?.category_name ?? "");
+      setDate(initial?.date ? dayjs(initial.date) : dayjs());
+      setTouched(false);
+    }
+  }, [open, initial]);
 
   const amountInvalid = !(Number(amount) > 0);
-
-  const reset = () => {
-    setAmount("");
-    setType("expense");
-    setNote("");
-    setCategory("");
-    setDate(dayjs());
-    setTouched(false);
-  };
+  const categoryOptions = categories.filter((c) => c.type === type).map((c) => c.name);
 
   const handleClose = () => {
     if (submitting) return;
@@ -56,14 +76,13 @@ export default function TransactionFormDialog({ open, onClose, onSubmit, submitt
       category_name: category.trim(),
       date: date ? date.format("YYYY-MM-DD") : null,
     });
-    reset();
   };
 
   return (
     <BrandDialog
       open={open}
       onClose={handleClose}
-      title={t("transactions.form.title")}
+      title={isEdit ? t("transactions.editTitle") : t("transactions.form.title")}
       description={t("transactions.subtitle")}
       PaperProps={{ component: "form", onSubmit: handleSubmit }}
       actions={
@@ -113,12 +132,18 @@ export default function TransactionFormDialog({ open, onClose, onSubmit, submitt
           fullWidth
         />
 
-        <TextField
-          label={t("transactions.form.category")}
-          helperText={t("transactions.form.categoryHint")}
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          fullWidth
+        <Autocomplete
+          freeSolo
+          options={categoryOptions}
+          inputValue={category}
+          onInputChange={(_, v) => setCategory(v)}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={t("transactions.form.category")}
+              helperText={t("transactions.form.categoryHint")}
+            />
+          )}
         />
 
         <LocalizationProvider dateAdapter={AdapterDayjs}>

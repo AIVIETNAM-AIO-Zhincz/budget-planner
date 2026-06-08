@@ -1,12 +1,18 @@
 import { apiFetch } from "./client.js";
 
 /**
- * Lấy danh sách giao dịch của không gian hiện tại.
+ * Lấy danh sách giao dịch, lọc theo {type, category, month, q} (bỏ field rỗng).
  *
+ * @param {{type?:string, category?:string, month?:string, q?:string}} [filters]
  * @returns {Promise<Array>} mảng TransactionRead.
  */
-export function listTransactions() {
-  return apiFetch("/transactions");
+export function listTransactions(filters = {}) {
+  const params = new URLSearchParams();
+  for (const key of ["type", "category", "month", "q"]) {
+    if (filters[key]) params.set(key, filters[key]);
+  }
+  const qs = params.toString();
+  return apiFetch(`/transactions${qs ? `?${qs}` : ""}`);
 }
 
 /**
@@ -32,4 +38,25 @@ export function createTransaction({
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+/**
+ * Cập nhật giao dịch (partial).
+ *
+ * @param {string} id
+ * @param {object} patch các field cần đổi (amount/type/note/category_name/date/...).
+ * @returns {Promise<object>} TransactionRead.
+ */
+export function updateTransaction(id, patch) {
+  const body = { ...patch };
+  if (body.amount != null) body.amount = Number(body.amount);
+  return apiFetch(`/transactions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+/** Xoá giao dịch (204 → null). */
+export function deleteTransaction(id) {
+  return apiFetch(`/transactions/${id}`, { method: "DELETE" });
 }

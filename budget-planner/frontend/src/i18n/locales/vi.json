@@ -93,8 +93,25 @@
       "amountRequired": "Số tiền phải lớn hơn 0"
     },
     "created": "Đã thêm giao dịch",
+    "updated": "Đã cập nhật giao dịch",
+    "deleted": "Đã xoá giao dịch",
     "loadError": "Không tải được danh sách giao dịch",
-    "createError": "Không tạo được giao dịch"
+    "createError": "Không tạo được giao dịch",
+    "saveError": "Lưu giao dịch thất bại",
+    "editTitle": "Sửa giao dịch",
+    "edit": "Sửa",
+    "colActions": "Thao tác",
+    "deleteTitle": "Xoá giao dịch",
+    "deleteConfirm": "Xoá giao dịch \"{{note}}\" ({{amount}} ₫)?",
+    "filter": {
+      "all": "Tất cả",
+      "type": "Loại",
+      "category": "Danh mục",
+      "month": "Tháng",
+      "search": "Tìm ghi chú…",
+      "clear": "Xoá lọc"
+    },
+    "noResult": "Không có giao dịch khớp bộ lọc."
   },
   "categories": {
     "add": "Thêm danh mục",
