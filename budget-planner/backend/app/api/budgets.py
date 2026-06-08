@@ -7,8 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models import AuditLog, Budget
-from app.rbac import get_current_space_id
+from app.models import AuditLog, Budget, User
+from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.budget import BudgetCreate, BudgetRead, BudgetUpdate
 from app.services.budget import budget_status
 
@@ -40,7 +40,12 @@ def _to_read(db: Session, budget: Budget) -> BudgetRead:
     )
 
 
-@router.post("", response_model=BudgetRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=BudgetRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_min_role("admin"))],
+)
 def create_budget(
     payload: BudgetCreate,
     db: Session = Depends(get_db),
@@ -79,7 +84,11 @@ def get_budget(
     return _to_read(db, _get_owned(db, budget_id, space_id))
 
 
-@router.patch("/{budget_id}", response_model=BudgetRead)
+@router.patch(
+    "/{budget_id}",
+    response_model=BudgetRead,
+    dependencies=[Depends(require_min_role("admin"))],
+)
 def update_budget(
     budget_id: str,
     payload: BudgetUpdate,
@@ -95,14 +104,19 @@ def update_budget(
     return _to_read(db, budget)
 
 
-@router.delete("/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{budget_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_min_role("admin"))],
+)
 def delete_budget(
     budget_id: str,
     db: Session = Depends(get_db),
     space_id: str = Depends(get_current_space_id),
+    user: User = Depends(get_current_user),
 ) -> None:
     """Xoá ngân sách + ghi audit log (hành động nhạy cảm)."""
     budget = _get_owned(db, budget_id, space_id)
     db.delete(budget)
-    db.add(AuditLog(space_id=space_id, action="budget.deleted", target=budget_id))
+    db.add(AuditLog(space_id=space_id, actor_id=user.id, action="budget.deleted", target=budget_id))
     db.commit()

@@ -23,6 +23,7 @@ def audit_transaction_created(event: TransactionCreated) -> None:
         session.add(
             AuditLog(
                 space_id=event.space_id,
+                actor_id=event.user_id or None,
                 action="transaction.created",
                 target=event.transaction_id,
             )

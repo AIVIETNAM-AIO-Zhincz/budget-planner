@@ -11,8 +11,8 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.events.bus import event_bus
 from app.events.events import BudgetExceeded, TransactionCreated
-from app.models import Budget, Category, Transaction
-from app.rbac import get_current_space_id
+from app.models import Budget, Category, Membership, Transaction
+from app.rbac import get_current_space_id, require_min_role
 from app.schemas.transaction import TransactionCreate, TransactionRead
 from app.services.budget import spent_for_period
 from app.services.categorizer import suggest_category
@@ -58,16 +58,17 @@ def _check_budget_overflow(db: Session, tx: Transaction) -> None:
 def create_transaction(
     payload: TransactionCreate,
     db: Session = Depends(get_db),
-    space_id: str = Depends(get_current_space_id),
+    membership: Membership = Depends(require_min_role("member")),
 ) -> Transaction:
-    """Tạo giao dịch. Nếu thiếu ``category_name`` → AI gợi ý từ ``note``.
+    """Tạo giao dịch (cần vai trò member+). Thiếu ``category_name`` → AI gợi ý.
 
     Sau khi lưu, phát event ``TransactionCreated`` để các handler (audit,
     kiểm tra ngân sách...) xử lý độc lập.
     """
     category = payload.category_name or suggest_category(payload.note)
     tx = Transaction(
-        space_id=space_id,
+        space_id=membership.space_id,
+        user_id=membership.user_id,
         amount=payload.amount,
         type=payload.type,
         category_name=category,
@@ -83,6 +84,7 @@ def create_transaction(
         TransactionCreated(
             transaction_id=tx.id,
             space_id=tx.space_id,
+            user_id=tx.user_id or "",
             amount=tx.amount,
             type=tx.type,
             category_name=tx.category_name,

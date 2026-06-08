@@ -7,8 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models import AuditLog, Category
-from app.rbac import get_current_space_id
+from app.models import AuditLog, Category, User
+from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
 
 router = APIRouter(prefix="/categories", tags=["categories"])
@@ -22,7 +22,12 @@ def _get_owned(db: Session, category_id: str, space_id: str) -> Category:
     return category
 
 
-@router.post("", response_model=CategoryRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=CategoryRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_min_role("admin"))],
+)
 def create_category(
     payload: CategoryCreate,
     db: Session = Depends(get_db),
@@ -61,7 +66,11 @@ def get_category(
     return _get_owned(db, category_id, space_id)
 
 
-@router.patch("/{category_id}", response_model=CategoryRead)
+@router.patch(
+    "/{category_id}",
+    response_model=CategoryRead,
+    dependencies=[Depends(require_min_role("admin"))],
+)
 def update_category(
     category_id: str,
     payload: CategoryUpdate,
@@ -77,14 +86,21 @@ def update_category(
     return category
 
 
-@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{category_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_min_role("admin"))],
+)
 def delete_category(
     category_id: str,
     db: Session = Depends(get_db),
     space_id: str = Depends(get_current_space_id),
+    user: User = Depends(get_current_user),
 ) -> None:
     """Xoá danh mục + ghi audit log (hành động nhạy cảm)."""
     category = _get_owned(db, category_id, space_id)
     db.delete(category)
-    db.add(AuditLog(space_id=space_id, action="category.deleted", target=category_id))
+    db.add(
+        AuditLog(space_id=space_id, actor_id=user.id, action="category.deleted", target=category_id)
+    )
     db.commit()

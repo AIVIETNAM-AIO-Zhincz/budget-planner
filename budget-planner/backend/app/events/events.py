@@ -29,6 +29,7 @@ class TransactionCreated(Event):
 
     transaction_id: str = ""
     space_id: str = ""
+    user_id: str = ""
     amount: float = 0.0
     type: str = "expense"
     category_name: str = ""
