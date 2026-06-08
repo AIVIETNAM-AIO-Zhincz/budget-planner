@@ -10,13 +10,48 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.events.bus import event_bus
-from app.events.events import TransactionCreated
-from app.models import Transaction
+from app.events.events import BudgetExceeded, TransactionCreated
+from app.models import Budget, Category, Transaction
 from app.rbac import get_current_space_id
 from app.schemas.transaction import TransactionCreate, TransactionRead
+from app.services.budget import spent_for_period
 from app.services.categorizer import suggest_category
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
+
+
+def _check_budget_overflow(db: Session, tx: Transaction) -> None:
+    """Sau khi tạo chi tiêu, nếu tổng chi kỳ này vượt hạn mức danh mục →
+    phát ``BudgetExceeded`` để handler cảnh báo. Khớp ngân sách theo tên danh mục.
+    """
+    if tx.type != "expense":
+        return
+    period = tx.date.strftime("%Y-%m")
+    category = db.scalar(
+        select(Category).where(Category.space_id == tx.space_id, Category.name == tx.category_name)
+    )
+    if category is None:
+        return
+    budget = db.scalar(
+        select(Budget).where(
+            Budget.space_id == tx.space_id,
+            Budget.category_id == category.id,
+            Budget.period == period,
+        )
+    )
+    if budget is None:
+        return
+    spent = spent_for_period(db, tx.space_id, tx.category_name, period)
+    if spent > budget.limit_amount:
+        event_bus.publish(
+            BudgetExceeded(
+                space_id=tx.space_id,
+                category_name=tx.category_name,
+                period=period,
+                limit_amount=budget.limit_amount,
+                spent_amount=spent,
+            )
+        )
 
 
 @router.post("", response_model=TransactionRead, status_code=status.HTTP_201_CREATED)
@@ -54,6 +89,7 @@ def create_transaction(
             note=tx.note,
         )
     )
+    _check_budget_overflow(db, tx)
     return tx
 
 

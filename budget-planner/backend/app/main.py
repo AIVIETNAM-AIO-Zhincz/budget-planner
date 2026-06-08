@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import audit, transactions
+from app.api import audit, budgets, categories, transactions
 from app.core.config import settings
 from app.events.handlers import register_handlers
 
@@ -23,6 +23,8 @@ app.add_middleware(
 register_handlers()
 
 app.include_router(transactions.router)
+app.include_router(categories.router)
+app.include_router(budgets.router)
 app.include_router(audit.router)
 
 
