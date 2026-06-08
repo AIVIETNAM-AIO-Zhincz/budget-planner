@@ -185,6 +185,44 @@
       "submit": "Send invite"
     }
   },
+  "settings": {
+    "profile": {
+      "title": "Profile",
+      "desc": "Your display name",
+      "name": "Display name",
+      "save": "Save profile",
+      "saved": "Profile saved"
+    },
+    "password": {
+      "title": "Change password",
+      "desc": "Requires your current password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "save": "Change password",
+      "changed": "Password changed",
+      "mismatch": "Passwords do not match",
+      "tooShort": "New password must be at least 8 characters"
+    },
+    "space": {
+      "title": "Current space",
+      "desc": "Name & currency of the selected space",
+      "name": "Space name",
+      "currency": "Currency",
+      "save": "Save space",
+      "saved": "Space updated",
+      "readonly": "Only owner/admin can edit the space."
+    },
+    "createSpace": {
+      "title": "Create new space",
+      "desc": "You will be the owner of the new space",
+      "name": "Space name",
+      "currency": "Currency",
+      "create": "Create space",
+      "created": "Space created"
+    },
+    "saveError": "Action failed"
+  },
   "pages": {
     "categories": "Categories",
     "categoriesDesc": "Income/expense category tree (parent–child)",

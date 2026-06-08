@@ -91,8 +91,8 @@ export default function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, spaces, spaceId, login, register, logout, selectSpace }),
-    [status, user, spaces, spaceId, login, register, logout, selectSpace]
+    () => ({ status, user, spaces, spaceId, login, register, logout, selectSpace, reload: loadSession }),
+    [status, user, spaces, spaceId, login, register, logout, selectSpace, loadSession]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

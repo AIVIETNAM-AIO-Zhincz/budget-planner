@@ -46,3 +46,16 @@ export function register({ email, password, name = "" }) {
 export function getMe() {
   return apiFetch("/auth/me");
 }
+
+/** Cập nhật hồ sơ (tên hiển thị). */
+export function updateProfile({ name }) {
+  return apiFetch("/auth/me", { method: "PATCH", body: JSON.stringify({ name }) });
+}
+
+/** Đổi mật khẩu (cần đúng mật khẩu hiện tại). 204 → null. */
+export function changePassword({ current_password, new_password }) {
+  return apiFetch("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password, new_password }),
+  });
+}

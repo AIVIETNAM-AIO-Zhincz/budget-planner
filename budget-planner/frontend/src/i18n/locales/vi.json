@@ -185,6 +185,44 @@
       "submit": "Gửi lời mời"
     }
   },
+  "settings": {
+    "profile": {
+      "title": "Hồ sơ",
+      "desc": "Tên hiển thị của bạn",
+      "name": "Tên hiển thị",
+      "save": "Lưu hồ sơ",
+      "saved": "Đã lưu hồ sơ"
+    },
+    "password": {
+      "title": "Đổi mật khẩu",
+      "desc": "Cần đúng mật khẩu hiện tại",
+      "current": "Mật khẩu hiện tại",
+      "new": "Mật khẩu mới",
+      "confirm": "Nhập lại mật khẩu mới",
+      "save": "Đổi mật khẩu",
+      "changed": "Đã đổi mật khẩu",
+      "mismatch": "Mật khẩu nhập lại không khớp",
+      "tooShort": "Mật khẩu mới tối thiểu 8 ký tự"
+    },
+    "space": {
+      "title": "Không gian hiện tại",
+      "desc": "Tên & tiền tệ của không gian đang chọn",
+      "name": "Tên không gian",
+      "currency": "Tiền tệ",
+      "save": "Lưu không gian",
+      "saved": "Đã cập nhật không gian",
+      "readonly": "Chỉ owner/admin mới sửa được không gian."
+    },
+    "createSpace": {
+      "title": "Tạo không gian mới",
+      "desc": "Bạn sẽ là owner của không gian mới",
+      "name": "Tên không gian",
+      "currency": "Tiền tệ",
+      "create": "Tạo không gian",
+      "created": "Đã tạo không gian"
+    },
+    "saveError": "Thao tác thất bại"
+  },
   "pages": {
     "categories": "Danh mục",
     "categoriesDesc": "Cây danh mục thu/chi (cha–con)",

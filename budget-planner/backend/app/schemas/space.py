@@ -14,6 +14,13 @@ class SpaceCreate(BaseModel):
     currency: str = Field(default="VND", max_length=8)
 
 
+class SpaceUpdate(BaseModel):
+    """Payload sửa không gian (partial)."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    currency: str | None = Field(default=None, max_length=8)
+
+
 class SpaceRead(BaseModel):
     """Không gian trả về kèm vai trò của user hiện tại."""
 

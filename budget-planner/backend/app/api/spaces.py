@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.models import Membership, Space, User
-from app.rbac import get_current_user
-from app.schemas.space import SpaceCreate, SpaceRead
+from app.rbac import get_current_user, require_min_role
+from app.schemas.space import SpaceCreate, SpaceRead, SpaceUpdate
 
 router = APIRouter(prefix="/spaces", tags=["spaces"])
 
@@ -52,4 +52,30 @@ def create_space(
     db.refresh(space)
     return SpaceRead(
         id=space.id, name=space.name, owner_id=space.owner_id, currency=space.currency, role="owner"
+    )
+
+
+@router.patch("/{space_id}", response_model=SpaceRead)
+def update_space(
+    space_id: str,
+    payload: SpaceUpdate,
+    current: Membership = Depends(require_min_role("admin")),
+    db: Session = Depends(get_db),
+) -> SpaceRead:
+    """Sửa không gian hiện tại (tên/tiền tệ) — cần owner/admin."""
+    if space_id != current.space_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy không gian"
+        )
+    space = db.get(Space, current.space_id)
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(space, field, value)
+    db.commit()
+    db.refresh(space)
+    return SpaceRead(
+        id=space.id,
+        name=space.name,
+        owner_id=space.owner_id,
+        currency=space.currency,
+        role=current.role,
     )

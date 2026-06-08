@@ -36,3 +36,16 @@ class RefreshRequest(BaseModel):
     """Payload làm mới access token."""
 
     refresh_token: str
+
+
+class PasswordChange(BaseModel):
+    """Payload đổi mật khẩu."""
+
+    current_password: str
+    new_password: str = Field(min_length=8, description="Mật khẩu mới tối thiểu 8 ký tự")
+
+
+class ProfileUpdate(BaseModel):
+    """Payload đổi thông tin hồ sơ."""
+
+    name: str = Field(max_length=255)

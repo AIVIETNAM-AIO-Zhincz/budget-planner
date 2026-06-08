@@ -47,3 +47,56 @@ def test_protected_endpoints_require_token(client: TestClient) -> None:
     assert client.get("/transactions").status_code == 401
     assert client.get("/categories").status_code == 401
     assert client.get("/budgets").status_code == 401
+
+
+def test_change_password(client: TestClient, register) -> None:
+    u = register(email="a@x.com")
+    auth = {"Authorization": f"Bearer {u['access']}"}
+    r = client.post(
+        "/auth/change-password",
+        json={"current_password": "password123", "new_password": "newpass123"},
+        headers=auth,
+    )
+    assert r.status_code == 204
+    # mật khẩu cũ không còn dùng được, mật khẩu mới đăng nhập OK
+    assert (
+        client.post(
+            "/auth/login", data={"username": "a@x.com", "password": "password123"}
+        ).status_code
+        == 401
+    )
+    assert (
+        client.post(
+            "/auth/login", data={"username": "a@x.com", "password": "newpass123"}
+        ).status_code
+        == 200
+    )
+
+
+def test_change_password_wrong_current_400(client: TestClient, register) -> None:
+    u = register(email="a@x.com")
+    r = client.post(
+        "/auth/change-password",
+        json={"current_password": "sai-roi", "new_password": "newpass123"},
+        headers={"Authorization": f"Bearer {u['access']}"},
+    )
+    assert r.status_code == 400
+
+
+def test_change_password_too_short_422(client: TestClient, register) -> None:
+    u = register(email="a@x.com")
+    r = client.post(
+        "/auth/change-password",
+        json={"current_password": "password123", "new_password": "short"},
+        headers={"Authorization": f"Bearer {u['access']}"},
+    )
+    assert r.status_code == 422
+
+
+def test_update_profile_name(client: TestClient, register) -> None:
+    u = register(email="a@x.com")
+    r = client.patch(
+        "/auth/me", json={"name": "Tên Mới"}, headers={"Authorization": f"Bearer {u['access']}"}
+    )
+    assert r.status_code == 200
+    assert r.json()["name"] == "Tên Mới"

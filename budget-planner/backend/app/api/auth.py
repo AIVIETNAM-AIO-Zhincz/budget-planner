@@ -17,7 +17,14 @@ from app.core.security import (
 )
 from app.models import Membership, Space, User
 from app.rbac import get_current_user
-from app.schemas.auth import RefreshRequest, Token, UserCreate, UserRead
+from app.schemas.auth import (
+    PasswordChange,
+    ProfileUpdate,
+    RefreshRequest,
+    Token,
+    UserCreate,
+    UserRead,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -86,3 +93,31 @@ def refresh(payload: RefreshRequest) -> Token:
 def me(user: User = Depends(get_current_user)) -> User:
     """Thông tin user đang đăng nhập."""
     return user
+
+
+@router.patch("/me", response_model=UserRead)
+def update_profile(
+    payload: ProfileUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Cập nhật hồ sơ (tên hiển thị)."""
+    user.name = payload.name
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    payload: PasswordChange,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Đổi mật khẩu (cần đúng mật khẩu hiện tại)."""
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Mật khẩu hiện tại không đúng"
+        )
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
