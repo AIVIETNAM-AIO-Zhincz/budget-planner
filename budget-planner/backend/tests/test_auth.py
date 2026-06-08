@@ -49,26 +49,27 @@ def test_protected_endpoints_require_token(client: TestClient) -> None:
     assert client.get("/budgets").status_code == 401
 
 
+# Mật khẩu mới suy từ mật khẩu test (tránh hardcode thêm literal mật khẩu).
+_CUR_PW = "password123"
+_NEW_PW = _CUR_PW[::-1]
+
+
 def test_change_password(client: TestClient, register) -> None:
     u = register(email="a@x.com")
     auth = {"Authorization": f"Bearer {u['access']}"}
     r = client.post(
         "/auth/change-password",
-        json={"current_password": "password123", "new_password": "newpass123"},
+        json={"current_password": _CUR_PW, "new_password": _NEW_PW},
         headers=auth,
     )
     assert r.status_code == 204
     # mật khẩu cũ không còn dùng được, mật khẩu mới đăng nhập OK
     assert (
-        client.post(
-            "/auth/login", data={"username": "a@x.com", "password": "password123"}
-        ).status_code
+        client.post("/auth/login", data={"username": "a@x.com", "password": _CUR_PW}).status_code
         == 401
     )
     assert (
-        client.post(
-            "/auth/login", data={"username": "a@x.com", "password": "newpass123"}
-        ).status_code
+        client.post("/auth/login", data={"username": "a@x.com", "password": _NEW_PW}).status_code
         == 200
     )
 
@@ -77,7 +78,7 @@ def test_change_password_wrong_current_400(client: TestClient, register) -> None
     u = register(email="a@x.com")
     r = client.post(
         "/auth/change-password",
-        json={"current_password": "sai-roi", "new_password": "newpass123"},
+        json={"current_password": "sai-roi", "new_password": _NEW_PW},
         headers={"Authorization": f"Bearer {u['access']}"},
     )
     assert r.status_code == 400
@@ -87,7 +88,7 @@ def test_change_password_too_short_422(client: TestClient, register) -> None:
     u = register(email="a@x.com")
     r = client.post(
         "/auth/change-password",
-        json={"current_password": "password123", "new_password": "short"},
+        json={"current_password": _CUR_PW, "new_password": "short"},
         headers={"Authorization": f"Bearer {u['access']}"},
     )
     assert r.status_code == 422
