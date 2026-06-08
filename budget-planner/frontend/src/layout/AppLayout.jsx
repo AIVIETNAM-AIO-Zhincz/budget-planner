@@ -3,6 +3,7 @@ import { Box, Toolbar } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import Sidebar, { DRAWER_WIDTH, COLLAPSED_WIDTH } from "./Sidebar.jsx";
 import TopBar from "./TopBar.jsx";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 const COLLAPSE_KEY = "bp-sidebar-collapsed";
 
@@ -23,6 +24,7 @@ export default function AppLayout() {
   }, [collapsed]);
 
   const drawerWidth = collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
+  const { spaceId } = useAuth();
 
   const toggleCollapsed = useCallback(() => setCollapsed((v) => !v), []);
   const openMobile = useCallback(() => setMobileOpen(true), []);
@@ -49,7 +51,8 @@ export default function AppLayout() {
         })}
       >
         <Toolbar sx={{ minHeight: 70 }} />
-        <Box sx={{ p: { xs: 2, md: 3 } }}>
+        {/* key theo space → remount nội dung khi đổi không gian (tự refetch). */}
+        <Box key={spaceId} sx={{ p: { xs: 2, md: 3 } }}>
           <Outlet />
         </Box>
       </Box>

@@ -22,7 +22,24 @@
     "toggleTheme": "Đổi sáng/tối",
     "language": "Ngôn ngữ",
     "notifications": "Thông báo",
-    "space": "Không gian"
+    "space": "Không gian",
+    "account": "Tài khoản",
+    "logout": "Đăng xuất"
+  },
+  "auth": {
+    "loginTitle": "Đăng nhập",
+    "registerTitle": "Đăng ký",
+    "subtitle": "Trợ lý tài chính AI có phân quyền",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "name": "Tên hiển thị",
+    "login": "Đăng nhập",
+    "register": "Tạo tài khoản",
+    "noAccount": "Chưa có tài khoản? Đăng ký",
+    "haveAccount": "Đã có tài khoản? Đăng nhập",
+    "loginError": "Đăng nhập thất bại",
+    "registerError": "Đăng ký thất bại",
+    "passwordHint": "Tối thiểu 8 ký tự"
   },
   "common": {
     "comingSoon": "Sắp ra mắt",

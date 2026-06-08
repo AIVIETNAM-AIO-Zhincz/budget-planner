@@ -12,13 +12,16 @@ import "@fontsource/jetbrains-mono/600.css";
 
 import "./i18n/index.js";
 import ColorModeProvider from "./theme/ColorModeContext.jsx";
+import AuthProvider from "./auth/AuthContext.jsx";
 import App from "./App.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ColorModeProvider>
       <BrowserRouter>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </BrowserRouter>
     </ColorModeProvider>
   </React.StrictMode>

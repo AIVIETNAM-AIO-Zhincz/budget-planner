@@ -22,7 +22,24 @@
     "toggleTheme": "Toggle light/dark",
     "language": "Language",
     "notifications": "Notifications",
-    "space": "Space"
+    "space": "Space",
+    "account": "Account",
+    "logout": "Log out"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "registerTitle": "Sign up",
+    "subtitle": "AI finance assistant with access control",
+    "email": "Email",
+    "password": "Password",
+    "name": "Display name",
+    "login": "Sign in",
+    "register": "Create account",
+    "noAccount": "No account? Sign up",
+    "haveAccount": "Have an account? Sign in",
+    "loginError": "Sign in failed",
+    "registerError": "Sign up failed",
+    "passwordHint": "At least 8 characters"
   },
   "common": {
     "comingSoon": "Coming soon",
