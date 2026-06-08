@@ -140,6 +140,34 @@
       "limitRequired": "Hạn mức phải lớn hơn 0"
     }
   },
+  "members": {
+    "invite": "Mời thành viên",
+    "colMember": "Thành viên",
+    "colRole": "Vai trò",
+    "colActions": "Thao tác",
+    "you": "(bạn)",
+    "empty": "Chưa có thành viên nào.",
+    "roles": {
+      "owner": "Chủ sở hữu",
+      "admin": "Quản trị",
+      "member": "Thành viên",
+      "viewer": "Người xem"
+    },
+    "removeTitle": "Xoá thành viên",
+    "removeConfirm": "Xoá \"{{name}}\" khỏi không gian này?",
+    "invited": "Đã mời thành viên",
+    "updated": "Đã đổi vai trò",
+    "removed": "Đã xoá thành viên",
+    "loadError": "Không tải được danh sách thành viên",
+    "saveError": "Thao tác thất bại",
+    "form": {
+      "title": "Mời thành viên",
+      "email": "Email",
+      "emailHint": "Người dùng phải đã có tài khoản",
+      "role": "Vai trò",
+      "submit": "Gửi lời mời"
+    }
+  },
   "pages": {
     "categories": "Danh mục",
     "categoriesDesc": "Cây danh mục thu/chi (cha–con)",

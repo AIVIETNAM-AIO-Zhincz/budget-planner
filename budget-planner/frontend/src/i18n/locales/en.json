@@ -140,6 +140,34 @@
       "limitRequired": "Limit must be greater than 0"
     }
   },
+  "members": {
+    "invite": "Invite member",
+    "colMember": "Member",
+    "colRole": "Role",
+    "colActions": "Actions",
+    "you": "(you)",
+    "empty": "No members yet.",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member",
+      "viewer": "Viewer"
+    },
+    "removeTitle": "Remove member",
+    "removeConfirm": "Remove \"{{name}}\" from this space?",
+    "invited": "Member invited",
+    "updated": "Role updated",
+    "removed": "Member removed",
+    "loadError": "Could not load members",
+    "saveError": "Action failed",
+    "form": {
+      "title": "Invite member",
+      "email": "Email",
+      "emailHint": "The user must already have an account",
+      "role": "Role",
+      "submit": "Send invite"
+    }
+  },
   "pages": {
     "categories": "Categories",
     "categoriesDesc": "Income/expense category tree (parent–child)",
