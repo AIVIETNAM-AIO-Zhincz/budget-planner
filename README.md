@@ -21,7 +21,14 @@ Project competition song hành cùng AIO2026 (Module 01→10 ↔ Project 01→10
 
 ```
 conquer/
-└── pipeline/   # sản phẩm tích hợp của nhóm (do team xây, leader điều phối + merge)
+├── docs/               # tài liệu project
+│   └── product-description.md   # Budget Planner — sản phẩm end-to-end (AI-first, có RBAC)
+├── report-template/    # kit LaTeX nộp báo cáo + Budget_Planner_Report.tex (hướng Đi làm)
+└── pipeline/           # sản phẩm tích hợp của nhóm (do team xây, leader điều phối + merge)
 ```
+
+## Tài liệu
+
+- [`docs/product-description.md`](docs/product-description.md) — mô tả sản phẩm **Budget Planner** hoàn chỉnh: luồng đăng nhập → quản lý chi tiêu → **phân quyền (RBAC)**, với **AI là trụ cột** (tự phân loại, nhập ngôn ngữ tự nhiên, dự báo, trợ lý hỏi-đáp).
 
 > Tài liệu vai trò chi tiết: note `AIO Conquer 2026 - Role - Tech Leader` trong Obsidian vault.
