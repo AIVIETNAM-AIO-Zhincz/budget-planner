@@ -34,6 +34,9 @@
     "cancel": "Cancel",
     "save": "Save",
     "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
     "notFound": "Page not found",
     "backHome": "Back home"
   },
@@ -75,6 +78,50 @@
     "created": "Transaction added",
     "loadError": "Could not load transactions",
     "createError": "Could not create transaction"
+  },
+  "categories": {
+    "add": "Add category",
+    "empty": "No categories yet. Click \"Add category\" to start.",
+    "expense": "Expense",
+    "income": "Income",
+    "deleteTitle": "Delete category",
+    "deleteConfirm": "Delete category \"{{name}}\"? Its children (if any) will lose their parent.",
+    "created": "Category added",
+    "updated": "Category updated",
+    "deleted": "Category deleted",
+    "loadError": "Could not load categories",
+    "saveError": "Could not save category",
+    "form": {
+      "addTitle": "Add category",
+      "editTitle": "Edit category",
+      "name": "Category name",
+      "type": "Type",
+      "parent": "Parent category",
+      "parentNone": "— None (top-level) —",
+      "nameRequired": "Name is required"
+    }
+  },
+  "budgets": {
+    "add": "Add budget",
+    "empty": "No budgets yet. Click \"Add budget\" to start.",
+    "noCategory": "No category",
+    "spentOf": "Spent {{spent}} / {{limit}} ₫",
+    "remaining": "Remaining: {{remaining}} ₫",
+    "deleteTitle": "Delete budget",
+    "deleteConfirm": "Delete budget for {{period}}?",
+    "created": "Budget added",
+    "updated": "Budget updated",
+    "deleted": "Budget deleted",
+    "loadError": "Could not load budgets",
+    "saveError": "Could not save budget",
+    "form": {
+      "addTitle": "Add budget",
+      "editTitle": "Edit budget",
+      "category": "Category",
+      "period": "Period (month)",
+      "limit": "Limit",
+      "limitRequired": "Limit must be greater than 0"
+    }
   },
   "pages": {
     "categories": "Categories",

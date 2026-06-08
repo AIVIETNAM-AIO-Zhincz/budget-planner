@@ -30,3 +30,15 @@ export function categoryColor(name) {
   }
   return CATEGORY_COLORS[hash % CATEGORY_COLORS.length];
 }
+
+/**
+ * Màu (theo MUI palette) cho tiến độ ngân sách dựa trên %.
+ *
+ * @param {number} percent phần trăm đã chi.
+ * @returns {"success"|"warning"|"error"}
+ */
+export function budgetTone(percent) {
+  if (percent >= 100) return "error";
+  if (percent >= 80) return "warning";
+  return "success";
+}

@@ -34,6 +34,9 @@
     "cancel": "Huỷ",
     "save": "Lưu",
     "add": "Thêm",
+    "edit": "Sửa",
+    "delete": "Xoá",
+    "confirm": "Xác nhận",
     "notFound": "Không tìm thấy trang",
     "backHome": "Về trang chủ"
   },
@@ -75,6 +78,50 @@
     "created": "Đã thêm giao dịch",
     "loadError": "Không tải được danh sách giao dịch",
     "createError": "Không tạo được giao dịch"
+  },
+  "categories": {
+    "add": "Thêm danh mục",
+    "empty": "Chưa có danh mục. Bấm \"Thêm danh mục\" để bắt đầu.",
+    "expense": "Chi",
+    "income": "Thu",
+    "deleteTitle": "Xoá danh mục",
+    "deleteConfirm": "Xoá danh mục \"{{name}}\"? Danh mục con (nếu có) sẽ không còn cha.",
+    "created": "Đã thêm danh mục",
+    "updated": "Đã cập nhật danh mục",
+    "deleted": "Đã xoá danh mục",
+    "loadError": "Không tải được danh mục",
+    "saveError": "Không lưu được danh mục",
+    "form": {
+      "addTitle": "Thêm danh mục",
+      "editTitle": "Sửa danh mục",
+      "name": "Tên danh mục",
+      "type": "Loại",
+      "parent": "Danh mục cha",
+      "parentNone": "— Không có (danh mục gốc) —",
+      "nameRequired": "Tên không được để trống"
+    }
+  },
+  "budgets": {
+    "add": "Thêm ngân sách",
+    "empty": "Chưa có ngân sách. Bấm \"Thêm ngân sách\" để bắt đầu.",
+    "noCategory": "Chưa gán danh mục",
+    "spentOf": "Đã chi {{spent}} / {{limit}} ₫",
+    "remaining": "Còn lại: {{remaining}} ₫",
+    "deleteTitle": "Xoá ngân sách",
+    "deleteConfirm": "Xoá ngân sách kỳ {{period}}?",
+    "created": "Đã thêm ngân sách",
+    "updated": "Đã cập nhật ngân sách",
+    "deleted": "Đã xoá ngân sách",
+    "loadError": "Không tải được ngân sách",
+    "saveError": "Không lưu được ngân sách",
+    "form": {
+      "addTitle": "Thêm ngân sách",
+      "editTitle": "Sửa ngân sách",
+      "category": "Danh mục",
+      "period": "Kỳ (tháng)",
+      "limit": "Hạn mức",
+      "limitRequired": "Hạn mức phải lớn hơn 0"
+    }
   },
   "pages": {
     "categories": "Danh mục",
