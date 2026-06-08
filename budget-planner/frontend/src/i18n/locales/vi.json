@@ -1,0 +1,91 @@
+{
+  "app": {
+    "title": "Budget Planner",
+    "subtitle": "Trợ lý tài chính AI"
+  },
+  "nav": {
+    "section": {
+      "overview": "Tổng quan",
+      "manage": "Quản lý",
+      "system": "Hệ thống"
+    },
+    "dashboard": "Bảng điều khiển",
+    "transactions": "Giao dịch",
+    "categories": "Danh mục",
+    "budgets": "Ngân sách",
+    "reports": "Báo cáo",
+    "members": "Thành viên",
+    "settings": "Cài đặt"
+  },
+  "topbar": {
+    "toggleSidebar": "Thu gọn thanh bên",
+    "toggleTheme": "Đổi sáng/tối",
+    "language": "Ngôn ngữ",
+    "notifications": "Thông báo",
+    "space": "Không gian"
+  },
+  "common": {
+    "comingSoon": "Sắp ra mắt",
+    "comingSoonDesc": "Tính năng này đang chờ API ở phase tiếp theo của backend.",
+    "loading": "Đang tải…",
+    "empty": "Chưa có dữ liệu",
+    "error": "Đã xảy ra lỗi",
+    "retry": "Thử lại",
+    "cancel": "Huỷ",
+    "save": "Lưu",
+    "add": "Thêm",
+    "notFound": "Không tìm thấy trang",
+    "backHome": "Về trang chủ"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "subtitle": "Tổng quan thu chi của không gian",
+    "totalIncome": "Tổng thu",
+    "totalExpense": "Tổng chi",
+    "balance": "Số dư",
+    "txnCount": "Số giao dịch",
+    "byCategory": "Chi tiêu theo danh mục",
+    "overTime": "Biến động theo thời gian",
+    "noData": "Chưa có giao dịch nào để thống kê"
+  },
+  "transactions": {
+    "title": "Giao dịch",
+    "subtitle": "Quản lý thu chi, danh mục do AI gợi ý",
+    "add": "Thêm giao dịch",
+    "colDate": "Ngày",
+    "colNote": "Ghi chú",
+    "colCategory": "Danh mục (AI)",
+    "colType": "Loại",
+    "colAmount": "Số tiền",
+    "income": "Thu",
+    "expense": "Chi",
+    "empty": "Chưa có giao dịch. Bấm \"Thêm giao dịch\" để bắt đầu.",
+    "form": {
+      "title": "Thêm giao dịch",
+      "amount": "Số tiền",
+      "type": "Loại",
+      "note": "Ghi chú",
+      "noteHint": "VD: ăn trưa cùng team",
+      "category": "Danh mục",
+      "categoryHint": "Để trống để AI tự gợi ý",
+      "date": "Ngày",
+      "submit": "Lưu giao dịch",
+      "amountRequired": "Số tiền phải lớn hơn 0"
+    },
+    "created": "Đã thêm giao dịch",
+    "loadError": "Không tải được danh sách giao dịch",
+    "createError": "Không tạo được giao dịch"
+  },
+  "pages": {
+    "categories": "Danh mục",
+    "categoriesDesc": "Cây danh mục thu/chi (cha–con)",
+    "budgets": "Ngân sách",
+    "budgetsDesc": "Hạn mức theo danh mục/tháng + cảnh báo vượt",
+    "reports": "Báo cáo",
+    "reportsDesc": "Biểu đồ & phân tích chi tiêu",
+    "members": "Thành viên",
+    "membersDesc": "Mời thành viên, phân vai trò (RBAC)",
+    "settings": "Cài đặt",
+    "settingsDesc": "Thiết lập không gian, tiền tệ, bảo mật"
+  }
+}

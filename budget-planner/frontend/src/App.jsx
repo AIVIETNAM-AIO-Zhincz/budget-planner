@@ -1,82 +1,97 @@
-import { useEffect, useState } from "react";
-import { createTransaction, listTransactions } from "./api.js";
+import { lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
+import { Box, CircularProgress } from "@mui/material";
+import AppLayout from "./layout/AppLayout.jsx";
 
-export default function App() {
-  const [items, setItems] = useState([]);
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
-  const [error, setError] = useState("");
+// Lazy-load từng trang để tách bundle (đặc biệt echarts chỉ tải khi vào trang biểu đồ).
+const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
+const Transactions = lazy(() => import("./pages/Transactions.jsx"));
+const Categories = lazy(() => import("./pages/Categories.jsx"));
+const Budgets = lazy(() => import("./pages/Budgets.jsx"));
+const Reports = lazy(() => import("./pages/Reports.jsx"));
+const Members = lazy(() => import("./pages/Members.jsx"));
+const Settings = lazy(() => import("./pages/Settings.jsx"));
+const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
-  async function refresh() {
-    try {
-      setItems(await listTransactions());
-    } catch (e) {
-      setError(e.message);
-    }
-  }
-
-  useEffect(() => {
-    refresh();
-  }, []);
-
-  async function onSubmit(e) {
-    e.preventDefault();
-    setError("");
-    try {
-      // Bỏ trống category_name → backend (AI) tự gợi ý danh mục.
-      await createTransaction({ amount, note, category_name: "" });
-      setAmount("");
-      setNote("");
-      refresh();
-    } catch (e) {
-      setError(e.message);
-    }
-  }
-
+/** Fallback khi đang tải chunk của trang. */
+function PageLoader() {
   return (
-    <main style={{ maxWidth: 640, margin: "2rem auto", fontFamily: "system-ui" }}>
-      <h1>Budget Planner</h1>
-      <p>Nhập giao dịch — AI sẽ tự gợi ý danh mục.</p>
+    <Box sx={{ display: "grid", placeItems: "center", py: 10 }}>
+      <CircularProgress />
+    </Box>
+  );
+}
 
-      <form onSubmit={onSubmit} style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <input
-          type="number"
-          placeholder="Số tiền"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
+/** Khai báo router của ứng dụng — mọi trang nằm trong AppLayout. */
+export default function App() {
+  return (
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route
+          index
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Dashboard />
+            </Suspense>
+          }
         />
-        <input
-          placeholder="Ghi chú (vd: ăn trưa)"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          style={{ flex: 1 }}
+        <Route
+          path="transactions"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Transactions />
+            </Suspense>
+          }
         />
-        <button type="submit">Thêm</button>
-      </form>
-
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
-
-      <table width="100%" cellPadding="6">
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Ngày</th>
-            <th>Ghi chú</th>
-            <th>Danh mục (AI)</th>
-            <th style={{ textAlign: "right" }}>Số tiền</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((t) => (
-            <tr key={t.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>{t.date}</td>
-              <td>{t.note}</td>
-              <td>{t.category_name}</td>
-              <td style={{ textAlign: "right" }}>{t.amount.toLocaleString("vi-VN")}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
+        <Route
+          path="categories"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Categories />
+            </Suspense>
+          }
+        />
+        <Route
+          path="budgets"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Budgets />
+            </Suspense>
+          }
+        />
+        <Route
+          path="reports"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Reports />
+            </Suspense>
+          }
+        />
+        <Route
+          path="members"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Members />
+            </Suspense>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <Settings />
+            </Suspense>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <NotFound />
+            </Suspense>
+          }
+        />
+      </Route>
+    </Routes>
   );
 }

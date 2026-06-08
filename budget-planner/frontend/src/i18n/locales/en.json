@@ -1,0 +1,91 @@
+{
+  "app": {
+    "title": "Budget Planner",
+    "subtitle": "AI finance assistant"
+  },
+  "nav": {
+    "section": {
+      "overview": "Overview",
+      "manage": "Manage",
+      "system": "System"
+    },
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "categories": "Categories",
+    "budgets": "Budgets",
+    "reports": "Reports",
+    "members": "Members",
+    "settings": "Settings"
+  },
+  "topbar": {
+    "toggleSidebar": "Collapse sidebar",
+    "toggleTheme": "Toggle light/dark",
+    "language": "Language",
+    "notifications": "Notifications",
+    "space": "Space"
+  },
+  "common": {
+    "comingSoon": "Coming soon",
+    "comingSoonDesc": "This feature is waiting on a backend API in a later phase.",
+    "loading": "Loading…",
+    "empty": "No data yet",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "add": "Add",
+    "notFound": "Page not found",
+    "backHome": "Back home"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Income & expense overview of the space",
+    "totalIncome": "Total income",
+    "totalExpense": "Total expense",
+    "balance": "Balance",
+    "txnCount": "Transactions",
+    "byCategory": "Spending by category",
+    "overTime": "Trend over time",
+    "noData": "No transactions to chart yet"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "Track income & expenses, categories suggested by AI",
+    "add": "Add transaction",
+    "colDate": "Date",
+    "colNote": "Note",
+    "colCategory": "Category (AI)",
+    "colType": "Type",
+    "colAmount": "Amount",
+    "income": "Income",
+    "expense": "Expense",
+    "empty": "No transactions yet. Click \"Add transaction\" to start.",
+    "form": {
+      "title": "Add transaction",
+      "amount": "Amount",
+      "type": "Type",
+      "note": "Note",
+      "noteHint": "e.g. lunch with team",
+      "category": "Category",
+      "categoryHint": "Leave empty for AI suggestion",
+      "date": "Date",
+      "submit": "Save transaction",
+      "amountRequired": "Amount must be greater than 0"
+    },
+    "created": "Transaction added",
+    "loadError": "Could not load transactions",
+    "createError": "Could not create transaction"
+  },
+  "pages": {
+    "categories": "Categories",
+    "categoriesDesc": "Income/expense category tree (parent–child)",
+    "budgets": "Budgets",
+    "budgetsDesc": "Limits per category/month + overflow alerts",
+    "reports": "Reports",
+    "reportsDesc": "Charts & spending analysis",
+    "members": "Members",
+    "membersDesc": "Invite members, assign roles (RBAC)",
+    "settings": "Settings",
+    "settingsDesc": "Space, currency and security settings"
+  }
+}
