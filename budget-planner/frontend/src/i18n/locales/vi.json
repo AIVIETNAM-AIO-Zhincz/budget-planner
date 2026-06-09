@@ -69,7 +69,17 @@
     "txnCount": "Số giao dịch",
     "byCategory": "Chi tiêu theo danh mục",
     "overTime": "Biến động theo thời gian",
-    "noData": "Chưa có giao dịch nào để thống kê"
+    "noData": "Chưa có giao dịch nào để thống kê",
+    "budgetOverview": "Tổng quan ngân sách (tháng này)",
+    "walletBalances": "Số dư các ví",
+    "recentTransactions": "Giao dịch gần đây",
+    "upcomingRecurring": "Định kỳ sắp đến hạn",
+    "viewAll": "Xem tất cả",
+    "walletTotal": "Tổng số dư",
+    "noBudgetsThisMonth": "Chưa có ngân sách cho tháng này.",
+    "noWallets": "Chưa có ví nào.",
+    "noRecentTx": "Chưa có giao dịch nào.",
+    "noUpcoming": "Không có khoản định kỳ nào sắp tới."
   },
   "transactions": {
     "title": "Giao dịch",

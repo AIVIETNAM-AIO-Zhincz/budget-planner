@@ -69,7 +69,17 @@
     "txnCount": "Transactions",
     "byCategory": "Spending by category",
     "overTime": "Trend over time",
-    "noData": "No transactions to chart yet"
+    "noData": "No transactions to chart yet",
+    "budgetOverview": "Budget overview (this month)",
+    "walletBalances": "Wallet balances",
+    "recentTransactions": "Recent transactions",
+    "upcomingRecurring": "Upcoming recurring",
+    "viewAll": "View all",
+    "walletTotal": "Total balance",
+    "noBudgetsThisMonth": "No budgets for this month yet.",
+    "noWallets": "No wallets yet.",
+    "noRecentTx": "No transactions yet.",
+    "noUpcoming": "No upcoming recurring items."
   },
   "transactions": {
     "title": "Transactions",
