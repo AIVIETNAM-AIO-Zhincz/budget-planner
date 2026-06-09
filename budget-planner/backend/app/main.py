@@ -12,6 +12,7 @@ from app.api import (
     budgets,
     categories,
     members,
+    reports,
     spaces,
     transactions,
     wallets,
@@ -39,6 +40,7 @@ app.include_router(transactions.router)
 app.include_router(categories.router)
 app.include_router(budgets.router)
 app.include_router(wallets.router)
+app.include_router(reports.router)
 app.include_router(assistant.router)
 app.include_router(audit.router)
 

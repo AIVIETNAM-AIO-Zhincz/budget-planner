@@ -268,6 +268,21 @@
     "error": "Có lỗi xảy ra, thử lại nhé.",
     "examples": "Ví dụ: \"cà phê 35k\", \"lương 15tr hôm qua\", \"số dư ví?\""
   },
+  "reports": {
+    "from": "Từ ngày",
+    "to": "Đến ngày",
+    "exportCsv": "Xuất CSV",
+    "exported": "Đã tải file CSV",
+    "totalIncome": "Tổng thu",
+    "totalExpense": "Tổng chi",
+    "balance": "Số dư",
+    "topCategories": "Top danh mục chi",
+    "byCategory": "Chi theo danh mục",
+    "overTime": "Thu/chi theo ngày",
+    "empty": "Không có dữ liệu trong khoảng đã chọn.",
+    "loadError": "Không tải được báo cáo",
+    "exportError": "Không xuất được CSV"
+  },
   "pages": {
     "assistant": "Trợ lý",
     "assistantDesc": "Nhập giao dịch bằng ngôn ngữ tự nhiên & hỏi-đáp số liệu",
