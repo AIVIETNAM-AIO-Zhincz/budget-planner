@@ -42,3 +42,31 @@ class TransactionRead(TransactionBase):
     space_id: str
     category_name: str
     date: date_type
+
+
+class ImportRowError(BaseModel):
+    """Lỗi của một dòng CSV khi nhập."""
+
+    line: int
+    message: str
+
+
+class ImportPreviewRow(BaseModel):
+    """Một dòng hợp lệ (xem trước trước khi nhập)."""
+
+    date: date_type
+    type: str
+    category_name: str
+    note: str
+    amount: float
+
+
+class ImportResult(BaseModel):
+    """Kết quả nhập CSV (dry-run hoặc đã tạo)."""
+
+    dry_run: bool
+    valid_count: int
+    error_count: int
+    created: int
+    errors: list[ImportRowError]
+    preview: list[ImportPreviewRow]

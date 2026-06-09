@@ -126,7 +126,21 @@
       "search": "Tìm ghi chú…",
       "clear": "Xoá lọc"
     },
-    "noResult": "Không có giao dịch khớp bộ lọc."
+    "noResult": "Không có giao dịch khớp bộ lọc.",
+    "import": {
+      "button": "Nhập CSV",
+      "title": "Nhập giao dịch từ CSV",
+      "columnsHint": "File cần cột: date, type, category_name, note, amount (khớp file xuất từ Báo cáo).",
+      "chooseFile": "Chọn file CSV…",
+      "validCount": "Hợp lệ: {{count}}",
+      "errorCount": "Lỗi: {{count}}",
+      "previewTitle": "Xem trước (tối đa 20 dòng):",
+      "errorsTitle": "Các dòng bị bỏ qua:",
+      "lineLabel": "Dòng {{line}}",
+      "doImport": "Nhập",
+      "imported": "Đã nhập {{count}} giao dịch",
+      "parseError": "Không đọc được file CSV"
+    }
   },
   "categories": {
     "add": "Thêm danh mục",

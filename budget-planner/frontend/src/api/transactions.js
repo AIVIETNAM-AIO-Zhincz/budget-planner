@@ -1,4 +1,4 @@
-import { apiFetch } from "./client.js";
+import { apiFetch, ApiError, BASE_URL, getAccessToken, getSpaceId } from "./client.js";
 
 /**
  * Lấy danh sách giao dịch, lọc theo {type, category, month, q} (bỏ field rỗng).
@@ -59,4 +59,32 @@ export function updateTransaction(id, patch) {
 /** Xoá giao dịch (204 → null). */
 export function deleteTransaction(id) {
   return apiFetch(`/transactions/${id}`, { method: "DELETE" });
+}
+
+/**
+ * Nhập giao dịch từ file CSV (multipart). `dryRun` chỉ xem trước, không tạo.
+ *
+ * @param {File} file
+ * @param {boolean} dryRun
+ * @returns {Promise<{dry_run:boolean, valid_count:number, error_count:number,
+ *   created:number, errors:Array, preview:Array}>}
+ */
+export async function importTransactions(file, dryRun) {
+  const form = new FormData();
+  form.append("file", file);
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}/transactions/import?dry_run=${dryRun ? "true" : "false"}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getAccessToken()}`, "X-Space-Id": getSpaceId() || "" },
+      body: form,
+    });
+  } catch (err) {
+    throw new ApiError(err?.message || "Không kết nối được máy chủ", 0);
+  }
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new ApiError(data?.detail || "Nhập CSV thất bại", res.status);
+  }
+  return data;
 }

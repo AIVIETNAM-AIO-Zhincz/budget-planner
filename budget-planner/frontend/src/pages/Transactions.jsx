@@ -24,12 +24,19 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { PlusIcon, PencilSquareIcon, TrashIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  MagnifyingGlassIcon,
+  ArrowUpTrayIcon,
+} from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import CategoryChip from "../components/CategoryChip.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import TransactionFormDialog from "../components/TransactionFormDialog.jsx";
+import ImportDialog from "../components/ImportDialog.jsx";
 import {
   listTransactions,
   createTransaction,
@@ -53,6 +60,7 @@ export default function Transactions() {
   const [toast, setToast] = useState("");
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   // Bộ lọc
   const [type, setType] = useState("");
@@ -153,9 +161,19 @@ export default function Transactions() {
         title={t("transactions.title")}
         description={t("transactions.subtitle")}
         actions={
-          <Button variant="contained" startIcon={<PlusIcon width={18} />} onClick={openAdd}>
-            {t("transactions.add")}
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              startIcon={<ArrowUpTrayIcon width={18} />}
+              onClick={() => setImportOpen(true)}
+              className="no-hover-lift"
+            >
+              {t("transactions.import.button")}
+            </Button>
+            <Button variant="contained" startIcon={<PlusIcon width={18} />} onClick={openAdd}>
+              {t("transactions.add")}
+            </Button>
+          </Stack>
         }
       />
 
@@ -327,6 +345,15 @@ export default function Transactions() {
         onSubmit={handleSubmit}
         submitting={submitting}
         initial={editing}
+      />
+
+      <ImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onDone={async (created) => {
+          setToast(t("transactions.import.imported", { count: created }));
+          await refresh();
+        }}
       />
 
       <ConfirmDialog

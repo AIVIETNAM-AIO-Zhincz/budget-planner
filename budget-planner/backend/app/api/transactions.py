@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import csv
+import io
 from datetime import date as date_type
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -13,7 +15,14 @@ from app.events.bus import event_bus
 from app.events.events import BudgetExceeded, TransactionCreated
 from app.models import AuditLog, Budget, Category, Membership, Transaction, User
 from app.rbac import get_current_space_id, get_current_user, require_min_role
-from app.schemas.transaction import TransactionCreate, TransactionRead, TransactionUpdate
+from app.schemas.transaction import (
+    ImportPreviewRow,
+    ImportResult,
+    ImportRowError,
+    TransactionCreate,
+    TransactionRead,
+    TransactionUpdate,
+)
 from app.services.budget import spent_for_period
 from app.services.categorizer import suggest_category
 from app.services.wallet import apply_effect, reverse_effect
@@ -97,6 +106,75 @@ def create_transaction(
     )
     _check_budget_overflow(db, tx)
     return tx
+
+
+def _parse_csv_row(line: int, row: dict) -> tuple[dict | None, ImportRowError | None]:
+    """Validate một dòng CSV → (dict hợp lệ, None) hoặc (None, lỗi)."""
+    raw_date = (row.get("date") or "").strip()
+    try:
+        parsed_date = date_type.fromisoformat(raw_date)
+    except ValueError:
+        return None, ImportRowError(line=line, message=f"ngày không hợp lệ: '{raw_date}'")
+
+    tx_type = (row.get("type") or "").strip().lower()
+    if tx_type not in ("income", "expense"):
+        return None, ImportRowError(line=line, message=f"loại không hợp lệ: '{tx_type}'")
+
+    raw_amount = (row.get("amount") or "").strip()
+    try:
+        amount = float(raw_amount)
+    except ValueError:
+        return None, ImportRowError(line=line, message=f"số tiền không hợp lệ: '{raw_amount}'")
+    if amount <= 0:
+        return None, ImportRowError(line=line, message="số tiền phải lớn hơn 0")
+
+    note = (row.get("note") or "").strip()
+    category = (row.get("category_name") or "").strip() or suggest_category(note)
+    return {
+        "date": parsed_date,
+        "type": tx_type,
+        "amount": amount,
+        "note": note,
+        "category_name": category,
+    }, None
+
+
+@router.post("/import", response_model=ImportResult)
+def import_transactions(
+    file: UploadFile,
+    dry_run: bool = Query(default=False),
+    db: Session = Depends(get_db),
+    membership: Membership = Depends(require_min_role("member")),
+) -> ImportResult:
+    """Nhập giao dịch từ CSV (cột date,type,category_name,note,amount).
+
+    ``dry_run=True`` chỉ kiểm tra & xem trước; bỏ qua dòng lỗi, nhập dòng hợp lệ.
+    """
+    raw = file.file.read().decode("utf-8-sig", errors="replace")
+    reader = csv.DictReader(io.StringIO(raw))
+
+    valid: list[dict] = []
+    errors: list[ImportRowError] = []
+    for line, row in enumerate(reader, start=2):  # dòng 1 là header
+        parsed, err = _parse_csv_row(line, row)
+        if err is not None:
+            errors.append(err)
+        else:
+            valid.append(parsed)
+
+    if not dry_run:
+        for item in valid:
+            db.add(Transaction(space_id=membership.space_id, user_id=membership.user_id, **item))
+        db.commit()
+
+    return ImportResult(
+        dry_run=dry_run,
+        valid_count=len(valid),
+        error_count=len(errors),
+        created=0 if dry_run else len(valid),
+        errors=errors[:50],
+        preview=[ImportPreviewRow(**item) for item in valid[:20]],
+    )
 
 
 def _get_owned(db: Session, transaction_id: str, space_id: str) -> Transaction:
