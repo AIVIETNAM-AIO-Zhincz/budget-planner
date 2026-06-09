@@ -16,6 +16,7 @@
     "budgets": "Budgets",
     "wallets": "Wallets",
     "recurring": "Recurring",
+    "goals": "Goals",
     "reports": "Reports",
     "members": "Members",
     "settings": "Settings"
@@ -350,7 +351,43 @@
       "amountRequired": "Amount must be greater than 0"
     }
   },
+  "goals": {
+    "add": "Add goal",
+    "contribute": "Contribute",
+    "completed": "Completed",
+    "savedOf": "{{saved}} / {{target}} ₫",
+    "deadline": "Due: {{date}}",
+    "noDeadline": "No deadline",
+    "created": "Goal added",
+    "updated": "Updated",
+    "deleted": "Goal deleted",
+    "contributed": "Contribution added",
+    "loadError": "Could not load goals",
+    "saveError": "Action failed",
+    "deleteTitle": "Delete goal",
+    "deleteConfirm": "Delete goal \"{{name}}\"? The savings wallet is kept.",
+    "empty": "No goals yet. Click \"Add goal\" to start.",
+    "noWallets": "You need at least one wallet to create a goal.",
+    "form": {
+      "addTitle": "Add goal",
+      "editTitle": "Edit goal",
+      "name": "Goal name",
+      "target": "Target amount",
+      "wallet": "Savings wallet",
+      "deadline": "Deadline (optional)"
+    },
+    "contributeForm": {
+      "title": "Contribute to \"{{name}}\"",
+      "from": "From wallet",
+      "amount": "Amount",
+      "submit": "Contribute",
+      "sameWallet": "Source must differ from savings wallet",
+      "amountRequired": "Amount must be greater than 0"
+    }
+  },
   "pages": {
+    "goals": "Goals",
+    "goalsDesc": "Savings goals linked to a wallet, contribute to reach the target",
     "recurring": "Recurring",
     "recurringDesc": "Repeating transaction templates (daily/weekly/monthly), auto-generated when due",
     "assistant": "Assistant",

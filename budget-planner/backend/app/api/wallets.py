@@ -10,6 +10,7 @@ from app.core.db import get_db
 from app.models import AuditLog, Membership, Transaction, Wallet
 from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.wallet import TransferRequest, WalletCreate, WalletRead, WalletUpdate
+from app.services.wallet import transfer_funds
 
 router = APIRouter(prefix="/wallets", tags=["wallets"])
 
@@ -60,12 +61,18 @@ def transfer(
     db: Session = Depends(get_db),
 ) -> dict[str, Wallet]:
     """Chuyển tiền giữa hai ví (member+): trừ ví nguồn, cộng ví đích."""
-    if payload.from_wallet_id == payload.to_wallet_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Hai ví phải khác nhau")
-    src = _get_owned(db, payload.from_wallet_id, current.space_id)
-    dst = _get_owned(db, payload.to_wallet_id, current.space_id)
-    src.balance -= payload.amount
-    dst.balance += payload.amount
+    try:
+        src, dst = transfer_funds(
+            db, current.space_id, payload.from_wallet_id, payload.to_wallet_id, payload.amount
+        )
+    except ValueError as err:
+        if str(err) == "same_wallet":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Hai ví phải khác nhau"
+            ) from err
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ví"
+        ) from err
     db.add(
         AuditLog(
             space_id=current.space_id,

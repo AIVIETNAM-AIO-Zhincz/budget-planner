@@ -151,6 +151,20 @@ class Notification(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class Goal(Base):
+    """Mục tiêu tiết kiệm (gắn một ví; tiến độ = số dư ví / target)."""
+
+    __tablename__ = "goals"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    space_id: Mapped[str] = mapped_column(ForeignKey("spaces.id"), index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    target_amount: Mapped[float] = mapped_column(Float)
+    wallet_id: Mapped[str] = mapped_column(ForeignKey("wallets.id"))
+    deadline: Mapped[date | None] = mapped_column(Date, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 __all__ = [
     "User",
     "Space",
@@ -162,4 +176,5 @@ __all__ = [
     "AuditLog",
     "RecurringRule",
     "Notification",
+    "Goal",
 ]

@@ -16,6 +16,7 @@
     "budgets": "Ngân sách",
     "wallets": "Ví",
     "recurring": "Định kỳ",
+    "goals": "Mục tiêu",
     "reports": "Báo cáo",
     "members": "Thành viên",
     "settings": "Cài đặt"
@@ -350,7 +351,43 @@
       "amountRequired": "Số tiền phải lớn hơn 0"
     }
   },
+  "goals": {
+    "add": "Thêm mục tiêu",
+    "contribute": "Góp",
+    "completed": "Hoàn thành",
+    "savedOf": "{{saved}} / {{target}} ₫",
+    "deadline": "Hạn: {{date}}",
+    "noDeadline": "Không thời hạn",
+    "created": "Đã thêm mục tiêu",
+    "updated": "Đã cập nhật",
+    "deleted": "Đã xoá mục tiêu",
+    "contributed": "Đã góp tiền",
+    "loadError": "Không tải được mục tiêu",
+    "saveError": "Thao tác thất bại",
+    "deleteTitle": "Xoá mục tiêu",
+    "deleteConfirm": "Xoá mục tiêu \"{{name}}\"? Ví tiết kiệm vẫn được giữ.",
+    "empty": "Chưa có mục tiêu. Bấm \"Thêm mục tiêu\" để bắt đầu.",
+    "noWallets": "Cần có ít nhất một ví để tạo mục tiêu.",
+    "form": {
+      "addTitle": "Thêm mục tiêu",
+      "editTitle": "Sửa mục tiêu",
+      "name": "Tên mục tiêu",
+      "target": "Số tiền mục tiêu",
+      "wallet": "Ví tiết kiệm",
+      "deadline": "Thời hạn (tuỳ chọn)"
+    },
+    "contributeForm": {
+      "title": "Góp vào \"{{name}}\"",
+      "from": "Từ ví",
+      "amount": "Số tiền góp",
+      "submit": "Góp",
+      "sameWallet": "Ví nguồn phải khác ví tiết kiệm",
+      "amountRequired": "Số tiền phải lớn hơn 0"
+    }
+  },
   "pages": {
+    "goals": "Mục tiêu",
+    "goalsDesc": "Mục tiêu tiết kiệm gắn ví, góp tiền để đạt đích",
     "recurring": "Định kỳ",
     "recurringDesc": "Mẫu giao dịch lặp lại (ngày/tuần/tháng), tự sinh khi đến hạn",
     "assistant": "Trợ lý",
