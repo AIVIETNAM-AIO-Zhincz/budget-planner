@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from app.api._common import get_owned_or_404, raise_transfer_error, write_audit
 from app.core.db import get_db
-from app.models import AuditLog, Membership, Transaction, Wallet
+from app.models import Membership, Transaction, Wallet
 from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.wallet import TransferRequest, WalletCreate, WalletRead, WalletUpdate
 from app.services.wallet import transfer_funds
@@ -17,10 +18,7 @@ router = APIRouter(prefix="/wallets", tags=["wallets"])
 
 def _get_owned(db: Session, wallet_id: str, space_id: str) -> Wallet:
     """Lấy ví thuộc đúng không gian; 404 nếu không có."""
-    wallet = db.get(Wallet, wallet_id)
-    if wallet is None or wallet.space_id != space_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ví")
-    return wallet
+    return get_owned_or_404(db, Wallet, wallet_id, space_id, "Không tìm thấy ví")
 
 
 @router.post(
@@ -66,20 +64,13 @@ def transfer(
             db, current.space_id, payload.from_wallet_id, payload.to_wallet_id, payload.amount
         )
     except ValueError as err:
-        if str(err) == "same_wallet":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Hai ví phải khác nhau"
-            ) from err
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ví"
-        ) from err
-    db.add(
-        AuditLog(
-            space_id=current.space_id,
-            actor_id=current.user_id,
-            action="wallet.transfer",
-            target=f"{src.id}->{dst.id}",
-        )
+        raise_transfer_error(err, same_msg="Hai ví phải khác nhau")
+    write_audit(
+        db,
+        space_id=current.space_id,
+        actor_id=current.user_id,
+        action="wallet.transfer",
+        target=f"{src.id}->{dst.id}",
     )
     db.commit()
     db.refresh(src)
@@ -131,5 +122,5 @@ def delete_wallet(
     # Gỡ wallet_id khỏi các giao dịch trỏ tới ví này (tránh tham chiếu mồ côi).
     db.execute(update(Transaction).where(Transaction.wallet_id == wallet_id).values(wallet_id=None))
     db.delete(wallet)
-    db.add(AuditLog(space_id=space_id, actor_id=user.id, action="wallet.deleted", target=wallet_id))
+    write_audit(db, space_id=space_id, actor_id=user.id, action="wallet.deleted", target=wallet_id)
     db.commit()

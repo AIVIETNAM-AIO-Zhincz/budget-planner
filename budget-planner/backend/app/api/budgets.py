@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api._common import get_owned_or_404, write_audit
 from app.core.db import get_db
-from app.models import AuditLog, Budget, User
+from app.models import Budget, User
 from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.budget import BudgetCreate, BudgetRead, BudgetUpdate
 from app.services.budget import budget_status
@@ -17,12 +18,7 @@ router = APIRouter(prefix="/budgets", tags=["budgets"])
 
 def _get_owned(db: Session, budget_id: str, space_id: str) -> Budget:
     """Lấy ngân sách thuộc đúng không gian, không có → 404."""
-    budget = db.get(Budget, budget_id)
-    if budget is None or budget.space_id != space_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ngân sách"
-        )
-    return budget
+    return get_owned_or_404(db, Budget, budget_id, space_id, "Không tìm thấy ngân sách")
 
 
 def _to_read(db: Session, budget: Budget) -> BudgetRead:
@@ -118,5 +114,5 @@ def delete_budget(
     """Xoá ngân sách + ghi audit log (hành động nhạy cảm)."""
     budget = _get_owned(db, budget_id, space_id)
     db.delete(budget)
-    db.add(AuditLog(space_id=space_id, actor_id=user.id, action="budget.deleted", target=budget_id))
+    write_audit(db, space_id=space_id, actor_id=user.id, action="budget.deleted", target=budget_id)
     db.commit()

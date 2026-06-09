@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api._common import get_owned_or_404, write_audit
 from app.core.db import get_db
-from app.models import AuditLog, Category, User
+from app.models import Category, User
 from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
 
@@ -16,10 +17,7 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 def _get_owned(db: Session, category_id: str, space_id: str) -> Category:
     """Lấy danh mục thuộc đúng không gian, không có → 404."""
-    category = db.get(Category, category_id)
-    if category is None or category.space_id != space_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy danh mục")
-    return category
+    return get_owned_or_404(db, Category, category_id, space_id, "Không tìm thấy danh mục")
 
 
 @router.post(
@@ -100,7 +98,7 @@ def delete_category(
     """Xoá danh mục + ghi audit log (hành động nhạy cảm)."""
     category = _get_owned(db, category_id, space_id)
     db.delete(category)
-    db.add(
-        AuditLog(space_id=space_id, actor_id=user.id, action="category.deleted", target=category_id)
+    write_audit(
+        db, space_id=space_id, actor_id=user.id, action="category.deleted", target=category_id
     )
     db.commit()

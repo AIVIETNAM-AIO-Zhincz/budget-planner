@@ -6,14 +6,15 @@ import csv
 import io
 from datetime import date as date_type
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api._common import get_owned_or_404, write_audit
 from app.core.db import get_db
 from app.events.bus import event_bus
 from app.events.events import BudgetExceeded, TransactionCreated
-from app.models import AuditLog, Budget, Category, Membership, Transaction, User
+from app.models import Budget, Category, Membership, Transaction, User
 from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.transaction import (
     ImportPreviewRow,
@@ -179,12 +180,7 @@ def import_transactions(
 
 def _get_owned(db: Session, transaction_id: str, space_id: str) -> Transaction:
     """Lấy giao dịch thuộc đúng không gian; 404 nếu không có."""
-    tx = db.get(Transaction, transaction_id)
-    if tx is None or tx.space_id != space_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy giao dịch"
-        )
-    return tx
+    return get_owned_or_404(db, Transaction, transaction_id, space_id, "Không tìm thấy giao dịch")
 
 
 @router.get("", response_model=list[TransactionRead])
@@ -265,9 +261,7 @@ def delete_transaction(
     tx = _get_owned(db, transaction_id, space_id)
     reverse_effect(db, space_id, tx.wallet_id, tx.type, tx.amount)
     db.delete(tx)
-    db.add(
-        AuditLog(
-            space_id=space_id, actor_id=user.id, action="transaction.deleted", target=transaction_id
-        )
+    write_audit(
+        db, space_id=space_id, actor_id=user.id, action="transaction.deleted", target=transaction_id
     )
     db.commit()

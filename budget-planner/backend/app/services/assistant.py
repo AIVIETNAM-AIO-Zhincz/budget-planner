@@ -11,6 +11,7 @@ from datetime import date, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.format import format_vnd as _fmt
 from app.models import Transaction, Wallet
 from app.services import llm
 from app.services.categorizer import suggest_category
@@ -93,11 +94,6 @@ def parse_transaction(text: str, today: date) -> dict | None:
         "category_name": suggest_category(text),
         "date": parse_date(text, today),
     }
-
-
-def _fmt(value: float) -> str:
-    """Định dạng số tiền kiểu Việt Nam (1.250.000)."""
-    return f"{int(value):,}".replace(",", ".")
 
 
 def _month_range(today: date) -> tuple[date, date]:

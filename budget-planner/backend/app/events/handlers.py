@@ -8,31 +8,26 @@ from __future__ import annotations
 
 import logging
 
+from app.api._common import write_audit
 from app.core import db
+from app.core.format import format_vnd as _fmt
 from app.events.bus import event_bus
 from app.events.events import BudgetExceeded, TransactionCreated
-from app.models import AuditLog
 from app.services.notification import add_notification
 
 logger = logging.getLogger(__name__)
-
-
-def _fmt(value: float) -> str:
-    """Số tiền kiểu Việt Nam (1.250.000)."""
-    return f"{int(value):,}".replace(",", ".")
 
 
 def audit_transaction_created(event: TransactionCreated) -> None:
     """Ghi audit log mỗi khi có giao dịch mới."""
     session = db.SessionLocal()
     try:
-        session.add(
-            AuditLog(
-                space_id=event.space_id,
-                actor_id=event.user_id or None,
-                action="transaction.created",
-                target=event.transaction_id,
-            )
+        write_audit(
+            session,
+            space_id=event.space_id,
+            actor_id=event.user_id or None,
+            action="transaction.created",
+            target=event.transaction_id,
         )
         session.commit()
     finally:

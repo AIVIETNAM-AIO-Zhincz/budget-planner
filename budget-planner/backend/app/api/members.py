@@ -10,8 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api._common import write_audit
 from app.core.db import get_db
-from app.models import AuditLog, Membership, User
+from app.models import Membership, User
 from app.rbac import get_current_membership, require_min_role
 from app.schemas.space import MemberInvite, MemberRead, RoleUpdate
 from app.services.notification import add_notification
@@ -74,13 +75,12 @@ def invite_member(
         user_id=user.id, space_id=current.space_id, role=payload.role, status="active"
     )
     db.add(member)
-    db.add(
-        AuditLog(
-            space_id=current.space_id,
-            actor_id=current.user_id,
-            action="member.invited",
-            target=user.id,
-        )
+    write_audit(
+        db,
+        space_id=current.space_id,
+        actor_id=current.user_id,
+        action="member.invited",
+        target=user.id,
     )
     add_notification(
         db,
@@ -115,13 +115,12 @@ def update_member_role(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Chỉ owner mới gán owner")
 
     member.role = payload.role
-    db.add(
-        AuditLog(
-            space_id=current.space_id,
-            actor_id=current.user_id,
-            action="member.role_changed",
-            target=member.user_id,
-        )
+    write_audit(
+        db,
+        space_id=current.space_id,
+        actor_id=current.user_id,
+        action="member.role_changed",
+        target=member.user_id,
     )
     db.commit()
     db.refresh(member)
@@ -148,12 +147,11 @@ def remove_member(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Không thể xoá owner")
     target_user = member.user_id
     db.delete(member)
-    db.add(
-        AuditLog(
-            space_id=current.space_id,
-            actor_id=current.user_id,
-            action="member.removed",
-            target=target_user,
-        )
+    write_audit(
+        db,
+        space_id=current.space_id,
+        actor_id=current.user_id,
+        action="member.removed",
+        target=target_user,
     )
     db.commit()

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
+from app.api._common import get_owned_or_404
 from app.core.db import get_db
 from app.models import Notification
 from app.rbac import get_current_space_id
@@ -16,12 +17,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 def _get_owned(db: Session, notification_id: str, space_id: str) -> Notification:
     """Lấy thông báo thuộc đúng không gian; 404 nếu không có."""
-    noti = db.get(Notification, notification_id)
-    if noti is None or noti.space_id != space_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy thông báo"
-        )
-    return noti
+    return get_owned_or_404(db, Notification, notification_id, space_id, "Không tìm thấy thông báo")
 
 
 @router.get("", response_model=list[NotificationRead])

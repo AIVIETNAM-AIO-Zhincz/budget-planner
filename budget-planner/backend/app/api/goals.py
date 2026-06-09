@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api._common import get_owned_or_404, raise_transfer_error, write_audit
 from app.core.db import get_db
-from app.models import AuditLog, Goal, Membership, Wallet
+from app.models import Goal, Membership, Wallet
 from app.rbac import get_current_space_id, require_min_role
 from app.schemas.goal import Contribute, GoalCreate, GoalRead, GoalUpdate
 from app.services.wallet import transfer_funds
@@ -17,10 +18,7 @@ router = APIRouter(prefix="/goals", tags=["goals"])
 
 def _get_owned(db: Session, goal_id: str, space_id: str) -> Goal:
     """Lấy mục tiêu thuộc đúng không gian; 404 nếu không có."""
-    goal = db.get(Goal, goal_id)
-    if goal is None or goal.space_id != space_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy mục tiêu")
-    return goal
+    return get_owned_or_404(db, Goal, goal_id, space_id, "Không tìm thấy mục tiêu")
 
 
 def _to_read(db: Session, goal: Goal) -> GoalRead:
@@ -96,21 +94,13 @@ def contribute(
     try:
         transfer_funds(db, current.space_id, payload.from_wallet_id, goal.wallet_id, payload.amount)
     except ValueError as err:
-        if str(err) == "same_wallet":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Ví nguồn phải khác ví tiết kiệm",
-            ) from err
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy ví"
-        ) from err
-    db.add(
-        AuditLog(
-            space_id=current.space_id,
-            actor_id=current.user_id,
-            action="goal.contribute",
-            target=goal_id,
-        )
+        raise_transfer_error(err, same_msg="Ví nguồn phải khác ví tiết kiệm")
+    write_audit(
+        db,
+        space_id=current.space_id,
+        actor_id=current.user_id,
+        action="goal.contribute",
+        target=goal_id,
     )
     db.commit()
     db.refresh(goal)
@@ -157,12 +147,11 @@ def delete_goal(
     """Xoá mục tiêu + ghi audit."""
     goal = _get_owned(db, goal_id, current.space_id)
     db.delete(goal)
-    db.add(
-        AuditLog(
-            space_id=current.space_id,
-            actor_id=current.user_id,
-            action="goal.deleted",
-            target=goal_id,
-        )
+    write_audit(
+        db,
+        space_id=current.space_id,
+        actor_id=current.user_id,
+        action="goal.deleted",
+        target=goal_id,
     )
     db.commit()

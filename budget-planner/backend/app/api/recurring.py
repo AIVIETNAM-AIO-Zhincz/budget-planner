@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api._common import get_owned_or_404, write_audit
 from app.core.db import get_db
-from app.models import AuditLog, Membership, RecurringRule
+from app.models import Membership, RecurringRule
 from app.rbac import get_current_space_id, require_min_role
 from app.schemas.recurring import RecurringCreate, RecurringRead, RecurringUpdate
 from app.services.notification import add_notification
@@ -20,12 +21,7 @@ router = APIRouter(prefix="/recurring", tags=["recurring"])
 
 def _get_owned(db: Session, rule_id: str, space_id: str) -> RecurringRule:
     """Lấy mẫu định kỳ thuộc đúng không gian; 404 nếu không có."""
-    rule = db.get(RecurringRule, rule_id)
-    if rule is None or rule.space_id != space_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy mẫu định kỳ"
-        )
-    return rule
+    return get_owned_or_404(db, RecurringRule, rule_id, space_id, "Không tìm thấy mẫu định kỳ")
 
 
 @router.post(
@@ -109,12 +105,11 @@ def delete_recurring(
     """Xoá mẫu định kỳ + ghi audit."""
     rule = _get_owned(db, rule_id, current.space_id)
     db.delete(rule)
-    db.add(
-        AuditLog(
-            space_id=current.space_id,
-            actor_id=current.user_id,
-            action="recurring.deleted",
-            target=rule_id,
-        )
+    write_audit(
+        db,
+        space_id=current.space_id,
+        actor_id=current.user_id,
+        action="recurring.deleted",
+        target=rule_id,
     )
     db.commit()
