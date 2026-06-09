@@ -23,7 +23,7 @@ from app.api import (
 from app.core.config import settings
 from app.events.handlers import register_handlers
 
-app = FastAPI(title=settings.app_name)
+app = FastAPI(title=settings.app_name, version="0.1.0")
 
 # Cho phép frontend (Vite dev / domain cấu hình) gọi API.
 app.add_middleware(
