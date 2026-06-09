@@ -46,6 +46,7 @@ import {
 import { listCategories } from "../api/categories.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount } from "../utils/format.js";
+import { summarize } from "../utils/charts.js";
 
 /** Trang Giao dịch — bảng + lọc/tìm + thêm/sửa/xoá. */
 export default function Transactions() {
@@ -65,7 +66,7 @@ export default function Transactions() {
   // Bộ lọc
   const [type, setType] = useState("");
   const [category, setCategory] = useState("");
-  const [month, setMonth] = useState(null);
+  const [month, setMonth] = useState(dayjs());
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
 
@@ -79,6 +80,7 @@ export default function Transactions() {
     [type, category, month, debouncedQ]
   );
   const hasFilter = Boolean(type || category || month || debouncedQ);
+  const summary = useMemo(() => summarize(items), [items]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -252,6 +254,29 @@ export default function Transactions() {
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
           {error}
         </Alert>
+      )}
+
+      {!loading && items.length > 0 && (
+        <Stack direction="row" spacing={1.5} sx={{ mb: 2, flexWrap: "wrap", gap: 1 }}>
+          <Chip
+            color="success"
+            variant="outlined"
+            label={`${t("transactions.summary.income")}: ${formatAmount(summary.income)} ₫`}
+            sx={{ fontWeight: 600 }}
+          />
+          <Chip
+            color="error"
+            variant="outlined"
+            label={`${t("transactions.summary.expense")}: ${formatAmount(summary.expense)} ₫`}
+            sx={{ fontWeight: 600 }}
+          />
+          <Chip
+            color={summary.balance < 0 ? "error" : "primary"}
+            variant="outlined"
+            label={`${t("transactions.summary.balance")}: ${formatAmount(summary.balance)} ₫`}
+            sx={{ fontWeight: 600 }}
+          />
+        </Stack>
       )}
 
       <Paper sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}`, overflow: "hidden" }}>

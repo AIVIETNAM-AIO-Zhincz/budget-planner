@@ -48,10 +48,11 @@ export default function StatCard({ label, value, note, icon, accent = "#6366f1" 
       </Box>
       <Typography
         sx={{
-          fontSize: 26,
+          fontSize: { xs: 22, sm: 26 },
           fontWeight: 700,
           fontFamily: '"JetBrains Mono", monospace',
           fontVariantNumeric: "tabular-nums",
+          whiteSpace: "nowrap",
         }}
       >
         {value}

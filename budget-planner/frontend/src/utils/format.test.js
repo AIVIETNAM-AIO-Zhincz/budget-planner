@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatAmount, categoryColor, budgetTone } from "./format.js";
+import { formatAmount, categoryColor, budgetTone, formatCompactVnd } from "./format.js";
 
 describe("formatAmount", () => {
   it("định dạng số theo locale Việt Nam", () => {
@@ -31,5 +31,17 @@ describe("budgetTone", () => {
     expect(budgetTone(90)).toBe("warning");
     expect(budgetTone(80)).toBe("warning");
     expect(budgetTone(40)).toBe("success");
+  });
+});
+
+describe("formatCompactVnd", () => {
+  it("rút gọn theo đơn vị", () => {
+    expect(formatCompactVnd(15000000)).toBe("15 tr");
+    expect(formatCompactVnd(13645000)).toBe("13.6 tr");
+    expect(formatCompactVnd(1300000000)).toBe("1.3 tỷ");
+    expect(formatCompactVnd(50000)).toBe("50 k");
+    expect(formatCompactVnd(999)).toBe("999");
+    expect(formatCompactVnd(0)).toBe("0");
+    expect(formatCompactVnd(-300000)).toBe("-300 k");
   });
 });

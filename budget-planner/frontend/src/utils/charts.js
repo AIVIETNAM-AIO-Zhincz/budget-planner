@@ -1,4 +1,4 @@
-import { categoryColor } from "./format.js";
+import { categoryColor, formatCompactVnd } from "./format.js";
 
 /** Tổng hợp KPI từ danh sách giao dịch (hàm thuần). */
 export function summarize(items) {
@@ -79,19 +79,29 @@ export function lineOption(theme, flow, animation) {
       axisLine: { lineStyle: { color: grid } },
       axisLabel: { color: textColor },
     },
-    yAxis: {
-      type: "value",
-      splitLine: { lineStyle: { color: grid } },
-      axisLabel: {
-        color: textColor,
-        formatter: (v) => (v >= 1000 ? `${v / 1000}k` : v),
+    // Hai trục Y riêng: Thu (trái) và Chi (phải) có thang đo độc lập → cả hai đường đọc được.
+    yAxis: [
+      {
+        type: "value",
+        name: "Thu",
+        nameTextStyle: { color: theme.palette.success.main, align: "left" },
+        splitLine: { lineStyle: { color: grid } },
+        axisLabel: { color: textColor, formatter: (v) => formatCompactVnd(v) },
       },
-    },
+      {
+        type: "value",
+        name: "Chi",
+        nameTextStyle: { color: theme.palette.error.main, align: "right" },
+        splitLine: { show: false },
+        axisLabel: { color: textColor, formatter: (v) => formatCompactVnd(v) },
+      },
+    ],
     series: [
       {
         name: "Thu",
         type: "line",
         smooth: true,
+        yAxisIndex: 0,
         data: flow.income,
         itemStyle: { color: theme.palette.success.main },
         areaStyle: { opacity: 0.12 },
@@ -100,6 +110,7 @@ export function lineOption(theme, flow, animation) {
         name: "Chi",
         type: "line",
         smooth: true,
+        yAxisIndex: 1,
         data: flow.expense,
         itemStyle: { color: theme.palette.error.main },
         areaStyle: { opacity: 0.12 },

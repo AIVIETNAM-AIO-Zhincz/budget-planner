@@ -135,6 +135,7 @@
       "clear": "Xoá lọc"
     },
     "noResult": "Không có giao dịch khớp bộ lọc.",
+    "summary": { "income": "Tổng thu", "expense": "Tổng chi", "balance": "Số dư" },
     "import": {
       "button": "Nhập CSV",
       "title": "Nhập giao dịch từ CSV",
@@ -299,7 +300,10 @@
     "openForm": "Mở form xác nhận",
     "saved": "Đã lưu giao dịch ✓",
     "error": "Có lỗi xảy ra, thử lại nhé.",
-    "examples": "Ví dụ: \"cà phê 35k\", \"lương 15tr hôm qua\", \"số dư ví?\""
+    "examples": "Ví dụ: \"cà phê 35k\", \"lương 15tr hôm qua\", \"số dư ví?\"",
+    "q1": "Tháng này chi bao nhiêu?",
+    "q2": "Cà phê 30k",
+    "q3": "Số dư ví?"
   },
   "reports": {
     "from": "Từ ngày",

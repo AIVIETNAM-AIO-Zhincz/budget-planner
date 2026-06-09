@@ -32,7 +32,7 @@ import { listRecurring } from "../api/recurring.js";
 import { listCategories } from "../api/categories.js";
 import { listGoals } from "../api/goals.js";
 import { ApiError } from "../api/client.js";
-import { formatAmount, categoryColor } from "../utils/format.js";
+import { formatAmount, formatCompactVnd, categoryColor } from "../utils/format.js";
 import { echartsAnimationDefaults } from "../utils/motion.js";
 import { summarize, expenseByCategory, flowByDate, pieOption, lineOption } from "../utils/charts.js";
 
@@ -174,7 +174,7 @@ export default function Dashboard() {
                 label={t(`dashboard.${c.key}`)}
                 accent={c.accent}
                 icon={c.icon}
-                value={c.raw ? c.value : `${formatAmount(c.value)} ₫`}
+                value={c.raw ? c.value : `${formatCompactVnd(c.value)} ₫`}
               />
             )}
           </Grid>
@@ -185,7 +185,7 @@ export default function Dashboard() {
         <Grid item xs={12} md={5}>
           <ChartCard title={t("dashboard.byCategory")} empty={!loading && pieData.length === 0} emptyText={t("dashboard.noData")}>
             {!loading && pieData.length > 0 && (
-              <ReactECharts option={pieOption(theme, pieData, animation)} style={{ height: 300 }} notMerge />
+              <ReactECharts option={pieOption(theme, pieData, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
             )}
             {loading && <Skeleton variant="rounded" height={300} />}
           </ChartCard>
@@ -193,7 +193,7 @@ export default function Dashboard() {
         <Grid item xs={12} md={7}>
           <ChartCard title={t("dashboard.overTime")} empty={!loading && flow.dates.length === 0} emptyText={t("dashboard.noData")}>
             {!loading && flow.dates.length > 0 && (
-              <ReactECharts option={lineOption(theme, flow, animation)} style={{ height: 300 }} notMerge />
+              <ReactECharts option={lineOption(theme, flow, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
             )}
             {loading && <Skeleton variant="rounded" height={300} />}
           </ChartCard>

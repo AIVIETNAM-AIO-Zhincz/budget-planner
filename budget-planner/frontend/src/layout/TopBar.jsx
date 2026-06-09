@@ -192,15 +192,21 @@ export default function TopBar({ drawerWidth, collapsed, onToggleCollapsed, onOp
         </Menu>
 
         <Tooltip title={`${t("topbar.language")} · ${nextLang.toUpperCase()}`}>
-          <IconButton onClick={() => setLanguage(nextLang)}>
-            <Badge
-              badgeContent={i18n.language.toUpperCase()}
-              color="primary"
-              sx={{ "& .MuiBadge-badge": { fontSize: 8, height: 14, minWidth: 14 } }}
-            >
-              <LanguageIcon width={21} />
-            </Badge>
-          </IconButton>
+          <Button
+            onClick={() => setLanguage(nextLang)}
+            startIcon={<LanguageIcon width={20} />}
+            size="small"
+            className="no-hover-lift"
+            sx={{
+              minWidth: 0,
+              textTransform: "none",
+              fontWeight: 700,
+              color: "text.secondary",
+              "& .MuiButton-startIcon": { mr: 0.5 },
+            }}
+          >
+            {i18n.language.toUpperCase()}
+          </Button>
         </Tooltip>
 
         <Tooltip title={t("topbar.toggleTheme")}>

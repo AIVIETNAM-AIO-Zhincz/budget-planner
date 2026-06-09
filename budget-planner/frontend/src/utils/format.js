@@ -42,3 +42,23 @@ export function budgetTone(percent) {
   if (percent >= 80) return "warning";
   return "success";
 }
+
+function _trim(value) {
+  return value.toFixed(1).replace(/\.0$/, "");
+}
+
+/**
+ * Rút gọn số tiền lớn để hiển thị gọn (1 dòng): 15000000 → "15 tr", 1.3e9 → "1.3 tỷ".
+ *
+ * @param {number} amount số tiền.
+ * @returns {string} chuỗi rút gọn (chưa kèm ký hiệu ₫).
+ */
+export function formatCompactVnd(amount) {
+  const n = Number(amount) || 0;
+  const abs = Math.abs(n);
+  const sign = n < 0 ? "-" : "";
+  if (abs >= 1e9) return `${sign}${_trim(abs / 1e9)} tỷ`;
+  if (abs >= 1e6) return `${sign}${_trim(abs / 1e6)} tr`;
+  if (abs >= 1e3) return `${sign}${Math.round(abs / 1e3)} k`;
+  return `${sign}${Math.round(abs)}`;
+}

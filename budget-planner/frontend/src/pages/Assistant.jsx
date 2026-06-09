@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Box, Button, IconButton, Paper, Snackbar, TextField, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Paper,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { PaperAirplaneIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
@@ -76,9 +87,8 @@ export default function Assistant() {
 
   const push = (msg) => setMessages((prev) => [...prev, msg]);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    const text = input.trim();
+  const send = async (raw) => {
+    const text = (raw || "").trim();
     if (!text || sending) return;
     push({ role: "user", text });
     setInput("");
@@ -92,6 +102,13 @@ export default function Assistant() {
       setSending(false);
     }
   };
+
+  const handleSend = (e) => {
+    e.preventDefault();
+    send(input);
+  };
+
+  const quickPrompts = [t("assistant.q1"), t("assistant.q2"), t("assistant.q3")];
 
   const openConfirm = (draft) => {
     setPrefill(draft);
@@ -138,13 +155,34 @@ export default function Assistant() {
           <Box ref={endRef} />
         </Box>
 
+        {messages.length <= 1 && (
+          <Stack direction="row" spacing={1} sx={{ px: 1.5, pb: 1, flexWrap: "wrap", gap: 1 }}>
+            {quickPrompts.map((p) => (
+              <Chip
+                key={p}
+                label={p}
+                size="small"
+                variant="outlined"
+                color="primary"
+                clickable
+                onClick={() => send(p)}
+              />
+            ))}
+          </Stack>
+        )}
+
         <Box
           component="form"
           onSubmit={handleSend}
-          sx={{ p: 1.5, borderTop: (th) => `1px solid ${th.palette.divider}`, display: "flex", gap: 1 }}
+          sx={{
+            p: 1.5,
+            borderTop: (th) => `1px solid ${th.palette.divider}`,
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+          }}
         >
           <TextField
-            size="small"
             fullWidth
             placeholder={t("assistant.placeholder")}
             value={input}
@@ -154,7 +192,17 @@ export default function Assistant() {
               startAdornment: <SparklesIcon width={18} style={{ marginRight: 8, opacity: 0.5 }} />,
             }}
           />
-          <IconButton type="submit" color="primary" disabled={sending || !input.trim()} aria-label="send">
+          <IconButton
+            type="submit"
+            disabled={sending || !input.trim()}
+            aria-label="send"
+            sx={{
+              bgcolor: "primary.main",
+              color: "#fff",
+              "&:hover": { bgcolor: "primary.dark" },
+              "&.Mui-disabled": { bgcolor: "action.disabledBackground", color: "action.disabled" },
+            }}
+          >
             <PaperAirplaneIcon width={20} />
           </IconButton>
         </Box>

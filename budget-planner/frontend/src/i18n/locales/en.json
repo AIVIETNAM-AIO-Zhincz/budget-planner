@@ -135,6 +135,7 @@
       "clear": "Clear filters"
     },
     "noResult": "No transactions match the filters.",
+    "summary": { "income": "Total income", "expense": "Total expense", "balance": "Balance" },
     "import": {
       "button": "Import CSV",
       "title": "Import transactions from CSV",
@@ -299,7 +300,10 @@
     "openForm": "Open confirm form",
     "saved": "Transaction saved ✓",
     "error": "Something went wrong, please retry.",
-    "examples": "e.g. \"coffee 35k\", \"salary 15tr yesterday\", \"wallet balance?\""
+    "examples": "e.g. \"coffee 35k\", \"salary 15tr yesterday\", \"wallet balance?\"",
+    "q1": "How much did I spend this month?",
+    "q2": "Coffee 30k",
+    "q3": "Wallet balance?"
   },
   "reports": {
     "from": "From",

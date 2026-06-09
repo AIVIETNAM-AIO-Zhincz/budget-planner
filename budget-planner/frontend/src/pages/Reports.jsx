@@ -17,7 +17,7 @@ import PageHeader from "../components/PageHeader.jsx";
 import StatCard from "../components/StatCard.jsx";
 import { getSummary, exportCsv } from "../api/reports.js";
 import { ApiError } from "../api/client.js";
-import { formatAmount, categoryColor } from "../utils/format.js";
+import { formatAmount, formatCompactVnd, categoryColor } from "../utils/format.js";
 import { echartsAnimationDefaults } from "../utils/motion.js";
 import { pieOption, lineOption } from "../utils/charts.js";
 
@@ -190,7 +190,7 @@ export default function Reports() {
                 label={t("reports.totalIncome")}
                 accent="#10b981"
                 icon={<ArrowTrendingUpIcon width={22} />}
-                value={`${formatAmount(summary.total_income)} ₫`}
+                value={`${formatCompactVnd(summary.total_income)} ₫`}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -198,7 +198,7 @@ export default function Reports() {
                 label={t("reports.totalExpense")}
                 accent="#ef4444"
                 icon={<ArrowTrendingDownIcon width={22} />}
-                value={`${formatAmount(summary.total_expense)} ₫`}
+                value={`${formatCompactVnd(summary.total_expense)} ₫`}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -206,7 +206,7 @@ export default function Reports() {
                 label={t("reports.balance")}
                 accent="#6366f1"
                 icon={<ScaleIcon width={22} />}
-                value={`${formatAmount(summary.balance)} ₫`}
+                value={`${formatCompactVnd(summary.balance)} ₫`}
               />
             </Grid>
           </Grid>
@@ -215,7 +215,7 @@ export default function Reports() {
             <Grid item xs={12} md={7}>
               <ChartCard title={t("reports.topCategories")}>
                 {pieData.length > 0 ? (
-                  <ReactECharts option={barOption(theme, summary.by_category, animation)} style={{ height: 300 }} notMerge />
+                  <ReactECharts option={barOption(theme, summary.by_category, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
                 ) : (
                   <Box sx={{ height: 300, display: "grid", placeItems: "center", color: "text.secondary" }}>
                     {t("reports.empty")}
@@ -225,12 +225,12 @@ export default function Reports() {
             </Grid>
             <Grid item xs={12} md={5}>
               <ChartCard title={t("reports.byCategory")}>
-                <ReactECharts option={pieOption(theme, pieData, animation)} style={{ height: 300 }} notMerge />
+                <ReactECharts option={pieOption(theme, pieData, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
               </ChartCard>
             </Grid>
             <Grid item xs={12}>
               <ChartCard title={t("reports.overTime")}>
-                <ReactECharts option={lineOption(theme, flow, animation)} style={{ height: 300 }} notMerge />
+                <ReactECharts option={lineOption(theme, flow, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
               </ChartCard>
             </Grid>
           </Grid>
