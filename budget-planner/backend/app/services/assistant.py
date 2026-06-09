@@ -12,6 +12,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import Transaction, Wallet
+from app.services import llm
 from app.services.categorizer import suggest_category
 
 _INCOME_KEYWORDS = ("thu nhập", "thu ", "nhận", "lương", "thưởng", "được trả", "bán", "hoàn tiền")
@@ -105,53 +106,107 @@ def _month_range(today: date) -> tuple[date, date]:
     return start, end
 
 
+def _wallet_summary(db: Session, space_id: str) -> str:
+    """Tóm tắt số dư các ví của không gian."""
+    wallets = list(db.scalars(select(Wallet).where(Wallet.space_id == space_id)))
+    if not wallets:
+        return "Bạn chưa có ví nào."
+    total = sum(w.balance for w in wallets)
+    lines = "; ".join(f"{w.name}: {_fmt(w.balance)} đ" for w in wallets)
+    return f"Số dư ví — {lines}. Tổng: {_fmt(total)} đ."
+
+
+def _month_total(db: Session, space_id: str, tx_type: str, today: date) -> str:
+    """Tổng thu/chi của tháng hiện tại."""
+    start, end = _month_range(today)
+    total = (
+        db.scalar(
+            select(func.coalesce(func.sum(Transaction.amount), 0.0)).where(
+                Transaction.space_id == space_id,
+                Transaction.type == tx_type,
+                Transaction.date >= start,
+                Transaction.date < end,
+            )
+        )
+        or 0
+    )
+    label = "thu" if tx_type == "income" else "chi"
+    return f"Tháng {start.strftime('%m/%Y')} bạn đã {label} {_fmt(total)} đ."
+
+
+def compute_answer(db: Session, space_id: str, intent: str | None, today: date) -> str | None:
+    """Tính câu trả lời số liệu từ DB theo intent cố định (không bịa số)."""
+    if intent == "wallet_balance":
+        return _wallet_summary(db, space_id)
+    if intent == "expense_month":
+        return _month_total(db, space_id, "expense", today)
+    if intent == "income_month":
+        return _month_total(db, space_id, "income", today)
+    return None
+
+
 def answer_query(db: Session, space_id: str, text: str, today: date) -> str | None:
-    """Trả lời câu hỏi số liệu cơ bản; None nếu không khớp intent."""
+    """Trả lời câu hỏi số liệu cơ bản bằng rule (keyword) → None nếu không khớp."""
     t = text.lower()
     is_question = any(k in t for k in ("bao nhiêu", "?", "tổng", "số dư", "còn"))
 
     if "số dư" in t or ("ví" in t and is_question):
-        wallets = list(db.scalars(select(Wallet).where(Wallet.space_id == space_id)))
-        if not wallets:
-            return "Bạn chưa có ví nào."
-        total = sum(w.balance for w in wallets)
-        lines = "; ".join(f"{w.name}: {_fmt(w.balance)} đ" for w in wallets)
-        return f"Số dư ví — {lines}. Tổng: {_fmt(total)} đ."
+        return _wallet_summary(db, space_id)
 
     if ("chi" in t or "thu" in t) and ("tháng" in t or is_question):
-        start, end = _month_range(today)
         tx_type = "income" if ("thu" in t or "nhận" in t) else "expense"
-        total = (
-            db.scalar(
-                select(func.coalesce(func.sum(Transaction.amount), 0.0)).where(
-                    Transaction.space_id == space_id,
-                    Transaction.type == tx_type,
-                    Transaction.date >= start,
-                    Transaction.date < end,
-                )
-            )
-            or 0
-        )
-        label = "thu" if tx_type == "income" else "chi"
-        return f"Tháng {start.strftime('%m/%Y')} bạn đã {label} {_fmt(total)} đ."
+        return _month_total(db, space_id, tx_type, today)
 
     return None
 
 
+def _transaction_reply(draft: dict) -> str:
+    """Câu xác nhận cho nháp giao dịch."""
+    kind = "Thu" if draft["type"] == "income" else "Chi"
+    return (
+        f"Mình hiểu: {kind} {_fmt(draft['amount'])} đ — {draft['category_name']} — "
+        f"{draft['date'].strftime('%d/%m/%Y')}. Mở form để xác nhận nhé."
+    )
+
+
+def _route_llm(db: Session, space_id: str, res: dict | None, today: date) -> dict | None:
+    """Diễn giải kết quả LLM thành phản hồi; None để fallback về rule."""
+    if not res:
+        return None
+    kind = res.get("kind")
+    if kind == "transaction" and res.get("draft"):
+        return {
+            "kind": "transaction",
+            "reply": _transaction_reply(res["draft"]),
+            "draft": res["draft"],
+        }
+    if kind == "question":
+        answer = compute_answer(db, space_id, res.get("question"), today)
+        if answer is not None:
+            return {"kind": "answer", "reply": answer, "draft": None}
+        return None
+    if kind == "other":
+        reply = (
+            res.get("reply") or "Mình là trợ lý chi tiêu. Bạn ghi giao dịch hoặc hỏi số liệu nhé."
+        )
+        return {"kind": "answer", "reply": reply, "draft": None}
+    return None
+
+
 def handle_message(db: Session, space_id: str, text: str, today: date) -> dict:
-    """Định tuyến tin nhắn: hỏi-đáp → nháp giao dịch → không hiểu."""
+    """Định tuyến tin nhắn: ưu tiên LLM (nếu bật) → fallback rule (hỏi-đáp → nháp → không hiểu)."""
+    if llm.llm_enabled():
+        routed = _route_llm(db, space_id, llm.classify_message(text, today), today)
+        if routed is not None:
+            return routed
+
     answer = answer_query(db, space_id, text, today)
     if answer is not None:
         return {"kind": "answer", "reply": answer, "draft": None}
 
     draft = parse_transaction(text, today)
     if draft is not None:
-        kind = "Thu" if draft["type"] == "income" else "Chi"
-        reply = (
-            f"Mình hiểu: {kind} {_fmt(draft['amount'])} đ — {draft['category_name']} — "
-            f"{draft['date'].strftime('%d/%m/%Y')}. Mở form để xác nhận nhé."
-        )
-        return {"kind": "transaction", "reply": reply, "draft": draft}
+        return {"kind": "transaction", "reply": _transaction_reply(draft), "draft": draft}
 
     return {
         "kind": "unknown",

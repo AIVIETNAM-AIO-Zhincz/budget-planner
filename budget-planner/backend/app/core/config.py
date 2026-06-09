@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
+    # Trợ lý LLM (OpenAI-compatible). Để trống BP_LLM_API_KEY → dùng rule-based.
+    llm_api_key: str = ""
+    llm_model: str = "gpt-4o-mini"
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_timeout: float = 12.0
+
     model_config = SettingsConfigDict(env_file=".env", env_prefix="BP_", extra="ignore")
 
 
