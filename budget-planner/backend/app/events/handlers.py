@@ -12,8 +12,14 @@ from app.core import db
 from app.events.bus import event_bus
 from app.events.events import BudgetExceeded, TransactionCreated
 from app.models import AuditLog
+from app.services.notification import add_notification
 
 logger = logging.getLogger(__name__)
+
+
+def _fmt(value: float) -> str:
+    """Số tiền kiểu Việt Nam (1.250.000)."""
+    return f"{int(value):,}".replace(",", ".")
 
 
 def audit_transaction_created(event: TransactionCreated) -> None:
@@ -34,7 +40,7 @@ def audit_transaction_created(event: TransactionCreated) -> None:
 
 
 def notify_budget_exceeded(event: BudgetExceeded) -> None:
-    """Thông báo khi vượt ngân sách (Phase 0: log; sau gắn email/in-app)."""
+    """Vượt ngân sách → log + lưu thông báo in-app (session riêng của handler)."""
     logger.warning(
         "Vượt ngân sách: space=%s category=%s chi=%.0f/%.0f",
         event.space_id,
@@ -42,6 +48,18 @@ def notify_budget_exceeded(event: BudgetExceeded) -> None:
         event.spent_amount,
         event.limit_amount,
     )
+    session = db.SessionLocal()
+    try:
+        add_notification(
+            session,
+            event.space_id,
+            "budget.exceeded",
+            f"Vượt ngân sách {event.category_name} ({event.period}): "
+            f"đã chi {_fmt(event.spent_amount)}/{_fmt(event.limit_amount)} đ",
+        )
+        session.commit()
+    finally:
+        session.close()
 
 
 def register_handlers() -> None:

@@ -29,6 +29,11 @@
     "account": "Tài khoản",
     "logout": "Đăng xuất"
   },
+  "notifications": {
+    "title": "Thông báo",
+    "markAll": "Đánh dấu đã đọc",
+    "empty": "Chưa có thông báo nào."
+  },
   "auth": {
     "loginTitle": "Đăng nhập",
     "registerTitle": "Đăng ký",

@@ -14,6 +14,7 @@ from app.core.db import get_db
 from app.models import AuditLog, Membership, User
 from app.rbac import get_current_membership, require_min_role
 from app.schemas.space import MemberInvite, MemberRead, RoleUpdate
+from app.services.notification import add_notification
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -80,6 +81,12 @@ def invite_member(
             action="member.invited",
             target=user.id,
         )
+    )
+    add_notification(
+        db,
+        current.space_id,
+        "member.invited",
+        f"{user.email} được mời vào nhóm với vai trò {payload.role}",
     )
     db.commit()
     db.refresh(member)

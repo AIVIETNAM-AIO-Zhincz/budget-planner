@@ -138,6 +138,19 @@ class RecurringRule(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class Notification(Base):
+    """Thông báo trong app (theo không gian, trạng thái đọc dùng chung)."""
+
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    space_id: Mapped[str] = mapped_column(ForeignKey("spaces.id"), index=True)
+    type: Mapped[str] = mapped_column(String(32))  # budget.exceeded/member.invited/recurring.ran
+    message: Mapped[str] = mapped_column(String(500))
+    is_read: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 __all__ = [
     "User",
     "Space",
@@ -148,4 +161,5 @@ __all__ = [
     "Budget",
     "AuditLog",
     "RecurringRule",
+    "Notification",
 ]

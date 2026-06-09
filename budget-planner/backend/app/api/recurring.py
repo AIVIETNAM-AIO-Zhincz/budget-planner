@@ -12,6 +12,7 @@ from app.core.db import get_db
 from app.models import AuditLog, Membership, RecurringRule
 from app.rbac import get_current_space_id, require_min_role
 from app.schemas.recurring import RecurringCreate, RecurringRead, RecurringUpdate
+from app.services.notification import add_notification
 from app.services.recurring import run_due
 
 router = APIRouter(prefix="/recurring", tags=["recurring"])
@@ -63,6 +64,11 @@ def run_recurring(
 ) -> dict[str, int]:
     """Sinh giao dịch cho các mẫu đến hạn (catch-up tới hôm nay)."""
     created = run_due(db, current.space_id, date.today())
+    if created > 0:
+        add_notification(
+            db, current.space_id, "recurring.ran", f"Đã sinh {created} giao dịch định kỳ"
+        )
+        db.commit()
     return {"created": created}
 
 

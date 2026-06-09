@@ -29,6 +29,11 @@
     "account": "Account",
     "logout": "Log out"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAll": "Mark all read",
+    "empty": "No notifications yet."
+  },
   "auth": {
     "loginTitle": "Sign in",
     "registerTitle": "Sign up",

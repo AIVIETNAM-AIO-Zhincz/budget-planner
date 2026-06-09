@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AppBar,
   Badge,
@@ -32,6 +32,12 @@ import {
 import { useColorMode } from "../theme/ColorModeContext.jsx";
 import { setLanguage } from "../i18n/index.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import {
+  listNotifications,
+  unreadCount,
+  markRead,
+  markAllRead,
+} from "../api/notifications.js";
 
 /** Suy ra key tiêu đề trang từ pathname hiện tại. */
 function titleKeyFromPath(pathname) {
@@ -64,7 +70,52 @@ export default function TopBar({ drawerWidth, collapsed, onToggleCollapsed, onOp
 
   const [spaceAnchor, setSpaceAnchor] = useState(null);
   const [userAnchor, setUserAnchor] = useState(null);
+  const [notifAnchor, setNotifAnchor] = useState(null);
+  const [notifs, setNotifs] = useState([]);
+  const [unread, setUnread] = useState(0);
   const currentSpace = spaces.find((s) => s.id === spaceId);
+
+  // Đếm chưa đọc: lấy khi mount/đổi không gian + poll nhẹ 60s.
+  const refreshUnread = useCallback(() => {
+    unreadCount()
+      .then((r) => setUnread(r?.count || 0))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!spaceId) return undefined;
+    refreshUnread();
+    const id = setInterval(refreshUnread, 60000);
+    return () => clearInterval(id);
+  }, [spaceId, refreshUnread]);
+
+  const openNotif = (e) => {
+    setNotifAnchor(e.currentTarget);
+    listNotifications()
+      .then((r) => setNotifs(Array.isArray(r) ? r : []))
+      .catch(() => setNotifs([]));
+  };
+
+  const handleMarkRead = async (n) => {
+    if (n.is_read) return;
+    try {
+      await markRead(n.id);
+    } catch {
+      /* bỏ qua lỗi đánh dấu */
+    }
+    setNotifs((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)));
+    refreshUnread();
+  };
+
+  const handleMarkAll = async () => {
+    try {
+      await markAllRead();
+    } catch {
+      /* bỏ qua */
+    }
+    setNotifs((prev) => prev.map((x) => ({ ...x, is_read: true })));
+    setUnread(0);
+  };
 
   return (
     <AppBar
@@ -158,12 +209,74 @@ export default function TopBar({ drawerWidth, collapsed, onToggleCollapsed, onOp
         </Tooltip>
 
         <Tooltip title={t("topbar.notifications")}>
-          <IconButton>
-            <Badge color="error" variant="dot">
+          <IconButton onClick={openNotif}>
+            <Badge badgeContent={unread} color="error" max={99}>
               <BellIcon width={21} />
             </Badge>
           </IconButton>
         </Tooltip>
+        <Menu
+          anchorEl={notifAnchor}
+          open={Boolean(notifAnchor)}
+          onClose={() => setNotifAnchor(null)}
+          slotProps={{ paper: { sx: { width: 340, maxHeight: 440 } } }}
+        >
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{t("notifications.title")}</Typography>
+            {notifs.some((n) => !n.is_read) && (
+              <Button size="small" onClick={handleMarkAll} className="no-hover-lift">
+                {t("notifications.markAll")}
+              </Button>
+            )}
+          </Box>
+          <Divider />
+          {notifs.length === 0 ? (
+            <Box sx={{ py: 4, textAlign: "center" }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                {t("notifications.empty")}
+              </Typography>
+            </Box>
+          ) : (
+            notifs.map((n) => (
+              <MenuItem
+                key={n.id}
+                onClick={() => handleMarkRead(n)}
+                sx={{ whiteSpace: "normal", alignItems: "flex-start", py: 1 }}
+              >
+                <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
+                  {!n.is_read && (
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        bgcolor: "error.main",
+                        mt: 0.7,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  <Box sx={{ minWidth: 0, ...(n.is_read ? { pl: "16px" } : {}) }}>
+                    <Typography variant="body2" sx={{ fontWeight: n.is_read ? 400 : 600 }}>
+                      {n.message}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                      {new Date(n.created_at).toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
+              </MenuItem>
+            ))
+          )}
+        </Menu>
 
         {/* Menu tài khoản */}
         <Tooltip title={t("topbar.account")}>
