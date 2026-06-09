@@ -80,6 +80,8 @@
     "walletBalances": "Wallet balances",
     "recentTransactions": "Recent transactions",
     "upcomingRecurring": "Upcoming recurring",
+    "goals": "Saving goals",
+    "noGoals": "No goals yet.",
     "viewAll": "View all",
     "walletTotal": "Total balance",
     "noBudgetsThisMonth": "No budgets for this month yet.",

@@ -80,6 +80,8 @@
     "walletBalances": "Số dư các ví",
     "recentTransactions": "Giao dịch gần đây",
     "upcomingRecurring": "Định kỳ sắp đến hạn",
+    "goals": "Mục tiêu tiết kiệm",
+    "noGoals": "Chưa có mục tiêu nào.",
     "viewAll": "Xem tất cả",
     "walletTotal": "Tổng số dư",
     "noBudgetsThisMonth": "Chưa có ngân sách cho tháng này.",

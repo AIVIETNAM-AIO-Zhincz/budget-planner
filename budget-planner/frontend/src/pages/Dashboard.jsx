@@ -30,6 +30,7 @@ import { listWallets } from "../api/wallets.js";
 import { listBudgets } from "../api/budgets.js";
 import { listRecurring } from "../api/recurring.js";
 import { listCategories } from "../api/categories.js";
+import { listGoals } from "../api/goals.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount, categoryColor } from "../utils/format.js";
 import { echartsAnimationDefaults } from "../utils/motion.js";
@@ -90,6 +91,7 @@ export default function Dashboard() {
   const [wallets, setWallets] = useState([]);
   const [budgets, setBudgets] = useState([]);
   const [recurring, setRecurring] = useState([]);
+  const [goals, setGoals] = useState([]);
   const [catMap, setCatMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -97,12 +99,13 @@ export default function Dashboard() {
   useEffect(() => {
     let active = true;
     (async () => {
-      const [tx, wl, bg, rc, ct] = await Promise.allSettled([
+      const [tx, wl, bg, rc, ct, gl] = await Promise.allSettled([
         listTransactions(),
         listWallets(),
         listBudgets(),
         listRecurring(),
         listCategories(),
+        listGoals(),
       ]);
       if (!active) return;
       if (tx.status === "fulfilled") setItems(Array.isArray(tx.value) ? tx.value : []);
@@ -110,6 +113,7 @@ export default function Dashboard() {
       if (wl.status === "fulfilled") setWallets(Array.isArray(wl.value) ? wl.value : []);
       if (bg.status === "fulfilled") setBudgets(Array.isArray(bg.value) ? bg.value : []);
       if (rc.status === "fulfilled") setRecurring(Array.isArray(rc.value) ? rc.value : []);
+      if (gl.status === "fulfilled") setGoals(Array.isArray(gl.value) ? gl.value : []);
       if (ct.status === "fulfilled") {
         const map = {};
         for (const c of Array.isArray(ct.value) ? ct.value : []) map[c.id] = c.name;
@@ -356,6 +360,58 @@ export default function Dashboard() {
                   </Box>
                 ))}
               </Stack>
+            )}
+          </SectionCard>
+        </Grid>
+
+        {/* Mục tiêu tiết kiệm */}
+        <Grid item xs={12}>
+          <SectionCard
+            title={t("dashboard.goals")}
+            action={
+              <Button size="small" component={RouterLink} to="/goals" className="no-hover-lift">
+                {t("dashboard.viewAll")}
+              </Button>
+            }
+          >
+            {loading ? (
+              <Skeleton variant="rounded" height={120} />
+            ) : goals.length === 0 ? (
+              <EmptyRow text={t("dashboard.noGoals")} />
+            ) : (
+              <Grid container spacing={2.5}>
+                {goals.slice(0, 6).map((g) => {
+                  const done = g.percent >= 100;
+                  return (
+                    <Grid item xs={12} sm={6} key={g.id}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                        <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+                          {g.name}
+                        </Typography>
+                        {done ? (
+                          <Chip size="small" color="success" label={t("goals.completed")} sx={{ height: 20, fontWeight: 600 }} />
+                        ) : (
+                          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                            {Math.round(g.percent)}%
+                          </Typography>
+                        )}
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={Math.min(g.percent, 100)}
+                        color={done ? "success" : "primary"}
+                        sx={{ height: 8, borderRadius: 4 }}
+                      />
+                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        {t("goals.savedOf", {
+                          saved: formatAmount(g.saved_amount),
+                          target: formatAmount(g.target_amount),
+                        })}
+                      </Typography>
+                    </Grid>
+                  );
+                })}
+              </Grid>
             )}
           </SectionCard>
         </Grid>
