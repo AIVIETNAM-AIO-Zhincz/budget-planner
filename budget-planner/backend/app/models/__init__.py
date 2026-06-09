@@ -118,6 +118,26 @@ class AuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class RecurringRule(Base):
+    """Mẫu giao dịch định kỳ (sinh giao dịch theo lịch)."""
+
+    __tablename__ = "recurring_rules"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    space_id: Mapped[str] = mapped_column(ForeignKey("spaces.id"), index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    amount: Mapped[float] = mapped_column(Float)
+    type: Mapped[str] = mapped_column(String(8), default="expense")  # income/expense
+    category_name: Mapped[str] = mapped_column(String(255), default="")
+    wallet_id: Mapped[str | None] = mapped_column(ForeignKey("wallets.id"), nullable=True)
+    frequency: Mapped[str] = mapped_column(String(8), default="monthly")  # daily/weekly/monthly
+    start_date: Mapped[date] = mapped_column(Date)
+    next_run: Mapped[date] = mapped_column(Date)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 __all__ = [
     "User",
     "Space",
@@ -127,4 +147,5 @@ __all__ = [
     "Transaction",
     "Budget",
     "AuditLog",
+    "RecurringRule",
 ]

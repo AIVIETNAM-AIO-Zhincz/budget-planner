@@ -13,6 +13,7 @@ const Assistant = lazy(() => import("./pages/Assistant.jsx"));
 const Categories = lazy(() => import("./pages/Categories.jsx"));
 const Budgets = lazy(() => import("./pages/Budgets.jsx"));
 const Wallets = lazy(() => import("./pages/Wallets.jsx"));
+const Recurring = lazy(() => import("./pages/Recurring.jsx"));
 const Reports = lazy(() => import("./pages/Reports.jsx"));
 const Members = lazy(() => import("./pages/Members.jsx"));
 const Settings = lazy(() => import("./pages/Settings.jsx"));
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="categories" element={lazyEl(<Categories />)} />
           <Route path="budgets" element={lazyEl(<Budgets />)} />
           <Route path="wallets" element={lazyEl(<Wallets />)} />
+          <Route path="recurring" element={lazyEl(<Recurring />)} />
           <Route path="reports" element={lazyEl(<Reports />)} />
           <Route path="members" element={lazyEl(<Members />)} />
           <Route path="settings" element={lazyEl(<Settings />)} />

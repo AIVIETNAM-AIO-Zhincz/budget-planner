@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar, { DRAWER_WIDTH, COLLAPSED_WIDTH } from "./Sidebar.jsx";
 import TopBar from "./TopBar.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { runRecurring } from "../api/recurring.js";
 
 const COLLAPSE_KEY = "bp-sidebar-collapsed";
 
@@ -25,6 +26,11 @@ export default function AppLayout() {
 
   const drawerWidth = collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
   const { spaceId } = useAuth();
+
+  // Tự sinh giao dịch định kỳ đến hạn khi vào shell / đổi không gian (fire-and-forget).
+  useEffect(() => {
+    if (spaceId) runRecurring().catch(() => {});
+  }, [spaceId]);
 
   const toggleCollapsed = useCallback(() => setCollapsed((v) => !v), []);
   const openMobile = useCallback(() => setMobileOpen(true), []);

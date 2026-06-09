@@ -43,6 +43,7 @@ function titleKeyFromPath(pathname) {
     "/categories": "nav.categories",
     "/budgets": "nav.budgets",
     "/wallets": "nav.wallets",
+    "/recurring": "nav.recurring",
     "/members": "nav.members",
     "/settings": "nav.settings",
   };
