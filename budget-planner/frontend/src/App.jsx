@@ -9,6 +9,7 @@ const Login = lazy(() => import("./pages/Login.jsx"));
 const Register = lazy(() => import("./pages/Register.jsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const Transactions = lazy(() => import("./pages/Transactions.jsx"));
+const Assistant = lazy(() => import("./pages/Assistant.jsx"));
 const Categories = lazy(() => import("./pages/Categories.jsx"));
 const Budgets = lazy(() => import("./pages/Budgets.jsx"));
 const Wallets = lazy(() => import("./pages/Wallets.jsx"));
@@ -42,6 +43,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route index element={lazyEl(<Dashboard />)} />
           <Route path="transactions" element={lazyEl(<Transactions />)} />
+          <Route path="assistant" element={lazyEl(<Assistant />)} />
           <Route path="categories" element={lazyEl(<Categories />)} />
           <Route path="budgets" element={lazyEl(<Budgets />)} />
           <Route path="wallets" element={lazyEl(<Wallets />)} />

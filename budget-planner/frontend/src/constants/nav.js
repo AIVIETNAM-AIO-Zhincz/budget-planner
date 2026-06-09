@@ -1,6 +1,7 @@
 import {
   Squares2X2Icon,
   ArrowsRightLeftIcon,
+  SparklesIcon,
   TagIcon,
   BanknotesIcon,
   WalletIcon,
@@ -20,6 +21,7 @@ export const navSections = [
     items: [
       { labelKey: "nav.dashboard", path: "/", icon: Squares2X2Icon },
       { labelKey: "nav.transactions", path: "/transactions", icon: ArrowsRightLeftIcon },
+      { labelKey: "nav.assistant", path: "/assistant", icon: SparklesIcon },
       { labelKey: "nav.reports", path: "/reports", icon: ChartBarIcon },
     ],
   },

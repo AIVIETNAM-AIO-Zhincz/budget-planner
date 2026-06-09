@@ -11,6 +11,7 @@
     },
     "dashboard": "Bảng điều khiển",
     "transactions": "Giao dịch",
+    "assistant": "Trợ lý",
     "categories": "Danh mục",
     "budgets": "Ngân sách",
     "wallets": "Ví",
@@ -257,7 +258,19 @@
       "amountRequired": "Số tiền phải lớn hơn 0"
     }
   },
+  "assistant": {
+    "greeting": "Chào bạn! Nhập giao dịch bằng lời, ví dụ \"ăn trưa 50k hôm qua\", hoặc hỏi \"tháng này chi bao nhiêu?\".",
+    "placeholder": "Nhập tin nhắn…",
+    "send": "Gửi",
+    "draftTitle": "Giao dịch đã hiểu",
+    "openForm": "Mở form xác nhận",
+    "saved": "Đã lưu giao dịch ✓",
+    "error": "Có lỗi xảy ra, thử lại nhé.",
+    "examples": "Ví dụ: \"cà phê 35k\", \"lương 15tr hôm qua\", \"số dư ví?\""
+  },
   "pages": {
+    "assistant": "Trợ lý",
+    "assistantDesc": "Nhập giao dịch bằng ngôn ngữ tự nhiên & hỏi-đáp số liệu",
     "categories": "Danh mục",
     "categoriesDesc": "Cây danh mục thu/chi (cha–con)",
     "budgets": "Ngân sách",

@@ -26,7 +26,8 @@ import { listWallets } from "../api/wallets.js";
  */
 export default function TransactionFormDialog({ open, onClose, onSubmit, submitting, initial }) {
   const { t } = useTranslation();
-  const isEdit = Boolean(initial);
+  // Chỉ là "sửa" khi nháp có id; nháp prefill (từ Trợ lý) không id → tạo mới.
+  const isEdit = Boolean(initial?.id);
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
   const [note, setNote] = useState("");

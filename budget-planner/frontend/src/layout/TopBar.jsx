@@ -38,6 +38,7 @@ function titleKeyFromPath(pathname) {
   const map = {
     "/": "nav.dashboard",
     "/transactions": "nav.transactions",
+    "/assistant": "nav.assistant",
     "/reports": "nav.reports",
     "/categories": "nav.categories",
     "/budgets": "nav.budgets",

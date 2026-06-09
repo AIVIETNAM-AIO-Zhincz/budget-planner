@@ -11,6 +11,7 @@
     },
     "dashboard": "Dashboard",
     "transactions": "Transactions",
+    "assistant": "Assistant",
     "categories": "Categories",
     "budgets": "Budgets",
     "wallets": "Wallets",
@@ -257,7 +258,19 @@
       "amountRequired": "Amount must be greater than 0"
     }
   },
+  "assistant": {
+    "greeting": "Hi! Add a transaction in plain words, e.g. \"lunch 50k yesterday\", or ask \"how much did I spend this month?\".",
+    "placeholder": "Type a message…",
+    "send": "Send",
+    "draftTitle": "Understood transaction",
+    "openForm": "Open confirm form",
+    "saved": "Transaction saved ✓",
+    "error": "Something went wrong, please retry.",
+    "examples": "e.g. \"coffee 35k\", \"salary 15tr yesterday\", \"wallet balance?\""
+  },
   "pages": {
+    "assistant": "Assistant",
+    "assistantDesc": "Add transactions in natural language & ask about your data",
     "categories": "Categories",
     "categoriesDesc": "Income/expense category tree (parent–child)",
     "budgets": "Budgets",
