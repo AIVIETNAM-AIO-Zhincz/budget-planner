@@ -136,6 +136,7 @@
     },
     "noResult": "No transactions match the filters.",
     "summary": { "income": "Total income", "expense": "Total expense", "balance": "Balance" },
+    "rowsPerPage": "Rows per page",
     "import": {
       "button": "Import CSV",
       "title": "Import transactions from CSV",
@@ -219,6 +220,7 @@
       "title": "Invite member",
       "email": "Email",
       "emailHint": "The user must already have an account",
+      "emailInvalid": "Invalid email address",
       "role": "Role",
       "submit": "Send invite"
     }
@@ -280,7 +282,8 @@
       "editTitle": "Edit wallet",
       "name": "Wallet name",
       "type": "Type",
-      "balance": "Balance"
+      "balance": "Balance",
+      "nameRequired": "Please enter a wallet name"
     },
     "transferForm": {
       "title": "Transfer between wallets",
@@ -318,6 +321,7 @@
     "overTime": "Income/expense over time",
     "empty": "No data in the selected range.",
     "loadError": "Could not load report",
+    "vsPrev": "vs prev.",
     "exportError": "Could not export CSV"
   },
   "recurring": {

@@ -17,18 +17,23 @@ export default function WalletFormDialog({ open, onClose, onSubmit, submitting, 
   const [name, setName] = useState("");
   const [type, setType] = useState("cash");
   const [balance, setBalance] = useState("0");
+  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (open) {
       setName(initial?.name ?? "");
       setType(initial?.type ?? "cash");
       setBalance(initial?.balance != null ? String(initial.balance) : "0");
+      setTouched(false);
     }
   }, [open, initial]);
 
+  const nameInvalid = !name.trim();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    setTouched(true);
+    if (nameInvalid) return;
     await onSubmit({ name: name.trim(), type, balance });
   };
 
@@ -54,6 +59,8 @@ export default function WalletFormDialog({ open, onClose, onSubmit, submitting, 
           label={t("wallets.form.name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
+          error={touched && nameInvalid}
+          helperText={touched && nameInvalid ? t("wallets.form.nameRequired") : " "}
           required
           autoFocus
           fullWidth

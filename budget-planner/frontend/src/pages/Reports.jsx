@@ -74,6 +74,7 @@ export default function Reports() {
   const [from, setFrom] = useState(dayjs().startOf("month"));
   const [to, setTo] = useState(dayjs());
   const [summary, setSummary] = useState(null);
+  const [prev, setPrev] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -91,13 +92,34 @@ export default function Reports() {
     setLoading(true);
     setError("");
     try {
-      setSummary(await getSummary(range));
+      // Kỳ trước cùng độ dài: [from - len - 1 ngày … from - 1 ngày].
+      const len = from && to ? to.diff(from, "day") : 0;
+      const prevTo = from ? from.subtract(1, "day") : null;
+      const prevFrom = prevTo ? prevTo.subtract(len, "day") : null;
+      const prevRange = {
+        from: prevFrom ? prevFrom.format("YYYY-MM-DD") : "",
+        to: prevTo ? prevTo.format("YYYY-MM-DD") : "",
+      };
+      const [cur, prv] = await Promise.all([getSummary(range), getSummary(prevRange)]);
+      setSummary(cur);
+      setPrev(prv);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : t("reports.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [range, t]);
+  }, [range, from, to, t]);
+
+  // % thay đổi so kỳ trước (null nếu kỳ trước = 0 → không đủ cơ sở).
+  const deltas = useMemo(() => {
+    const pct = (cur, prv) =>
+      prv != null && prv !== 0 ? ((Number(cur) - prv) / Math.abs(prv)) * 100 : null;
+    return {
+      income: pct(summary?.total_income, prev?.total_income),
+      expense: pct(summary?.total_expense, prev?.total_expense),
+      balance: pct(summary?.balance, prev?.balance),
+    };
+  }, [summary, prev]);
 
   useEffect(() => {
     refresh();
@@ -196,6 +218,8 @@ export default function Reports() {
                 count={summary.total_income}
                 format={formatCompactVnd}
                 suffix="₫"
+                delta={deltas.income}
+                deltaLabel={t("reports.vsPrev")}
               />
             </Grid>
             <Grid item xs={12} sm={4} className="gsap-in">
@@ -206,6 +230,9 @@ export default function Reports() {
                 count={summary.total_expense}
                 format={formatCompactVnd}
                 suffix="₫"
+                delta={deltas.expense}
+                deltaInvert
+                deltaLabel={t("reports.vsPrev")}
               />
             </Grid>
             <Grid item xs={12} sm={4} className="gsap-in">
@@ -216,6 +243,8 @@ export default function Reports() {
                 count={summary.balance}
                 format={formatCompactVnd}
                 suffix="₫"
+                delta={deltas.balance}
+                deltaLabel={t("reports.vsPrev")}
               />
             </Grid>
           </Grid>

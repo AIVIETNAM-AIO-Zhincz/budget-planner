@@ -16,6 +16,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Typography,
@@ -39,6 +40,7 @@ import TransactionFormDialog from "../components/TransactionFormDialog.jsx";
 import ImportDialog from "../components/ImportDialog.jsx";
 import {
   listTransactions,
+  transactionStats,
   createTransaction,
   updateTransaction,
   deleteTransaction,
@@ -46,7 +48,6 @@ import {
 import { listCategories } from "../api/categories.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount } from "../utils/format.js";
-import { summarize } from "../utils/charts.js";
 
 /** Trang Giao dịch — bảng + lọc/tìm + thêm/sửa/xoá. */
 export default function Transactions() {
@@ -70,6 +71,11 @@ export default function Transactions() {
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
 
+  // Phân trang + tổng hợp (toàn bộ filter, từ backend).
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [stats, setStats] = useState({ total: 0, income: 0, expense: 0 });
+
   useEffect(() => {
     const id = setTimeout(() => setDebouncedQ(q), 300);
     return () => clearTimeout(id);
@@ -80,20 +86,32 @@ export default function Transactions() {
     [type, category, month, debouncedQ]
   );
   const hasFilter = Boolean(type || category || month || debouncedQ);
-  const summary = useMemo(() => summarize(items), [items]);
+  const summary = useMemo(
+    () => ({ income: stats.income, expense: stats.expense, balance: stats.income - stats.expense }),
+    [stats]
+  );
+
+  // Đổi bộ lọc → về trang đầu.
+  useEffect(() => {
+    setPage(0);
+  }, [filters]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await listTransactions(filters);
+      const [data, s] = await Promise.all([
+        listTransactions({ ...filters, limit: rowsPerPage, offset: page * rowsPerPage }),
+        transactionStats(filters),
+      ]);
       setItems(Array.isArray(data) ? data : []);
+      setStats(s || { total: 0, income: 0, expense: 0 });
     } catch (e) {
       setError(e instanceof ApiError ? e.message : t("transactions.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [filters, t]);
+  }, [filters, page, rowsPerPage, t]);
 
   useEffect(() => {
     refresh();
@@ -256,7 +274,7 @@ export default function Transactions() {
         </Alert>
       )}
 
-      {!loading && items.length > 0 && (
+      {!loading && stats.total > 0 && (
         <Stack direction="row" spacing={1.5} sx={{ mb: 2, flexWrap: "wrap", gap: 1 }}>
           <Chip
             color="success"
@@ -361,6 +379,22 @@ export default function Transactions() {
               {hasFilter ? t("transactions.noResult") : t("transactions.empty")}
             </Typography>
           </Box>
+        )}
+
+        {!loading && stats.total > 0 && (
+          <TablePagination
+            component="div"
+            count={stats.total}
+            page={page}
+            onPageChange={(_e, p) => setPage(p)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            rowsPerPageOptions={[10, 20, 50]}
+            labelRowsPerPage={t("transactions.rowsPerPage")}
+          />
         )}
       </Paper>
 

@@ -22,6 +22,12 @@ describe("categoryColor", () => {
     expect(c).toMatch(/^#[0-9a-f]{6}$/i);
     expect(categoryColor("Đi lại")).toMatch(/^#[0-9a-f]{6}$/i);
   });
+
+  it("các danh mục khác nhau → màu khác nhau", () => {
+    const names = ["Ăn uống", "Lương", "Đi lại", "Giải trí", "Hoá đơn", "Sức khoẻ"];
+    const colors = names.map(categoryColor);
+    expect(new Set(colors).size).toBe(names.length);
+  });
 });
 
 describe("budgetTone", () => {

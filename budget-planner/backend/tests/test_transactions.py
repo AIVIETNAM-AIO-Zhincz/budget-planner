@@ -177,3 +177,46 @@ def test_delete_restores_balance(client: TestClient, owner: dict) -> None:
     tx = _create(client, owner["headers"], amount=30000, type="expense", wallet_id=wid)
     client.delete(f"/transactions/{tx['id']}", headers=owner["headers"])
     assert _balance(client, owner["headers"], wid) == 100000
+
+
+def test_list_pagination_limit_offset(client: TestClient, owner: dict) -> None:
+    """limit/offset cắt trang đúng; không có limit → trả tất cả (tương thích cũ)."""
+    for i in range(5):
+        client.post(
+            "/transactions",
+            json={"amount": (i + 1) * 1000, "note": f"t{i}", "category_name": "Khác"},
+            headers=owner["headers"],
+        )
+    assert len(client.get("/transactions", headers=owner["headers"]).json()) == 5
+
+    page1 = client.get("/transactions?limit=2", headers=owner["headers"]).json()
+    page2 = client.get("/transactions?limit=2&offset=2", headers=owner["headers"]).json()
+    assert len(page1) == 2 and len(page2) == 2
+    # Hai trang không trùng (id khác nhau).
+    assert {t["id"] for t in page1}.isdisjoint({t["id"] for t in page2})
+
+
+def test_stats_matches_filter(client: TestClient, owner: dict) -> None:
+    """/transactions/stats trả total + tổng thu/chi đúng theo bộ lọc."""
+    client.post(
+        "/transactions",
+        json={"amount": 100000, "type": "income", "note": "lương", "category_name": "Lương"},
+        headers=owner["headers"],
+    )
+    client.post(
+        "/transactions",
+        json={"amount": 30000, "type": "expense", "note": "ăn", "category_name": "Ăn uống"},
+        headers=owner["headers"],
+    )
+    client.post(
+        "/transactions",
+        json={"amount": 20000, "type": "expense", "note": "cà phê", "category_name": "Ăn uống"},
+        headers=owner["headers"],
+    )
+
+    stats = client.get("/transactions/stats", headers=owner["headers"]).json()
+    assert stats == {"total": 3, "income": 100000, "expense": 50000}
+
+    # Lọc theo loại expense → income = 0, total = 2.
+    s2 = client.get("/transactions/stats?type=expense", headers=owner["headers"]).json()
+    assert s2["total"] == 2 and s2["income"] == 0 and s2["expense"] == 50000

@@ -1,23 +1,34 @@
-/** Bảng màu accent gán cho danh mục (xoay vòng theo hash tên). */
-const CATEGORY_COLORS = [
-  "#2563eb",
-  "#7c3aed",
-  "#b45309",
-  "#0891b2",
-  "#be185d",
-  "#15803d",
-  "#c2410c",
-  "#4f46e5",
-];
-
 /** Định dạng số tiền theo locale Việt Nam (vd 50000 → "50.000"). */
 export function formatAmount(amount) {
   const n = Number(amount) || 0;
   return n.toLocaleString("vi-VN");
 }
 
+/** Chuyển HSL (h:0–360, s/l:0–1) sang mã hex `#rrggbb`. */
+function hslToHex(h, s, l) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (h < 60) [r, g, b] = [c, x, 0];
+  else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x];
+  else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const hex = (v) =>
+    Math.round((v + m) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
+
 /**
- * Chọn màu ổn định cho một danh mục dựa trên tên (hash đơn giản).
+ * Chọn màu ổn định + phân biệt cho một danh mục theo tên.
+ * Dùng góc vàng (golden-angle) để trải đều sắc độ → các danh mục khác nhau
+ * hầu như luôn có màu khác nhau (deterministic theo tên, trả mã hex).
  *
  * @param {string} name tên danh mục.
  * @returns {string} mã hex.
@@ -28,7 +39,8 @@ export function categoryColor(name) {
   for (let i = 0; i < key.length; i += 1) {
     hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
   }
-  return CATEGORY_COLORS[hash % CATEGORY_COLORS.length];
+  const hue = (hash * 137.508) % 360;
+  return hslToHex(hue, 0.62, 0.48);
 }
 
 /**

@@ -136,6 +136,7 @@
     },
     "noResult": "Không có giao dịch khớp bộ lọc.",
     "summary": { "income": "Tổng thu", "expense": "Tổng chi", "balance": "Số dư" },
+    "rowsPerPage": "Số dòng/trang",
     "import": {
       "button": "Nhập CSV",
       "title": "Nhập giao dịch từ CSV",
@@ -219,6 +220,7 @@
       "title": "Mời thành viên",
       "email": "Email",
       "emailHint": "Người dùng phải đã có tài khoản",
+      "emailInvalid": "Email không hợp lệ",
       "role": "Vai trò",
       "submit": "Gửi lời mời"
     }
@@ -280,7 +282,8 @@
       "editTitle": "Sửa ví",
       "name": "Tên ví",
       "type": "Loại",
-      "balance": "Số dư"
+      "balance": "Số dư",
+      "nameRequired": "Vui lòng nhập tên ví"
     },
     "transferForm": {
       "title": "Chuyển tiền giữa ví",
@@ -318,6 +321,7 @@
     "overTime": "Thu/chi theo ngày",
     "empty": "Không có dữ liệu trong khoảng đã chọn.",
     "loadError": "Không tải được báo cáo",
+    "vsPrev": "so kỳ trước",
     "exportError": "Không xuất được CSV"
   },
   "recurring": {

@@ -9,7 +9,8 @@ import { useHoverLift } from "../utils/gsap.js";
  * - Hover nhấc nhẹ qua GSAP (tôn trọng reduced-motion).
  *
  * @param {{label:string, value?:React.ReactNode, count?:number, format?:Function, suffix?:string,
- *          note?:string, icon?:React.ReactNode, accent?:string}} props
+ *          note?:string, icon?:React.ReactNode, accent?:string,
+ *          delta?:number|null, deltaInvert?:boolean, deltaLabel?:string}} props
  */
 export default function StatCard({
   label,
@@ -20,9 +21,16 @@ export default function StatCard({
   note,
   icon,
   accent = "#6366f1",
+  delta = null,
+  deltaInvert = false,
+  deltaLabel = "",
 }) {
   const cardRef = useRef(null);
   useHoverLift(cardRef);
+
+  const hasDelta = delta != null && Number.isFinite(delta);
+  const deltaUp = delta >= 0;
+  const deltaGood = deltaInvert ? !deltaUp : deltaUp;
 
   return (
     <Paper
@@ -78,6 +86,21 @@ export default function StatCard({
           value
         )}
       </Typography>
+      {hasDelta && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Typography
+            component="span"
+            sx={{ fontSize: 12, fontWeight: 700, color: deltaGood ? "success.main" : "error.main" }}
+          >
+            {deltaUp ? "↑" : "↓"} {Math.abs(delta).toFixed(0)}%
+          </Typography>
+          {deltaLabel && (
+            <Typography component="span" sx={{ fontSize: 11, color: "text.disabled" }}>
+              {deltaLabel}
+            </Typography>
+          )}
+        </Box>
+      )}
       {note && <Typography sx={{ fontSize: 11, color: "text.disabled" }}>{note}</Typography>}
     </Paper>
   );

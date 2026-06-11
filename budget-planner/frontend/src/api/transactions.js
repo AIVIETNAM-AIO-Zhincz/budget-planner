@@ -2,17 +2,34 @@ import { apiFetch, ApiError, BASE_URL, getAccessToken, getSpaceId } from "./clie
 
 /**
  * Lấy danh sách giao dịch, lọc theo {type, category, month, q} (bỏ field rỗng).
+ * Phân trang tuỳ chọn: truyền `limit` (kèm `offset`) để lấy 1 trang.
  *
- * @param {{type?:string, category?:string, month?:string, q?:string}} [filters]
+ * @param {{type?:string, category?:string, month?:string, q?:string,
+ *          limit?:number, offset?:number}} [filters]
  * @returns {Promise<Array>} mảng TransactionRead.
  */
 export function listTransactions(filters = {}) {
+  const params = new URLSearchParams();
+  for (const key of ["type", "category", "month", "q", "limit", "offset"]) {
+    if (filters[key]) params.set(key, filters[key]);
+  }
+  const qs = params.toString();
+  return apiFetch(`/transactions${qs ? `?${qs}` : ""}`);
+}
+
+/**
+ * Tổng hợp trên toàn bộ bộ lọc (không phân trang): {total, income, expense}.
+ *
+ * @param {{type?:string, category?:string, month?:string, q?:string}} [filters]
+ * @returns {Promise<{total:number, income:number, expense:number}>}
+ */
+export function transactionStats(filters = {}) {
   const params = new URLSearchParams();
   for (const key of ["type", "category", "month", "q"]) {
     if (filters[key]) params.set(key, filters[key]);
   }
   const qs = params.toString();
-  return apiFetch(`/transactions${qs ? `?${qs}` : ""}`);
+  return apiFetch(`/transactions/stats${qs ? `?${qs}` : ""}`);
 }
 
 /**

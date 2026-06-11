@@ -15,18 +15,23 @@ export default function InviteMemberDialog({ open, onClose, onSubmit, submitting
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
+  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (open) {
       setEmail("");
       setRole("member");
+      setTouched(false);
     }
   }, [open]);
 
   const roles = allowOwner ? ["owner", ...BASE_ROLES] : BASE_ROLES;
+  const emailInvalid = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setTouched(true);
+    if (emailInvalid) return;
     await onSubmit({ email: email.trim(), role });
   };
 
@@ -54,7 +59,8 @@ export default function InviteMemberDialog({ open, onClose, onSubmit, submitting
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          helperText={t("members.form.emailHint")}
+          error={touched && emailInvalid}
+          helperText={touched && emailInvalid ? t("members.form.emailInvalid") : t("members.form.emailHint")}
           required
           autoFocus
           fullWidth

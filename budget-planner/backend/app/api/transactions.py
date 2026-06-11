@@ -7,7 +7,7 @@ import io
 from datetime import date as date_type
 
 from fastapi import APIRouter, Depends, Query, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api._common import get_owned_or_404, write_audit
@@ -183,17 +183,9 @@ def _get_owned(db: Session, transaction_id: str, space_id: str) -> Transaction:
     return get_owned_or_404(db, Transaction, transaction_id, space_id, "Không tìm thấy giao dịch")
 
 
-@router.get("", response_model=list[TransactionRead])
-def list_transactions(
-    db: Session = Depends(get_db),
-    space_id: str = Depends(get_current_space_id),
-    type: str | None = Query(default=None, pattern="^(income|expense)$"),
-    category: str | None = Query(default=None),
-    month: str | None = Query(default=None, pattern=r"^\d{4}-\d{2}$"),
-    q: str | None = Query(default=None),
-) -> list[Transaction]:
-    """Liệt kê giao dịch (cô lập theo space_id), lọc theo loại/danh mục/tháng/tìm ghi chú."""
-    stmt = select(Transaction).where(Transaction.space_id == space_id)
+def _apply_filters(stmt, space_id: str, type, category, month, q):
+    """Áp các bộ lọc chung (space/type/category/month/q) lên một câu lệnh select."""
+    stmt = stmt.where(Transaction.space_id == space_id)
     if type:
         stmt = stmt.where(Transaction.type == type)
     if category:
@@ -205,8 +197,64 @@ def list_transactions(
         stmt = stmt.where(Transaction.date >= start, Transaction.date < end)
     if q:
         stmt = stmt.where(Transaction.note.ilike(f"%{q}%"))
+    return stmt
+
+
+@router.get("", response_model=list[TransactionRead])
+def list_transactions(
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+    type: str | None = Query(default=None, pattern="^(income|expense)$"),
+    category: str | None = Query(default=None),
+    month: str | None = Query(default=None, pattern=r"^\d{4}-\d{2}$"),
+    q: str | None = Query(default=None),
+    limit: int | None = Query(default=None, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> list[Transaction]:
+    """Liệt kê giao dịch (cô lập theo space_id), lọc theo loại/danh mục/tháng/tìm ghi chú.
+
+    Phân trang tuỳ chọn: truyền ``limit`` (kèm ``offset``) để lấy 1 trang; không có
+    ``limit`` → trả tất cả (giữ tương thích Dashboard + client cũ).
+    """
+    stmt = _apply_filters(select(Transaction), space_id, type, category, month, q)
     stmt = stmt.order_by(Transaction.date.desc())
+    if limit is not None:
+        stmt = stmt.offset(offset).limit(limit)
     return list(db.scalars(stmt))
+
+
+@router.get("/stats")
+def transaction_stats(
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+    type: str | None = Query(default=None, pattern="^(income|expense)$"),
+    category: str | None = Query(default=None),
+    month: str | None = Query(default=None, pattern=r"^\d{4}-\d{2}$"),
+    q: str | None = Query(default=None),
+) -> dict:
+    """Tổng hợp trên TOÀN bộ bộ lọc (không phân trang): số lượng + tổng thu + tổng chi.
+
+    Dùng cho thanh tổng + đếm trang ở UI khi danh sách được phân trang.
+    """
+    count_stmt = _apply_filters(
+        select(func.count(Transaction.id)), space_id, type, category, month, q
+    )
+    total = int(db.scalar(count_stmt) or 0)
+
+    def _sum(tx_type: str) -> float:
+        stmt = _apply_filters(
+            select(func.coalesce(func.sum(Transaction.amount), 0.0)),
+            space_id,
+            type,
+            category,
+            month,
+            q,
+        ).where(Transaction.type == tx_type)
+        return float(db.scalar(stmt) or 0)
+
+    income = _sum("income")
+    expense = _sum("expense")
+    return {"total": total, "income": income, "expense": expense}
 
 
 @router.get("/{transaction_id}", response_model=TransactionRead)
