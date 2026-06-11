@@ -299,7 +299,7 @@
     }
   },
   "assistant": {
-    "greeting": "Chào bạn! Nhập giao dịch bằng lời, ví dụ \"ăn trưa 50k hôm qua\", hoặc hỏi \"tháng này chi bao nhiêu?\".",
+    "greeting": "Chào bạn! Nhập giao dịch bằng lời (\"ăn trưa 50k hôm qua\"), hỏi số liệu (\"tháng này chi bao nhiêu?\"), hoặc hỏi kiến thức tài chính (\"quỹ khẩn cấp nên có bao nhiêu?\").",
     "placeholder": "Nhập tin nhắn…",
     "send": "Gửi",
     "draftTitle": "Giao dịch đã hiểu",
@@ -309,7 +309,12 @@
     "examples": "Ví dụ: \"cà phê 35k\", \"lương 15tr hôm qua\", \"số dư ví?\"",
     "q1": "Tháng này chi bao nhiêu?",
     "q2": "Cà phê 30k",
-    "q3": "Số dư ví?"
+    "q3": "Số dư ví?",
+    "knowledgeTag": "Kiến thức tài chính",
+    "faqHint": "Hỏi kiến thức tài chính:",
+    "faq1": "Tôi nên tiết kiệm bao nhiêu % thu nhập?",
+    "faq2": "Quỹ khẩn cấp nên có bao nhiêu?",
+    "faq3": "Cần bao nhiêu để tự do tài chính?"
   },
   "annual": {
     "year": "Năm",

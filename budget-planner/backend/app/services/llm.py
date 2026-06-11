@@ -14,20 +14,25 @@ import httpx
 
 from app.core.config import settings
 from app.services.categorizer import suggest_category
+from app.services.faq import FAQ_INTENTS
 
 # Các intent hỏi-đáp được phép (khớp với assistant.compute_answer).
 _INTENTS = ("expense_month", "income_month", "wallet_balance")
 
+_FAQ_LIST = ", ".join(f'"{i}"' for i in FAQ_INTENTS)
+
 _SYSTEM = (
     "Bạn là trợ lý tài chính cá nhân. Phân tích tin nhắn người dùng và TRẢ VỀ DUY NHẤT một JSON:\n"
-    '{"kind":"transaction"|"question"|"other","draft":{...}|null,'
-    '"question":<intent>|null,"reply":<string>|null}\n'
+    '{"kind":"transaction"|"question"|"faq"|"other","draft":{...}|null,'
+    '"question":<intent>|null,"faq":<faq_id>|null,"reply":<string>|null}\n'
     '- "transaction": nếu là ghi một giao dịch. draft = '
     '{"amount":<số VND nguyên>,"type":"income"|"expense",'
     '"category_name":<chuỗi hoặc "">,"note":<chuỗi>,"date":"YYYY-MM-DD"}. '
     "CHỈ trích số tiền/ngày có trong tin nhắn, KHÔNG bịa.\n"
-    '- "question": nếu hỏi số liệu. question ∈ '
+    '- "question": nếu hỏi SỐ LIỆU của người dùng. question ∈ '
     '["expense_month","income_month","wallet_balance"]. KHÔNG tự tính số.\n'
+    f'- "faq": nếu hỏi KIẾN THỨC tài chính chung (vd nên tiết kiệm %, quỹ khẩn cấp, tự do tài '
+    f"chính). faq ∈ [{_FAQ_LIST}]. CHỈ chọn id phù hợp, KHÔNG tự trả lời nội dung.\n"
     '- "other": chào hỏi/không rõ. reply = câu trả lời ngắn, thân thiện bằng tiếng Việt.\n'
     "Chỉ in JSON, không kèm giải thích."
 )
@@ -85,6 +90,9 @@ def parse_llm_json(raw: str, today: date) -> dict | None:
     if kind == "question":
         intent = data.get("question")
         return {"kind": "question", "question": intent} if intent in _INTENTS else None
+    if kind == "faq":
+        faq_id = data.get("faq")
+        return {"kind": "faq", "faq": faq_id} if faq_id in FAQ_INTENTS else None
     if kind == "other":
         reply = data.get("reply")
         return {"kind": "other", "reply": reply if isinstance(reply, str) else None}

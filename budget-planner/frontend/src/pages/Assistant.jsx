@@ -95,7 +95,12 @@ export default function Assistant() {
     setSending(true);
     try {
       const res = await sendMessage(text);
-      push({ role: "bot", text: res.reply, draft: res.kind === "transaction" ? res.draft : null });
+      push({
+        role: "bot",
+        text: res.reply,
+        draft: res.kind === "transaction" ? res.draft : null,
+        kind: res.kind,
+      });
     } catch (err) {
       push({ role: "bot", text: err instanceof ApiError ? err.message : t("assistant.error") });
     } finally {
@@ -109,6 +114,7 @@ export default function Assistant() {
   };
 
   const quickPrompts = [t("assistant.q1"), t("assistant.q2"), t("assistant.q3")];
+  const faqPrompts = [t("assistant.faq1"), t("assistant.faq2"), t("assistant.faq3")];
 
   const openConfirm = (draft) => {
     setPrefill(draft);
@@ -146,6 +152,19 @@ export default function Assistant() {
         <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
           {messages.map((m, i) => (
             <Bubble key={i} role={m.role}>
+              {m.kind === "faq" && (
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  alignItems="center"
+                  sx={{ mb: 0.5, color: "primary.main" }}
+                >
+                  <SparklesIcon width={14} />
+                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                    {t("assistant.knowledgeTag")}
+                  </Typography>
+                </Stack>
+              )}
               <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
                 {m.text}
               </Typography>
@@ -156,19 +175,41 @@ export default function Assistant() {
         </Box>
 
         {messages.length <= 1 && (
-          <Stack direction="row" spacing={1} sx={{ px: 1.5, pb: 1, flexWrap: "wrap", gap: 1 }}>
-            {quickPrompts.map((p) => (
-              <Chip
-                key={p}
-                label={p}
-                size="small"
-                variant="outlined"
-                color="primary"
-                clickable
-                onClick={() => send(p)}
-              />
-            ))}
-          </Stack>
+          <Box sx={{ px: 1.5, pb: 1 }}>
+            <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
+              {quickPrompts.map((p) => (
+                <Chip
+                  key={p}
+                  label={p}
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  clickable
+                  onClick={() => send(p)}
+                />
+              ))}
+            </Stack>
+            <Typography
+              variant="caption"
+              sx={{ color: "text.secondary", display: "block", mt: 1.25, mb: 0.5 }}
+            >
+              {t("assistant.faqHint")}
+            </Typography>
+            <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
+              {faqPrompts.map((p) => (
+                <Chip
+                  key={p}
+                  label={p}
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  icon={<SparklesIcon width={14} />}
+                  clickable
+                  onClick={() => send(p)}
+                />
+              ))}
+            </Stack>
+          </Box>
         )}
 
         <Box

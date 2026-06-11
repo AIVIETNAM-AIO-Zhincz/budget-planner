@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.format import format_vnd as _fmt
 from app.models import Transaction, Wallet
-from app.services import llm
+from app.services import faq, llm
 from app.services.categorizer import suggest_category
 
 _INCOME_KEYWORDS = ("thu nhập", "thu ", "nhận", "lương", "thưởng", "được trả", "bán", "hoàn tiền")
@@ -112,8 +112,8 @@ def _wallet_summary(db: Session, space_id: str) -> str:
     return f"Số dư ví — {lines}. Tổng: {_fmt(total)} đ."
 
 
-def _month_total(db: Session, space_id: str, tx_type: str, today: date) -> str:
-    """Tổng thu/chi của tháng hiện tại."""
+def _month_amount(db: Session, space_id: str, tx_type: str, today: date) -> float:
+    """Tổng thu/chi (số thuần) của tháng hiện tại — dùng cho cả hỏi-đáp lẫn FAQ."""
     start, end = _month_range(today)
     total = (
         db.scalar(
@@ -126,8 +126,23 @@ def _month_total(db: Session, space_id: str, tx_type: str, today: date) -> str:
         )
         or 0
     )
+    return float(total)
+
+
+def _month_total(db: Session, space_id: str, tx_type: str, today: date) -> str:
+    """Câu trả lời tổng thu/chi của tháng hiện tại."""
+    total = _month_amount(db, space_id, tx_type, today)
+    start, _ = _month_range(today)
     label = "thu" if tx_type == "income" else "chi"
     return f"Tháng {start.strftime('%m/%Y')} bạn đã {label} {_fmt(total)} đ."
+
+
+def _faq_context(db: Session, space_id: str, today: date) -> dict:
+    """Số liệu thật để cá nhân hoá câu trả lời FAQ (thu/chi tháng hiện tại)."""
+    return {
+        "monthly_income": _month_amount(db, space_id, "income", today),
+        "monthly_expense": _month_amount(db, space_id, "expense", today),
+    }
 
 
 def compute_answer(db: Session, space_id: str, intent: str | None, today: date) -> str | None:
@@ -181,6 +196,11 @@ def _route_llm(db: Session, space_id: str, res: dict | None, today: date) -> dic
         if answer is not None:
             return {"kind": "answer", "reply": answer, "draft": None}
         return None
+    if kind == "faq":
+        reply = faq.answer_faq(res.get("faq"), _faq_context(db, space_id, today))
+        if reply is not None:
+            return {"kind": "faq", "reply": reply, "draft": None}
+        return None
     if kind == "other":
         reply = (
             res.get("reply") or "Mình là trợ lý chi tiêu. Bạn ghi giao dịch hoặc hỏi số liệu nhé."
@@ -190,11 +210,21 @@ def _route_llm(db: Session, space_id: str, res: dict | None, today: date) -> dic
 
 
 def handle_message(db: Session, space_id: str, text: str, today: date) -> dict:
-    """Định tuyến tin nhắn: ưu tiên LLM (nếu bật) → fallback rule (hỏi-đáp → nháp → không hiểu)."""
+    """Định tuyến tin nhắn: LLM (nếu bật) → fallback rule (FAQ → hỏi-đáp → nháp → không hiểu).
+
+    FAQ đặt trước hỏi-đáp số liệu: câu hỏi kiến thức khớp theo cụm từ đặc thù (vd "nên tiết
+    kiệm bao nhiêu % thu nhập") để không bị câu hỏi số liệu (keyword "thu"/"tháng") nuốt mất.
+    """
     if llm.llm_enabled():
         routed = _route_llm(db, space_id, llm.classify_message(text, today), today)
         if routed is not None:
             return routed
+
+    faq_id = faq.match_faq(text)
+    if faq_id is not None:
+        reply = faq.answer_faq(faq_id, _faq_context(db, space_id, today))
+        if reply is not None:
+            return {"kind": "faq", "reply": reply, "draft": None}
 
     answer = answer_query(db, space_id, text, today)
     if answer is not None:

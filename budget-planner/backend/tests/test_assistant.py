@@ -80,6 +80,47 @@ def test_assistant_query_wallet(client: TestClient, owner: dict) -> None:
     assert "Tiền mặt" in r.json()["reply"]
 
 
+def test_assistant_faq_knowledge(client: TestClient, owner: dict) -> None:
+    r = client.post(
+        "/assistant/message",
+        json={"text": "Quỹ khẩn cấp nên có bao nhiêu?"},
+        headers=owner["headers"],
+    )
+    assert r.status_code == 200
+    b = r.json()
+    assert b["kind"] == "faq"
+    assert "3–6 tháng" in b["reply"]
+    assert b["draft"] is None
+
+
+def test_assistant_faq_personalized(client: TestClient, owner: dict) -> None:
+    today = date.today()
+    for amt in (6_000_000, 4_000_000):  # chi tháng = 10tr
+        client.post(
+            "/transactions",
+            json={"amount": amt, "type": "expense", "note": "x", "date": today.isoformat()},
+            headers=owner["headers"],
+        )
+    r = client.post(
+        "/assistant/message",
+        json={"text": "quỹ khẩn cấp nên có bao nhiêu tiền?"},
+        headers=owner["headers"],
+    )
+    b = r.json()
+    assert b["kind"] == "faq"
+    assert "30.000.000" in b["reply"] and "60.000.000" in b["reply"]  # 3×–6× của 10tr
+
+
+def test_assistant_faq_not_hijacked_by_data_query(client: TestClient, owner: dict) -> None:
+    # Câu hỏi tiết kiệm chứa "thu"/"tháng" nhưng phải trả FAQ, không phải số liệu thu nhập.
+    r = client.post(
+        "/assistant/message",
+        json={"text": "tôi nên tiết kiệm bao nhiêu % thu nhập mỗi tháng?"},
+        headers=owner["headers"],
+    )
+    assert r.json()["kind"] == "faq"
+
+
 def test_assistant_unknown(client: TestClient, owner: dict) -> None:
     r = client.post("/assistant/message", json={"text": "xin chào bạn"}, headers=owner["headers"])
     assert r.json()["kind"] == "unknown"

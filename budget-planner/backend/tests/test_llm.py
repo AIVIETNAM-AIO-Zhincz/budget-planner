@@ -43,6 +43,17 @@ def test_parse_question_unknown_intent() -> None:
     assert parse_llm_json('{"kind":"question","question":"weather"}', TODAY) is None
 
 
+def test_parse_faq_valid() -> None:
+    assert parse_llm_json('{"kind":"faq","faq":"emergency_fund"}', TODAY) == {
+        "kind": "faq",
+        "faq": "emergency_fund",
+    }
+
+
+def test_parse_faq_unknown_id() -> None:
+    assert parse_llm_json('{"kind":"faq","faq":"weather"}', TODAY) is None
+
+
 def test_parse_other() -> None:
     r = parse_llm_json('{"kind":"other","reply":"Chào bạn"}', TODAY)
     assert r["kind"] == "other"
@@ -110,6 +121,18 @@ def test_llm_question_uses_db(client: TestClient, owner: dict, monkeypatch) -> N
     r = client.post("/assistant/message", json={"text": "hỏi gì đó"}, headers=h)
     assert r.json()["kind"] == "answer"
     assert "150" in r.json()["reply"]  # số liệu tính từ DB
+
+
+def test_llm_faq_route(client: TestClient, owner: dict, monkeypatch) -> None:
+    """LLM khớp id FAQ → backend trả nội dung KB chuẩn (không lấy chữ từ LLM)."""
+    monkeypatch.setattr(llm, "llm_enabled", lambda: True)
+    monkeypatch.setattr(
+        llm, "classify_message", lambda text, today: {"kind": "faq", "faq": "emergency_fund"}
+    )
+    r = client.post("/assistant/message", json={"text": "hỏi gì đó"}, headers=owner["headers"])
+    b = r.json()
+    assert b["kind"] == "faq"
+    assert "3–6 tháng" in b["reply"]
 
 
 def test_llm_other_route(client: TestClient, owner: dict, monkeypatch) -> None:

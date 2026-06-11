@@ -26,6 +26,6 @@ class TransactionDraft(BaseModel):
 class AssistantReply(BaseModel):
     """Phản hồi của trợ lý."""
 
-    kind: str  # transaction | answer | unknown
+    kind: str  # transaction | answer | faq | unknown
     reply: str
     draft: TransactionDraft | None = None

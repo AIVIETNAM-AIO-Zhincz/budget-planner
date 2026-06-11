@@ -299,7 +299,7 @@
     }
   },
   "assistant": {
-    "greeting": "Hi! Add a transaction in plain words, e.g. \"lunch 50k yesterday\", or ask \"how much did I spend this month?\".",
+    "greeting": "Hi! Add a transaction in plain words (\"lunch 50k yesterday\"), ask about your numbers (\"how much did I spend this month?\"), or ask a finance question (\"how big should my emergency fund be?\").",
     "placeholder": "Type a message…",
     "send": "Send",
     "draftTitle": "Understood transaction",
@@ -309,7 +309,12 @@
     "examples": "e.g. \"coffee 35k\", \"salary 15tr yesterday\", \"wallet balance?\"",
     "q1": "How much did I spend this month?",
     "q2": "Coffee 30k",
-    "q3": "Wallet balance?"
+    "q3": "Wallet balance?",
+    "knowledgeTag": "Personal finance",
+    "faqHint": "Ask a finance question:",
+    "faq1": "What % of income should I save?",
+    "faq2": "How big should my emergency fund be?",
+    "faq3": "How much do I need for financial freedom?"
   },
   "annual": {
     "year": "Year",
