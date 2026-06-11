@@ -18,6 +18,7 @@
     "recurring": "Recurring",
     "goals": "Goals",
     "reports": "Reports",
+    "annual": "Annual",
     "members": "Members",
     "settings": "Settings"
   },
@@ -310,6 +311,17 @@
     "q2": "Coffee 30k",
     "q3": "Wallet balance?"
   },
+  "annual": {
+    "year": "Year",
+    "empty": "No data for {{year}}",
+    "totalIncome": "Year income",
+    "totalExpense": "Year expense",
+    "endBalance": "Year-end balance",
+    "chartTitle": "12-month income/expense + running balance",
+    "income": "Income",
+    "expense": "Expense",
+    "cumulative": "Running balance"
+  },
   "plan": {
     "title": "Monthly plan",
     "month": "Month",
@@ -434,6 +446,8 @@
     "walletsDesc": "Manage wallets & balances, transfer between wallets",
     "reports": "Reports",
     "reportsDesc": "Charts & spending analysis",
+    "annual": "Annual overview",
+    "annualDesc": "12 months: income/expense + running balance",
     "members": "Members",
     "membersDesc": "Invite members, assign roles (RBAC)",
     "settings": "Settings",

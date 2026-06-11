@@ -38,3 +38,19 @@ class ReportSummary(BaseModel):
     by_category: list[CategoryAmount]
     by_need_level: list[NeedLevelAmount]
     by_day: list[DayFlow]
+
+
+class MonthlyFlow(BaseModel):
+    """Thu/chi + số dư luỹ kế của một tháng (YYYY-MM)."""
+
+    month: str
+    income: float
+    expense: float
+    balance: float
+
+
+class AnnualReportSummary(BaseModel):
+    """Tổng quan một năm: 12 tháng."""
+
+    year: int
+    months: list[MonthlyFlow]

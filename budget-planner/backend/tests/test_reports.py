@@ -58,6 +58,29 @@ def test_summary_by_need_level(client: TestClient, owner: dict) -> None:
     assert nl["optional"] == 30000
 
 
+def test_annual_summary(client: TestClient, owner: dict) -> None:
+    """12 tháng: thu/chi đúng tháng, balance luỹ kế, tháng trống = 0."""
+    h = owner["headers"]
+    _tx(client, h, 1000000, "income", "Lương", "2026-01-05")
+    _tx(client, h, 400000, "expense", "Ăn uống", "2026-01-20")
+    _tx(client, h, 2000000, "income", "Lương", "2026-03-05")
+    _tx(client, h, 500000, "expense", "Ăn uống", "2026-03-10")
+    _tx(client, h, 999999, "income", "Lương", "2025-12-31")  # khác năm → không tính
+
+    b = client.get("/reports/annual?year=2026", headers=h).json()
+    assert b["year"] == 2026
+    assert len(b["months"]) == 12
+    by_month = {m["month"]: m for m in b["months"]}
+    assert by_month["2026-01"]["income"] == 1000000
+    assert by_month["2026-01"]["expense"] == 400000
+    assert by_month["2026-01"]["balance"] == 600000  # luỹ kế T1
+    assert (
+        by_month["2026-02"]["income"] == 0 and by_month["2026-02"]["balance"] == 600000
+    )  # T2 trống
+    assert by_month["2026-03"]["balance"] == 600000 + (2000000 - 500000)  # luỹ kế T3
+    assert b["months"][11]["balance"] == 2100000  # cuối năm
+
+
 def test_summary_range_filter(client: TestClient, owner: dict) -> None:
     h = owner["headers"]
     _tx(client, h, 100000, "expense", "A", "2026-06-10")

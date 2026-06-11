@@ -118,3 +118,68 @@ export function lineOption(theme, flow, animation) {
     ],
   };
 }
+
+/**
+ * Option ECharts cho Tổng quan năm: 12 tháng — cột Thu/Chi + đường số dư luỹ kế.
+ *
+ * @param {object} theme MUI theme.
+ * @param {Array<{month:string, income:number, expense:number, balance:number}>} months
+ * @param {object} animation spread option animation.
+ * @param {{income:string, expense:string, cumulative:string}} labels nhãn series (i18n).
+ */
+export function annualOption(
+  theme,
+  months,
+  animation,
+  labels = { income: "Thu", expense: "Chi", cumulative: "Số dư luỹ kế" },
+) {
+  const textColor = theme.palette.text.secondary;
+  const grid = theme.palette.divider;
+  return {
+    ...animation,
+    tooltip: { trigger: "axis", valueFormatter: (v) => `${Number(v).toLocaleString("vi-VN")} ₫` },
+    legend: { top: 0, textStyle: { color: textColor } },
+    grid: { left: 8, right: 16, bottom: 8, top: 36, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: months.map((m) => `T${m.month.slice(5)}`),
+      axisLine: { lineStyle: { color: grid } },
+      axisLabel: { color: textColor },
+    },
+    yAxis: [
+      {
+        type: "value",
+        splitLine: { lineStyle: { color: grid } },
+        axisLabel: { color: textColor, formatter: (v) => formatCompactVnd(v) },
+      },
+      {
+        type: "value",
+        splitLine: { show: false },
+        axisLabel: { color: textColor, formatter: (v) => formatCompactVnd(v) },
+      },
+    ],
+    series: [
+      {
+        name: labels.income,
+        type: "bar",
+        data: months.map((m) => m.income),
+        itemStyle: { color: theme.palette.success.main, borderRadius: [4, 4, 0, 0] },
+      },
+      {
+        name: labels.expense,
+        type: "bar",
+        data: months.map((m) => m.expense),
+        itemStyle: { color: theme.palette.error.main, borderRadius: [4, 4, 0, 0] },
+      },
+      {
+        name: labels.cumulative,
+        type: "line",
+        smooth: true,
+        yAxisIndex: 1,
+        data: months.map((m) => m.balance),
+        itemStyle: { color: theme.palette.info.main },
+        areaStyle: { opacity: 0.1 },
+      },
+    ],
+  };
+}

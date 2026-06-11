@@ -8,6 +8,7 @@ import {
   ArrowPathIcon,
   FlagIcon,
   ChartBarIcon,
+  CalendarDaysIcon,
   UsersIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
@@ -25,6 +26,7 @@ export const navSections = [
       { labelKey: "nav.transactions", path: "/transactions", icon: ArrowsRightLeftIcon },
       { labelKey: "nav.assistant", path: "/assistant", icon: SparklesIcon },
       { labelKey: "nav.reports", path: "/reports", icon: ChartBarIcon },
+      { labelKey: "nav.annual", path: "/annual", icon: CalendarDaysIcon },
     ],
   },
   {

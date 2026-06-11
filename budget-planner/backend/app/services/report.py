@@ -77,6 +77,30 @@ def build_summary(db: Session, space_id: str, start: date | None, end: date | No
     }
 
 
+def build_annual_summary(db: Session, space_id: str, year: int) -> dict:
+    """Tổng hợp 12 tháng của một năm: thu/chi mỗi tháng + số dư luỹ kế.
+
+    Tái dùng ``build_summary`` (theo ngày) rồi gom theo tháng — không phụ thuộc DB.
+    """
+    summary = build_summary(db, space_id, date(year, 1, 1), date(year, 12, 31))
+    months = {
+        f"{year:04d}-{m:02d}": {"month": f"{year:04d}-{m:02d}", "income": 0.0, "expense": 0.0}
+        for m in range(1, 13)
+    }
+    for day in summary["by_day"]:
+        key = day["date"].strftime("%Y-%m")
+        if key in months:
+            months[key]["income"] += day["income"]
+            months[key]["expense"] += day["expense"]
+
+    result = [months[f"{year:04d}-{m:02d}"] for m in range(1, 13)]
+    balance = 0.0
+    for month in result:
+        balance += month["income"] - month["expense"]
+        month["balance"] = balance
+    return {"year": year, "months": result}
+
+
 def transactions_for_export(
     db: Session, space_id: str, start: date | None, end: date | None
 ) -> list[Transaction]:

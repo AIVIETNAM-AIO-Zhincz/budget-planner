@@ -14,6 +14,16 @@ export function getSummary(range = {}) {
 }
 
 /**
+ * Tổng quan năm: 12 tháng thu/chi + số dư luỹ kế.
+ *
+ * @param {number} year
+ * @returns {Promise<{year:number, months:Array}>}
+ */
+export function getAnnual(year) {
+  return apiFetch(`/reports/annual?year=${year}`);
+}
+
+/**
  * Tải file CSV giao dịch trong khoảng (dùng fetch thô vì cần header auth + blob).
  *
  * @param {{from?:string, to?:string}} [range]

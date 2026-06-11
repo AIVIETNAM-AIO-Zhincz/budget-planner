@@ -16,6 +16,7 @@ const Wallets = lazy(() => import("./pages/Wallets.jsx"));
 const Recurring = lazy(() => import("./pages/Recurring.jsx"));
 const Goals = lazy(() => import("./pages/Goals.jsx"));
 const Reports = lazy(() => import("./pages/Reports.jsx"));
+const Annual = lazy(() => import("./pages/Annual.jsx"));
 const Members = lazy(() => import("./pages/Members.jsx"));
 const Settings = lazy(() => import("./pages/Settings.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="recurring" element={lazyEl(<Recurring />)} />
           <Route path="goals" element={lazyEl(<Goals />)} />
           <Route path="reports" element={lazyEl(<Reports />)} />
+          <Route path="annual" element={lazyEl(<Annual />)} />
           <Route path="members" element={lazyEl(<Members />)} />
           <Route path="settings" element={lazyEl(<Settings />)} />
           <Route path="*" element={lazyEl(<NotFound />)} />

@@ -18,6 +18,7 @@
     "recurring": "Định kỳ",
     "goals": "Mục tiêu",
     "reports": "Báo cáo",
+    "annual": "Tổng quan năm",
     "members": "Thành viên",
     "settings": "Cài đặt"
   },
@@ -310,6 +311,17 @@
     "q2": "Cà phê 30k",
     "q3": "Số dư ví?"
   },
+  "annual": {
+    "year": "Năm",
+    "empty": "Chưa có dữ liệu năm {{year}}",
+    "totalIncome": "Tổng thu cả năm",
+    "totalExpense": "Tổng chi cả năm",
+    "endBalance": "Số dư cuối năm",
+    "chartTitle": "Thu/chi 12 tháng + số dư luỹ kế",
+    "income": "Thu",
+    "expense": "Chi",
+    "cumulative": "Số dư luỹ kế"
+  },
   "plan": {
     "title": "Kế hoạch tháng",
     "month": "Tháng",
@@ -434,6 +446,8 @@
     "walletsDesc": "Quản lý ví & số dư, chuyển tiền giữa ví",
     "reports": "Báo cáo",
     "reportsDesc": "Biểu đồ & phân tích chi tiêu",
+    "annual": "Tổng quan năm",
+    "annualDesc": "12 tháng: thu/chi + số dư luỹ kế",
     "members": "Thành viên",
     "membersDesc": "Mời thành viên, phân vai trò (RBAC)",
     "settings": "Cài đặt",

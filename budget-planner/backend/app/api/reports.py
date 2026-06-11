@@ -12,8 +12,12 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.rbac import get_current_space_id
-from app.schemas.report import ReportSummary
-from app.services.report import build_summary, transactions_for_export
+from app.schemas.report import AnnualReportSummary, ReportSummary
+from app.services.report import (
+    build_annual_summary,
+    build_summary,
+    transactions_for_export,
+)
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -37,6 +41,16 @@ def summary(
 ) -> dict:
     """Tổng hợp thu/chi/số dư + theo danh mục + theo ngày trong khoảng."""
     return build_summary(db, space_id, _parse(date_from), _parse(date_to))
+
+
+@router.get("/annual", response_model=AnnualReportSummary)
+def annual(
+    year: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+) -> dict:
+    """Tổng quan năm: 12 tháng thu/chi + số dư luỹ kế (mặc định năm hiện tại)."""
+    return build_annual_summary(db, space_id, year or date.today().year)
 
 
 @router.get("/export.csv")
