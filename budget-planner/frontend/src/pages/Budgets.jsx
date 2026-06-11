@@ -16,6 +16,7 @@ import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outli
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import BudgetFormDialog from "../components/BudgetFormDialog.jsx";
+import MonthlyPlanCard from "../components/MonthlyPlanCard.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import { listBudgets, createBudget, updateBudget, deleteBudget } from "../api/budgets.js";
 import { listCategories } from "../api/categories.js";
@@ -171,6 +172,8 @@ export default function Budgets() {
           {error}
         </Alert>
       )}
+
+      <MonthlyPlanCard onError={setError} onSaved={setToast} />
 
       {loading ? (
         <Grid container spacing={2.5}>

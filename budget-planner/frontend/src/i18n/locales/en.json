@@ -310,6 +310,22 @@
     "q2": "Coffee 30k",
     "q3": "Wallet balance?"
   },
+  "plan": {
+    "title": "Monthly plan",
+    "month": "Month",
+    "plannedIncome": "Planned income",
+    "plannedExpense": "Planned expense",
+    "save": "Save plan",
+    "saved": "Plan saved",
+    "income": "Income",
+    "expense": "Expense",
+    "saving": "Savings",
+    "met": "On track",
+    "notMet": "Below target",
+    "over": "Over",
+    "loadError": "Could not load plan",
+    "saveError": "Could not save plan"
+  },
   "needLevel": {
     "mandatory": "Mandatory",
     "optional": "Optional",

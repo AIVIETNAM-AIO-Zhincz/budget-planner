@@ -111,6 +111,18 @@ class Budget(Base):
     limit_amount: Mapped[float] = mapped_column(Float, default=0.0)
 
 
+class MonthlyPlan(Base):
+    """Kế hoạch tổng theo tháng: thu/chi dự kiến (1 plan / space / period)."""
+
+    __tablename__ = "monthly_plans"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    space_id: Mapped[str] = mapped_column(ForeignKey("spaces.id"), index=True)
+    period: Mapped[str] = mapped_column(String(7), default="")  # YYYY-MM
+    planned_income: Mapped[float] = mapped_column(Float, default=0.0)
+    planned_expense: Mapped[float] = mapped_column(Float, default=0.0)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 

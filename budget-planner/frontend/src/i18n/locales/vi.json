@@ -310,6 +310,22 @@
     "q2": "Cà phê 30k",
     "q3": "Số dư ví?"
   },
+  "plan": {
+    "title": "Kế hoạch tháng",
+    "month": "Tháng",
+    "plannedIncome": "Thu dự kiến",
+    "plannedExpense": "Chi dự kiến",
+    "save": "Lưu kế hoạch",
+    "saved": "Đã lưu kế hoạch",
+    "income": "Thu nhập",
+    "expense": "Chi tiêu",
+    "saving": "Tiết kiệm",
+    "met": "Đạt",
+    "notMet": "Chưa đạt",
+    "over": "Vượt",
+    "loadError": "Không tải được kế hoạch",
+    "saveError": "Không lưu được kế hoạch"
+  },
   "needLevel": {
     "mandatory": "Bắt buộc",
     "optional": "Tùy chọn",
