@@ -14,6 +14,13 @@ class CategoryAmount(BaseModel):
     amount: float
 
 
+class NeedLevelAmount(BaseModel):
+    """Tổng chi theo mức cần thiết (mandatory/optional/wasteful)."""
+
+    need_level: str
+    amount: float
+
+
 class DayFlow(BaseModel):
     """Thu/chi theo một ngày."""
 
@@ -29,4 +36,5 @@ class ReportSummary(BaseModel):
     total_expense: float
     balance: float
     by_category: list[CategoryAmount]
+    by_need_level: list[NeedLevelAmount]
     by_day: list[DayFlow]

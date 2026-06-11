@@ -78,6 +78,10 @@ class Category(Base):
     name: Mapped[str] = mapped_column(String(255))
     parent_id: Mapped[str | None] = mapped_column(ForeignKey("categories.id"), nullable=True)
     type: Mapped[str] = mapped_column(String(8), default="expense")  # income/expense
+    # Mức cần thiết của danh mục chi: mandatory|optional|wasteful (cho phân tích 50/30/20).
+    need_level: Mapped[str] = mapped_column(
+        String(16), default="optional", server_default="optional"
+    )
 
 
 class Transaction(Base):

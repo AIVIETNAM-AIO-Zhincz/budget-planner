@@ -33,6 +33,31 @@ def test_summary(client: TestClient, owner: dict) -> None:
     assert days["2026-06-02"]["expense"] == 80000
 
 
+def test_summary_by_need_level(client: TestClient, owner: dict) -> None:
+    """Chi gộp theo mức cần thiết của danh mục; giao dịch không khớp → 'optional'."""
+    h = owner["headers"]
+    client.post(
+        "/categories",
+        json={"name": "Tiền nhà", "type": "expense", "need_level": "mandatory"},
+        headers=h,
+    )
+    client.post(
+        "/categories",
+        json={"name": "Cà phê", "type": "expense", "need_level": "wasteful"},
+        headers=h,
+    )
+    _tx(client, h, 5000000, "expense", "Tiền nhà", "2026-06-01")
+    _tx(client, h, 50000, "expense", "Cà phê", "2026-06-02")
+    _tx(client, h, 30000, "expense", "Vô danh", "2026-06-02")  # không có danh mục → optional
+
+    r = client.get("/reports/summary", headers=h)
+    assert r.status_code == 200
+    nl = {x["need_level"]: x["amount"] for x in r.json()["by_need_level"]}
+    assert nl["mandatory"] == 5000000
+    assert nl["wasteful"] == 50000
+    assert nl["optional"] == 30000
+
+
 def test_summary_range_filter(client: TestClient, owner: dict) -> None:
     h = owner["headers"]
     _tx(client, h, 100000, "expense", "A", "2026-06-10")

@@ -16,6 +16,43 @@ def test_create_category(client: TestClient, owner: dict) -> None:
     assert body["space_id"] == owner["space_id"]
 
 
+def test_create_category_default_need_level(client: TestClient, owner: dict) -> None:
+    """Không gửi need_level → mặc định 'optional'."""
+    resp = client.post(
+        "/categories", json={"name": "X", "type": "expense"}, headers=owner["headers"]
+    )
+    assert resp.status_code == 201
+    assert resp.json()["need_level"] == "optional"
+
+
+def test_create_category_with_need_level(client: TestClient, owner: dict) -> None:
+    """Gửi need_level hợp lệ → lưu đúng; cập nhật được."""
+    resp = client.post(
+        "/categories",
+        json={"name": "Tiền nhà", "type": "expense", "need_level": "mandatory"},
+        headers=owner["headers"],
+    )
+    assert resp.status_code == 201
+    cid = resp.json()["id"]
+    assert resp.json()["need_level"] == "mandatory"
+
+    upd = client.patch(
+        f"/categories/{cid}", json={"need_level": "wasteful"}, headers=owner["headers"]
+    )
+    assert upd.status_code == 200
+    assert upd.json()["need_level"] == "wasteful"
+
+
+def test_create_category_invalid_need_level_rejected(client: TestClient, owner: dict) -> None:
+    """need_level ngoài tập hợp → 422."""
+    resp = client.post(
+        "/categories",
+        json={"name": "Y", "type": "expense", "need_level": "luxury"},
+        headers=owner["headers"],
+    )
+    assert resp.status_code == 422
+
+
 def test_create_invalid_type_rejected(client: TestClient, owner: dict) -> None:
     """type ngoài income/expense → 422."""
     resp = client.post(

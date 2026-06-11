@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Stack, TextField, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Button, MenuItem, Stack, TextField, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import BrandDialog from "./BrandDialog.jsx";
 import CategorySelect from "./CategorySelect.jsx";
@@ -16,6 +16,7 @@ export default function CategoryFormDialog({ open, onClose, onSubmit, submitting
   const [name, setName] = useState("");
   const [type, setType] = useState("expense");
   const [parentId, setParentId] = useState(null);
+  const [needLevel, setNeedLevel] = useState("optional");
   const [touched, setTouched] = useState(false);
 
   // Nạp lại giá trị mỗi khi mở dialog (thêm mới hoặc sửa).
@@ -24,6 +25,7 @@ export default function CategoryFormDialog({ open, onClose, onSubmit, submitting
       setName(initial?.name ?? "");
       setType(initial?.type ?? "expense");
       setParentId(initial?.parent_id ?? null);
+      setNeedLevel(initial?.need_level ?? "optional");
       setTouched(false);
     }
   }, [open, initial]);
@@ -34,7 +36,7 @@ export default function CategoryFormDialog({ open, onClose, onSubmit, submitting
     e.preventDefault();
     setTouched(true);
     if (nameInvalid) return;
-    await onSubmit({ name: name.trim(), type, parent_id: parentId });
+    await onSubmit({ name: name.trim(), type, parent_id: parentId, need_level: needLevel });
   };
 
   return (
@@ -79,6 +81,21 @@ export default function CategoryFormDialog({ open, onClose, onSubmit, submitting
           autoFocus
           fullWidth
         />
+
+        {type === "expense" && (
+          <TextField
+            select
+            label={t("categories.form.needLevel")}
+            value={needLevel}
+            onChange={(e) => setNeedLevel(e.target.value)}
+            helperText={t("categories.form.needLevelHint")}
+            fullWidth
+          >
+            <MenuItem value="mandatory">{t("needLevel.mandatory")}</MenuItem>
+            <MenuItem value="optional">{t("needLevel.optional")}</MenuItem>
+            <MenuItem value="wasteful">{t("needLevel.wasteful")}</MenuItem>
+          </TextField>
+        )}
 
         <CategorySelect
           label={t("categories.form.parent")}

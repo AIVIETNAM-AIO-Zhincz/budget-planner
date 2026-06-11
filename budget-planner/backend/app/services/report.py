@@ -7,7 +7,7 @@ from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Transaction
+from app.models import Category, Transaction
 
 
 def _conds(space_id: str, start: date | None, end: date | None) -> list:
@@ -40,6 +40,22 @@ def build_summary(db: Session, space_id: str, start: date | None, end: date | No
     ).all()
     by_category = [{"name": name or "Khác", "amount": float(amt)} for name, amt in cat_rows]
 
+    # Chi theo mức cần thiết: map giao dịch → need_level của danh mục (theo tên + space).
+    # Giao dịch không khớp danh mục nào → coi như 'optional'.
+    need_col = func.coalesce(Category.need_level, "optional")
+    nl_rows = db.execute(
+        select(need_col, func.sum(Transaction.amount))
+        .select_from(Transaction)
+        .outerjoin(
+            Category,
+            (Category.name == Transaction.category_name) & (Category.space_id == space_id),
+        )
+        .where(*conds, Transaction.type == "expense")
+        .group_by(need_col)
+        .order_by(func.sum(Transaction.amount).desc())
+    ).all()
+    by_need_level = [{"need_level": nl, "amount": float(amt)} for nl, amt in nl_rows]
+
     day_rows = db.execute(
         select(Transaction.date, Transaction.type, func.sum(Transaction.amount))
         .where(*conds)
@@ -56,6 +72,7 @@ def build_summary(db: Session, space_id: str, start: date | None, end: date | No
         "total_expense": expense,
         "balance": income - expense,
         "by_category": by_category,
+        "by_need_level": by_need_level,
         "by_day": by_day,
     }
 

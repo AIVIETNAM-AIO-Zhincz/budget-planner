@@ -171,7 +171,9 @@
       "type": "Type",
       "parent": "Parent category",
       "parentNone": "— None (top-level) —",
-      "nameRequired": "Name is required"
+      "nameRequired": "Name is required",
+      "needLevel": "Need level",
+      "needLevelHint": "For spending analysis (Mandatory/Optional/Wasteful)"
     }
   },
   "budgets": {
@@ -308,6 +310,11 @@
     "q2": "Coffee 30k",
     "q3": "Wallet balance?"
   },
+  "needLevel": {
+    "mandatory": "Mandatory",
+    "optional": "Optional",
+    "wasteful": "Wasteful"
+  },
   "reports": {
     "from": "From",
     "to": "To",
@@ -322,6 +329,7 @@
     "empty": "No data in the selected range.",
     "loadError": "Could not load report",
     "vsPrev": "vs prev.",
+    "byNeedLevel": "Spending by need level",
     "exportError": "Could not export CSV"
   },
   "recurring": {

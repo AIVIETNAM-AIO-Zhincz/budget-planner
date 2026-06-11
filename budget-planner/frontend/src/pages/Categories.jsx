@@ -54,6 +54,20 @@ function CategoryRow({ category, child, onEdit, onDelete }) {
     >
       {child && <Box sx={{ color: "text.disabled", mr: 0.5 }}>└</Box>}
       <Typography sx={{ flex: 1, fontWeight: child ? 400 : 600 }}>{category.name}</Typography>
+      {!isIncome && category.need_level && (
+        <Chip
+          size="small"
+          label={t(`needLevel.${category.need_level}`)}
+          color={
+            category.need_level === "mandatory"
+              ? "success"
+              : category.need_level === "wasteful"
+                ? "warning"
+                : "default"
+          }
+          sx={{ height: 20, fontWeight: 600 }}
+        />
+      )}
       <Chip
         size="small"
         label={isIncome ? t("categories.income") : t("categories.expense")}

@@ -171,7 +171,9 @@
       "type": "Loại",
       "parent": "Danh mục cha",
       "parentNone": "— Không có (danh mục gốc) —",
-      "nameRequired": "Tên không được để trống"
+      "nameRequired": "Tên không được để trống",
+      "needLevel": "Mức cần thiết",
+      "needLevelHint": "Để phân tích chi tiêu (Bắt buộc/Tùy chọn/Lãng phí)"
     }
   },
   "budgets": {
@@ -308,6 +310,11 @@
     "q2": "Cà phê 30k",
     "q3": "Số dư ví?"
   },
+  "needLevel": {
+    "mandatory": "Bắt buộc",
+    "optional": "Tùy chọn",
+    "wasteful": "Lãng phí"
+  },
   "reports": {
     "from": "Từ ngày",
     "to": "Đến ngày",
@@ -322,6 +329,7 @@
     "empty": "Không có dữ liệu trong khoảng đã chọn.",
     "loadError": "Không tải được báo cáo",
     "vsPrev": "so kỳ trước",
+    "byNeedLevel": "Chi theo mức cần thiết",
     "exportError": "Không xuất được CSV"
   },
   "recurring": {

@@ -37,6 +37,7 @@ def create_category(
         name=payload.name,
         type=payload.type,
         parent_id=payload.parent_id,
+        need_level=payload.need_level,
     )
     db.add(category)
     db.commit()

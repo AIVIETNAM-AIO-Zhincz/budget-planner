@@ -11,6 +11,7 @@ class CategoryBase(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     type: str = Field(default="expense", pattern="^(income|expense)$")
     parent_id: str | None = None
+    need_level: str = Field(default="optional", pattern="^(mandatory|optional|wasteful)$")
 
 
 class CategoryCreate(CategoryBase):
@@ -23,6 +24,7 @@ class CategoryUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     type: str | None = Field(default=None, pattern="^(income|expense)$")
     parent_id: str | None = None
+    need_level: str | None = Field(default=None, pattern="^(mandatory|optional|wasteful)$")
 
 
 class CategoryRead(CategoryBase):

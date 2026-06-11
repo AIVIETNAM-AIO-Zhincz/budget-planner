@@ -8,13 +8,18 @@ export function listCategories() {
 /**
  * Tạo danh mục mới.
  *
- * @param {{name:string, type?:string, parent_id?:string|null}} payload
+ * @param {{name:string, type?:string, parent_id?:string|null, need_level?:string}} payload
  * @returns {Promise<object>} CategoryRead.
  */
-export function createCategory({ name, type = "expense", parent_id = null }) {
+export function createCategory({
+  name,
+  type = "expense",
+  parent_id = null,
+  need_level = "optional",
+}) {
   return apiFetch("/categories", {
     method: "POST",
-    body: JSON.stringify({ name, type, parent_id }),
+    body: JSON.stringify({ name, type, parent_id, need_level }),
   });
 }
 

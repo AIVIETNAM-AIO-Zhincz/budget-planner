@@ -151,6 +151,14 @@ export default function Reports() {
       expense: days.map((d) => d.expense),
     };
   }, [summary]);
+  const needLevelData = useMemo(() => {
+    const colors = { mandatory: "#16a34a", optional: "#2563eb", wasteful: "#f59e0b" };
+    return (summary?.by_need_level || []).map((nl) => ({
+      name: t(`needLevel.${nl.need_level}`),
+      value: nl.amount,
+      color: colors[nl.need_level] || "#64748b",
+    }));
+  }, [summary, t]);
 
   const hasData = summary && (summary.total_income > 0 || summary.total_expense > 0);
   const rootRef = useRef(null);
@@ -250,7 +258,7 @@ export default function Reports() {
           </Grid>
 
           <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-            <Grid item xs={12} md={7} className="gsap-in">
+            <Grid item xs={12} className="gsap-in">
               <ChartCard title={t("reports.topCategories")}>
                 {pieData.length > 0 ? (
                   <ReactECharts option={barOption(theme, summary.by_category, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
@@ -261,9 +269,20 @@ export default function Reports() {
                 )}
               </ChartCard>
             </Grid>
-            <Grid item xs={12} md={5} className="gsap-in">
+            <Grid item xs={12} md={6} className="gsap-in">
               <ChartCard title={t("reports.byCategory")}>
                 <ReactECharts option={pieOption(theme, pieData, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
+              </ChartCard>
+            </Grid>
+            <Grid item xs={12} md={6} className="gsap-in">
+              <ChartCard title={t("reports.byNeedLevel")}>
+                {needLevelData.length > 0 ? (
+                  <ReactECharts option={pieOption(theme, needLevelData, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
+                ) : (
+                  <Box sx={{ height: 300, display: "grid", placeItems: "center", color: "text.secondary" }}>
+                    {t("reports.empty")}
+                  </Box>
+                )}
               </ChartCard>
             </Grid>
             <Grid item xs={12} className="gsap-in">
