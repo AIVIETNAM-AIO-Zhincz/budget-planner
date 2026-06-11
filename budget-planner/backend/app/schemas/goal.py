@@ -14,6 +14,7 @@ class GoalBase(BaseModel):
     target_amount: float = Field(gt=0)
     wallet_id: str
     deadline: date_type | None = None
+    fund_type: str = Field(default="general", pattern="^(emergency|long_term|general)$")
 
 
 class GoalCreate(GoalBase):
@@ -27,6 +28,7 @@ class GoalUpdate(BaseModel):
     target_amount: float | None = Field(default=None, gt=0)
     wallet_id: str | None = None
     deadline: date_type | None = None
+    fund_type: str | None = Field(default=None, pattern="^(emergency|long_term|general)$")
 
 
 class Contribute(BaseModel):

@@ -28,6 +28,24 @@ def test_create_goal(client: TestClient, owner: dict) -> None:
     assert b["wallet_name"] == "Quỹ du lịch"
 
 
+def test_goal_fund_type_default_and_set(client: TestClient, owner: dict) -> None:
+    """Không gửi fund_type → 'general'; gửi hợp lệ → lưu + cập nhật được."""
+    h = owner["headers"]
+    wid = _wallet(client, h, "Q", 0)
+    assert _goal(client, h, wid).json()["fund_type"] == "general"
+
+    gid = _goal(client, h, wid, fund_type="emergency").json()["id"]
+    assert client.get(f"/goals/{gid}", headers=h).json()["fund_type"] == "emergency"
+
+    upd = client.patch(f"/goals/{gid}", json={"fund_type": "long_term"}, headers=h)
+    assert upd.status_code == 200 and upd.json()["fund_type"] == "long_term"
+
+
+def test_goal_invalid_fund_type_rejected(client: TestClient, owner: dict) -> None:
+    wid = _wallet(client, owner["headers"], "Q", 0)
+    assert _goal(client, owner["headers"], wid, fund_type="crypto").status_code == 422
+
+
 def test_create_requires_member(client: TestClient, owner: dict, make_member) -> None:
     wid = _wallet(client, owner["headers"], "Q")
     v = make_member(owner, role="viewer", email="v@x.com")

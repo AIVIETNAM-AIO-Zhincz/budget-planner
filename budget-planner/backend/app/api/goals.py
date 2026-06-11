@@ -33,6 +33,7 @@ def _to_read(db: Session, goal: Goal) -> GoalRead:
         target_amount=goal.target_amount,
         wallet_id=goal.wallet_id,
         deadline=goal.deadline,
+        fund_type=goal.fund_type,
         wallet_name=wallet.name if wallet else "",
         saved_amount=saved,
         percent=round(percent, 1),
@@ -65,6 +66,7 @@ def create_goal(
         target_amount=payload.target_amount,
         wallet_id=payload.wallet_id,
         deadline=payload.deadline,
+        fund_type=payload.fund_type,
     )
     db.add(goal)
     db.commit()

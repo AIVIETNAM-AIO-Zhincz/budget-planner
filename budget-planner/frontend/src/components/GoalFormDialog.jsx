@@ -20,6 +20,7 @@ export default function GoalFormDialog({ open, onClose, onSubmit, submitting, in
   const [target, setTarget] = useState("");
   const [walletId, setWalletId] = useState("");
   const [deadline, setDeadline] = useState(null);
+  const [fundType, setFundType] = useState("general");
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function GoalFormDialog({ open, onClose, onSubmit, submitting, in
       setTarget(initial?.target_amount != null ? String(initial.target_amount) : "");
       setWalletId(initial?.wallet_id ?? (wallets[0]?.id ?? ""));
       setDeadline(initial?.deadline ? dayjs(initial.deadline) : null);
+      setFundType(initial?.fund_type ?? "general");
       setTouched(false);
     }
   }, [open, initial, wallets]);
@@ -43,6 +45,7 @@ export default function GoalFormDialog({ open, onClose, onSubmit, submitting, in
       target_amount: Number(target),
       wallet_id: walletId,
       deadline: deadline ? deadline.format("YYYY-MM-DD") : null,
+      fund_type: fundType,
     });
   };
 
@@ -96,6 +99,17 @@ export default function GoalFormDialog({ open, onClose, onSubmit, submitting, in
               {w.name}
             </MenuItem>
           ))}
+        </TextField>
+        <TextField
+          select
+          label={t("goals.form.fundType")}
+          value={fundType}
+          onChange={(e) => setFundType(e.target.value)}
+          fullWidth
+        >
+          <MenuItem value="emergency">{t("goals.fundTypes.emergency")}</MenuItem>
+          <MenuItem value="long_term">{t("goals.fundTypes.long_term")}</MenuItem>
+          <MenuItem value="general">{t("goals.fundTypes.general")}</MenuItem>
         </TextField>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker

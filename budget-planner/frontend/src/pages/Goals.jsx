@@ -119,6 +119,13 @@ export default function Goals() {
     }
   };
 
+  const FUND_COLOR = { emergency: "error", long_term: "info", general: "default" };
+  const fundTotals = useMemo(() => {
+    const acc = { emergency: 0, long_term: 0, general: 0 };
+    for (const g of items) acc[g.fund_type] = (acc[g.fund_type] || 0) + (g.saved_amount || 0);
+    return acc;
+  }, [items]);
+
   return (
     <>
       <PageHeader
@@ -153,6 +160,20 @@ export default function Goals() {
         </Alert>
       )}
 
+      {!loading && items.length > 0 && (
+        <Stack direction="row" spacing={1.5} sx={{ mb: 2.5, flexWrap: "wrap", gap: 1 }}>
+          {["emergency", "long_term", "general"].map((ft) => (
+            <Chip
+              key={ft}
+              variant="outlined"
+              color={FUND_COLOR[ft] === "default" ? undefined : FUND_COLOR[ft]}
+              label={`${t(`goals.fundTypes.${ft}`)}: ${formatAmount(fundTotals[ft] || 0)} ₫`}
+              sx={{ fontWeight: 600 }}
+            />
+          ))}
+        </Stack>
+      )}
+
       <Grid container spacing={2.5}>
         {loading &&
           Array.from({ length: 3 }).map((_, i) => (
@@ -181,9 +202,18 @@ export default function Goals() {
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {g.name}
                     </Typography>
-                    {done && (
-                      <Chip size="small" color="success" label={t("goals.completed")} sx={{ height: 22, fontWeight: 600 }} />
-                    )}
+                    <Stack direction="row" spacing={0.5}>
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        color={FUND_COLOR[g.fund_type] === "default" ? undefined : FUND_COLOR[g.fund_type]}
+                        label={t(`goals.fundTypes.${g.fund_type}`)}
+                        sx={{ height: 22, fontWeight: 600 }}
+                      />
+                      {done && (
+                        <Chip size="small" color="success" label={t("goals.completed")} sx={{ height: 22, fontWeight: 600 }} />
+                      )}
+                    </Stack>
                   </Box>
 
                   <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: "text.secondary" }}>

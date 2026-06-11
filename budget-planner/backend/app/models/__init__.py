@@ -178,6 +178,8 @@ class Goal(Base):
     target_amount: Mapped[float] = mapped_column(Float)
     wallet_id: Mapped[str] = mapped_column(ForeignKey("wallets.id"))
     deadline: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Loại quỹ: emergency|long_term|general (phân loại mục tiêu tiết kiệm).
+    fund_type: Mapped[str] = mapped_column(String(16), default="general", server_default="general")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 

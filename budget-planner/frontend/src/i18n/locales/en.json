@@ -414,12 +414,14 @@
     "deleteConfirm": "Delete goal \"{{name}}\"? The savings wallet is kept.",
     "empty": "No goals yet. Click \"Add goal\" to start.",
     "noWallets": "You need at least one wallet to create a goal.",
+    "fundTypes": { "emergency": "Emergency", "long_term": "Long-term", "general": "General" },
     "form": {
       "addTitle": "Add goal",
       "editTitle": "Edit goal",
       "name": "Goal name",
       "target": "Target amount",
       "wallet": "Savings wallet",
+      "fundType": "Fund type",
       "deadline": "Deadline (optional)"
     },
     "contributeForm": {
