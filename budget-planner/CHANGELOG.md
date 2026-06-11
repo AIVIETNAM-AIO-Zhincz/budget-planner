@@ -8,6 +8,27 @@ dự án dùng [Semantic Versioning](https://semver.org/lang/vi/).
 
 - (chưa có)
 
+## [0.2.0] — 2026-06-11
+
+Mốc **Phase 2**: animation, hoàn thiện UI/UX, và 4 tính năng lập kế hoạch lấy cảm hứng từ template
+"Monthly Budget" (9 PR, `#24`–`#32`). Tag: `budget-planner-v0.2.0`.
+
+### Added — Tính năng Phase 2
+
+- **Phân loại Nhu cầu/Mong muốn/Lãng phí**: gắn `need_level` cho danh mục chi + báo cáo % chi theo nhóm (50/30/20) — *migration #5*. (`#29`)
+- **Dự kiến vs Thực tế**: Kế hoạch tháng (thu/chi dự kiến) đối chiếu thực tế + ✅đạt/❌chưa — *migration #6*. (`#30`)
+- **Tổng quan năm**: trang 12 tháng (cột thu/chi + đường số dư luỹ kế) + thẻ tổng năm. (`#31`)
+- **Quỹ khẩn cấp/dài hạn**: gắn `fund_type` cho mục tiêu tiết kiệm + dải tổng theo loại — *migration #7*. (`#32`)
+
+### Added — Trải nghiệm
+
+- **Animation GSAP**: stagger thẻ khi vào trang, StatCard đếm số, hover nhấc thẻ, chuyển trang — tôn trọng reduced-motion. (`#26`)
+- **Cải thiện UI/UX batch 2**: phân trang giao dịch (+ endpoint `/transactions/stats`), % so kỳ trước ở Báo cáo, validation inline form, chuẩn hoá màu badge (golden-angle). (`#28`)
+
+### Fixed
+
+- **CORS**: cho phép gọi API từ `127.0.0.1:5173` (ngoài `localhost:5173`) khi chạy dev. (`#27`)
+
 ## [0.1.0] — 2026-06-09
 
 Mốc **Phase 0–1**: nền tảng + đầy đủ tính năng cốt lõi, tài liệu & test (23 PR, `#1`–`#23`).
@@ -51,5 +72,6 @@ Tag: `budget-planner-v0.1.0`.
 - **Alembic** migrations (init → recurring → notifications → goals).
 - CI **GitHub Actions**: GitGuardian · ruff (lint+format) · **pytest (141)** · **vitest (31)** · docker build. Triển khai **Docker Compose**.
 
+[0.2.0]: https://github.com/AIVIETNAM-AIO-Zhincz/aio2026-practice/releases/tag/budget-planner-v0.2.0
 [0.1.0]: https://github.com/AIVIETNAM-AIO-Zhincz/aio2026-practice/releases/tag/budget-planner-v0.1.0
-[Unreleased]: https://github.com/AIVIETNAM-AIO-Zhincz/aio2026-practice/compare/budget-planner-v0.1.0...develop
+[Unreleased]: https://github.com/AIVIETNAM-AIO-Zhincz/aio2026-practice/compare/budget-planner-v0.2.0...develop
