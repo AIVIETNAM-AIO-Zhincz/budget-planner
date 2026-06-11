@@ -28,9 +28,7 @@ def _actuals(db: Session, space_id: str, period: str) -> tuple[float, float]:
 
 def _find(db: Session, space_id: str, period: str) -> MonthlyPlan | None:
     return db.scalar(
-        select(MonthlyPlan).where(
-            MonthlyPlan.space_id == space_id, MonthlyPlan.period == period
-        )
+        select(MonthlyPlan).where(MonthlyPlan.space_id == space_id, MonthlyPlan.period == period)
     )
 
 
