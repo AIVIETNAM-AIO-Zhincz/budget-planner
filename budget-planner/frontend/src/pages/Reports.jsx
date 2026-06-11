@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Box, Button, Grid, Paper, Skeleton, Snackbar, Stack, Typography } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -18,6 +18,7 @@ import StatCard from "../components/StatCard.jsx";
 import { getSummary, exportCsv } from "../api/reports.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount, formatCompactVnd, categoryColor } from "../utils/format.js";
+import { useStaggerIn } from "../utils/gsap.js";
 import { echartsAnimationDefaults } from "../utils/motion.js";
 import { pieOption, lineOption } from "../utils/charts.js";
 
@@ -130,6 +131,8 @@ export default function Reports() {
   }, [summary]);
 
   const hasData = summary && (summary.total_income > 0 || summary.total_expense > 0);
+  const rootRef = useRef(null);
+  useStaggerIn(rootRef, { deps: [Boolean(hasData), loading] });
 
   return (
     <>
@@ -183,36 +186,42 @@ export default function Reports() {
           </Typography>
         </Paper>
       ) : (
-        <>
+        <Box ref={rootRef}>
           <Grid container spacing={2.5} sx={{ mb: 1 }}>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} className="gsap-in">
               <StatCard
                 label={t("reports.totalIncome")}
                 accent="#10b981"
                 icon={<ArrowTrendingUpIcon width={22} />}
-                value={`${formatCompactVnd(summary.total_income)} ₫`}
+                count={summary.total_income}
+                format={formatCompactVnd}
+                suffix="₫"
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} className="gsap-in">
               <StatCard
                 label={t("reports.totalExpense")}
                 accent="#ef4444"
                 icon={<ArrowTrendingDownIcon width={22} />}
-                value={`${formatCompactVnd(summary.total_expense)} ₫`}
+                count={summary.total_expense}
+                format={formatCompactVnd}
+                suffix="₫"
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} className="gsap-in">
               <StatCard
                 label={t("reports.balance")}
                 accent="#6366f1"
                 icon={<ScaleIcon width={22} />}
-                value={`${formatCompactVnd(summary.balance)} ₫`}
+                count={summary.balance}
+                format={formatCompactVnd}
+                suffix="₫"
               />
             </Grid>
           </Grid>
 
           <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-            <Grid item xs={12} md={7}>
+            <Grid item xs={12} md={7} className="gsap-in">
               <ChartCard title={t("reports.topCategories")}>
                 {pieData.length > 0 ? (
                   <ReactECharts option={barOption(theme, summary.by_category, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
@@ -223,18 +232,18 @@ export default function Reports() {
                 )}
               </ChartCard>
             </Grid>
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={5} className="gsap-in">
               <ChartCard title={t("reports.byCategory")}>
                 <ReactECharts option={pieOption(theme, pieData, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
               </ChartCard>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} className="gsap-in">
               <ChartCard title={t("reports.overTime")}>
                 <ReactECharts option={lineOption(theme, flow, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
               </ChartCard>
             </Grid>
           </Grid>
-        </>
+        </Box>
       )}
 
       <Snackbar

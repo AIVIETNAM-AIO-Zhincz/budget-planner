@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -33,6 +33,7 @@ import { listCategories } from "../api/categories.js";
 import { listGoals } from "../api/goals.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount, formatCompactVnd, categoryColor } from "../utils/format.js";
+import { useStaggerIn } from "../utils/gsap.js";
 import { echartsAnimationDefaults } from "../utils/motion.js";
 import { summarize, expenseByCategory, flowByDate, pieOption, lineOption } from "../utils/charts.js";
 
@@ -147,6 +148,9 @@ export default function Dashboard() {
       .sort((a, b) => (a.next_run < b.next_run ? -1 : 1));
   }, [recurring]);
 
+  const rootRef = useRef(null);
+  useStaggerIn(rootRef);
+
   const cards = [
     { key: "totalIncome", value: stats.income, accent: "#10b981", icon: <ArrowTrendingUpIcon width={22} /> },
     { key: "totalExpense", value: stats.expense, accent: "#ef4444", icon: <ArrowTrendingDownIcon width={22} /> },
@@ -155,7 +159,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <>
+    <Box ref={rootRef}>
       <PageHeader title={t("dashboard.title")} description={t("dashboard.subtitle")} />
 
       {error && (
@@ -166,15 +170,19 @@ export default function Dashboard() {
 
       <Grid container spacing={2.5} sx={{ mb: 1 }}>
         {cards.map((c) => (
-          <Grid item xs={12} sm={6} md={3} key={c.key}>
+          <Grid item xs={12} sm={6} md={3} key={c.key} className="gsap-in">
             {loading ? (
               <Skeleton variant="rounded" height={108} sx={{ borderRadius: 3 }} />
+            ) : c.raw ? (
+              <StatCard label={t(`dashboard.${c.key}`)} accent={c.accent} icon={c.icon} value={c.value} />
             ) : (
               <StatCard
                 label={t(`dashboard.${c.key}`)}
                 accent={c.accent}
                 icon={c.icon}
-                value={c.raw ? c.value : `${formatCompactVnd(c.value)} ₫`}
+                count={c.value}
+                format={formatCompactVnd}
+                suffix="₫"
               />
             )}
           </Grid>
@@ -182,7 +190,7 @@ export default function Dashboard() {
       </Grid>
 
       <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12} md={5} className="gsap-in">
           <ChartCard title={t("dashboard.byCategory")} empty={!loading && pieData.length === 0} emptyText={t("dashboard.noData")}>
             {!loading && pieData.length > 0 && (
               <ReactECharts option={pieOption(theme, pieData, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
@@ -190,7 +198,7 @@ export default function Dashboard() {
             {loading && <Skeleton variant="rounded" height={300} />}
           </ChartCard>
         </Grid>
-        <Grid item xs={12} md={7}>
+        <Grid item xs={12} md={7} className="gsap-in">
           <ChartCard title={t("dashboard.overTime")} empty={!loading && flow.dates.length === 0} emptyText={t("dashboard.noData")}>
             {!loading && flow.dates.length > 0 && (
               <ReactECharts option={lineOption(theme, flow, animation)} style={{ width: "100%", height: 300 }} opts={{ renderer: "svg" }} notMerge />
@@ -416,6 +424,6 @@ export default function Dashboard() {
           </SectionCard>
         </Grid>
       </Grid>
-    </>
+    </Box>
   );
 }

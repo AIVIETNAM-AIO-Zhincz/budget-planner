@@ -1,15 +1,32 @@
+import { useRef } from "react";
 import { Box, Paper, Typography } from "@mui/material";
-import { cardHover } from "../utils/motion.js";
+import CountUpValue from "./CountUpValue.jsx";
+import { useHoverLift } from "../utils/gsap.js";
 
 /**
  * Thẻ KPI: nhãn + giá trị (font mono, tabular-nums) + icon accent.
- * Port rút gọn từ design system InTraAI.
+ * - Truyền `value` (ReactNode) để hiển thị tĩnh, HOẶC `count`+`format` để đếm số (GSAP).
+ * - Hover nhấc nhẹ qua GSAP (tôn trọng reduced-motion).
  *
- * @param {{label:string, value:React.ReactNode, note?:string, icon?:React.ReactNode, accent?:string}} props
+ * @param {{label:string, value?:React.ReactNode, count?:number, format?:Function, suffix?:string,
+ *          note?:string, icon?:React.ReactNode, accent?:string}} props
  */
-export default function StatCard({ label, value, note, icon, accent = "#6366f1" }) {
+export default function StatCard({
+  label,
+  value,
+  count,
+  format,
+  suffix = "",
+  note,
+  icon,
+  accent = "#6366f1",
+}) {
+  const cardRef = useRef(null);
+  useHoverLift(cardRef);
+
   return (
     <Paper
+      ref={cardRef}
       sx={(theme) => ({
         p: 2.5,
         borderRadius: 3,
@@ -21,7 +38,7 @@ export default function StatCard({ label, value, note, icon, accent = "#6366f1" 
         display: "grid",
         gap: 0.5,
         height: "100%",
-        ...cardHover(theme),
+        willChange: "transform",
       })}
     >
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -55,7 +72,11 @@ export default function StatCard({ label, value, note, icon, accent = "#6366f1" 
           whiteSpace: "nowrap",
         }}
       >
-        {value}
+        {count != null && format ? (
+          <CountUpValue value={count} format={format} suffix={suffix} />
+        ) : (
+          value
+        )}
       </Typography>
       {note && <Typography sx={{ fontSize: 11, color: "text.disabled" }}>{note}</Typography>}
     </Paper>

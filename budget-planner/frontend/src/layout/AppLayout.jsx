@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, Toolbar } from "@mui/material";
-import { Outlet } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar, { DRAWER_WIDTH, COLLAPSED_WIDTH } from "./Sidebar.jsx";
 import TopBar from "./TopBar.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { runRecurring } from "../api/recurring.js";
+import { gsap, useGSAP, reduced } from "../utils/gsap.js";
 
 const COLLAPSE_KEY = "bp-sidebar-collapsed";
 
@@ -36,6 +38,18 @@ export default function AppLayout() {
   const openMobile = useCallback(() => setMobileOpen(true), []);
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
+  // Hiệu ứng chuyển trang: fade/slide nhẹ vùng nội dung mỗi khi đổi route.
+  const location = useLocation();
+  const theme = useTheme();
+  const mainRef = useRef(null);
+  useGSAP(
+    () => {
+      if (reduced(theme) || !mainRef.current) return;
+      gsap.from(mainRef.current, { opacity: 0, y: 10, duration: 0.3, ease: "power2.out" });
+    },
+    { dependencies: [location.pathname], scope: mainRef },
+  );
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
       <Sidebar collapsed={collapsed} mobileOpen={mobileOpen} onMobileClose={closeMobile} />
@@ -58,7 +72,7 @@ export default function AppLayout() {
       >
         <Toolbar sx={{ minHeight: 70 }} />
         {/* key theo space → remount nội dung khi đổi không gian (tự refetch). */}
-        <Box key={spaceId} sx={{ p: { xs: 2, md: 3 } }}>
+        <Box key={spaceId} ref={mainRef} sx={{ p: { xs: 2, md: 3 } }}>
           <Outlet />
         </Box>
       </Box>

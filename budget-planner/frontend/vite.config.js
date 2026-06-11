@@ -19,6 +19,7 @@ export default defineConfig({
           react: ["react", "react-dom", "react-router-dom"],
           mui: ["@mui/material", "@mui/icons-material", "@mui/x-date-pickers"],
           echarts: ["echarts", "echarts-for-react"],
+          gsap: ["gsap", "@gsap/react"],
         },
       },
     },
