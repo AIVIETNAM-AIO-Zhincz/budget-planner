@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./budget_planner.db"
     # Không gian mặc định khi chưa có auth/RBAC (slice Transactions đầu tiên).
     default_space_id: str = "default-space"
-    # Origin frontend được phép gọi API (CORS).
-    cors_origins: list[str] = ["http://localhost:5173"]
+    # Origin frontend được phép gọi API (CORS). Cho cả localhost lẫn 127.0.0.1 (Vite dev).
+    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     # JWT — đổi BP_SECRET_KEY ở production.
     secret_key: str = "dev-secret-change-me"
