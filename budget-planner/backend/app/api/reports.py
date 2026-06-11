@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.rbac import get_current_space_id
-from app.schemas.report import AnnualReportSummary, ReportSummary
+from app.schemas.report import AnnualReportSummary, ReportAllocation, ReportSummary
+from app.services.allocation import assess_allocation
 from app.services.report import (
     build_annual_summary,
     build_summary,
@@ -41,6 +42,18 @@ def summary(
 ) -> dict:
     """Tổng hợp thu/chi/số dư + theo danh mục + theo ngày trong khoảng."""
     return build_summary(db, space_id, _parse(date_from), _parse(date_to))
+
+
+@router.get("/allocation", response_model=ReportAllocation)
+def allocation(
+    date_from: str | None = Query(default=None, alias="from"),
+    date_to: str | None = Query(default=None, alias="to"),
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+) -> dict:
+    """Đánh giá phân bổ 50/30/20 trong khoảng + đề xuất (tính từ thu/chi thực tế)."""
+    s = build_summary(db, space_id, _parse(date_from), _parse(date_to))
+    return assess_allocation(s["total_income"], s["total_expense"], s["by_need_level"])
 
 
 @router.get("/annual", response_model=AnnualReportSummary)

@@ -81,6 +81,44 @@ def test_annual_summary(client: TestClient, owner: dict) -> None:
     assert b["months"][11]["balance"] == 2100000  # cuối năm
 
 
+def test_allocation_assessment(client: TestClient, owner: dict) -> None:
+    """Đánh giá 50/30/20 từ thu/chi thực tế + need_level của danh mục."""
+    h = owner["headers"]
+    client.post(
+        "/categories",
+        json={"name": "Tiền nhà", "type": "expense", "need_level": "mandatory"},
+        headers=h,
+    )
+    client.post(
+        "/categories",
+        json={"name": "Cà phê", "type": "expense", "need_level": "wasteful"},
+        headers=h,
+    )
+    _tx(client, h, 20000000, "income", "Lương", "2026-06-01")
+    _tx(client, h, 9000000, "expense", "Tiền nhà", "2026-06-02")  # mandatory 45%
+    _tx(client, h, 2000000, "expense", "Vô danh", "2026-06-03")  # optional 10%
+    _tx(client, h, 1000000, "expense", "Cà phê", "2026-06-04")  # wasteful
+
+    r = client.get(
+        "/reports/allocation", params={"from": "2026-06-01", "to": "2026-06-30"}, headers=h
+    )
+    assert r.status_code == 200
+    b = r.json()
+    assert b["income"] == 20000000
+    assert b["expense"] == 12000000
+    assert b["savings"] == 8000000
+    assert b["wasteful"] == 1000000
+    assert b["verdict"] == "warning"  # 3 nhóm đạt nhưng có lãng phí
+    g = {x["key"]: x for x in b["groups"]}
+    assert g["needs"]["ok"] and g["wants"]["ok"] and g["savings"]["ok"]
+    assert b["suggested_savings"] == 4000000
+    assert any("lãng phí" in f.lower() for f in b["findings"])
+
+
+def test_allocation_requires_token(client: TestClient) -> None:
+    assert client.get("/reports/allocation").status_code == 401
+
+
 def test_summary_range_filter(client: TestClient, owner: dict) -> None:
     h = owner["headers"]
     _tx(client, h, 100000, "expense", "A", "2026-06-10")

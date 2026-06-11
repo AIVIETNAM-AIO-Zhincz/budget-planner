@@ -17,7 +17,7 @@ from app.services.categorizer import suggest_category
 from app.services.faq import FAQ_INTENTS
 
 # Các intent hỏi-đáp được phép (khớp với assistant.compute_answer).
-_INTENTS = ("expense_month", "income_month", "wallet_balance")
+_INTENTS = ("expense_month", "income_month", "wallet_balance", "allocation_review")
 
 _FAQ_LIST = ", ".join(f'"{i}"' for i in FAQ_INTENTS)
 
@@ -29,8 +29,9 @@ _SYSTEM = (
     '{"amount":<số VND nguyên>,"type":"income"|"expense",'
     '"category_name":<chuỗi hoặc "">,"note":<chuỗi>,"date":"YYYY-MM-DD"}. '
     "CHỈ trích số tiền/ngày có trong tin nhắn, KHÔNG bịa.\n"
-    '- "question": nếu hỏi SỐ LIỆU của người dùng. question ∈ '
-    '["expense_month","income_month","wallet_balance"]. KHÔNG tự tính số.\n'
+    '- "question": nếu hỏi SỐ LIỆU/đánh giá của người dùng. question ∈ '
+    '["expense_month","income_month","wallet_balance","allocation_review"]. '
+    '"allocation_review" = hỏi phân bổ/ngân sách hiện tại đã hợp lý chưa. KHÔNG tự tính số.\n'
     f'- "faq": nếu hỏi KIẾN THỨC tài chính chung (vd nên tiết kiệm %, quỹ khẩn cấp, tự do tài '
     f"chính). faq ∈ [{_FAQ_LIST}]. CHỈ chọn id phù hợp, KHÔNG tự trả lời nội dung.\n"
     '- "other": chào hỏi/không rõ. reply = câu trả lời ngắn, thân thiện bằng tiếng Việt.\n'

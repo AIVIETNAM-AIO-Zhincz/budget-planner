@@ -363,7 +363,18 @@
     "loadError": "Không tải được báo cáo",
     "vsPrev": "so kỳ trước",
     "byNeedLevel": "Chi theo mức cần thiết",
-    "exportError": "Không xuất được CSV"
+    "exportError": "Không xuất được CSV",
+    "allocationTitle": "Mức độ hợp lý (50/30/20)",
+    "allocationTarget": "mục tiêu {{pct}}",
+    "allocationSavings": "Tỷ lệ tiết kiệm {{pct}}",
+    "allocation": {
+      "verdictGood": "Hợp lý",
+      "verdictWarning": "Cần điều chỉnh",
+      "verdictUnknown": "Chưa đủ dữ liệu",
+      "needs": "Thiết yếu",
+      "wants": "Mong muốn",
+      "savings": "Tiết kiệm"
+    }
   },
   "recurring": {
     "add": "Thêm mẫu định kỳ",

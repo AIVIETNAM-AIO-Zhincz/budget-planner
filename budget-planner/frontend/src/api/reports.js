@@ -13,6 +13,11 @@ export function getSummary(range = {}) {
   return apiFetch(`/reports/summary${buildQuery(range)}`);
 }
 
+/** Đánh giá phân bổ 50/30/20 + đề xuất trong khoảng thời gian. */
+export function getAllocation(range = {}) {
+  return apiFetch(`/reports/allocation${buildQuery(range)}`);
+}
+
 /**
  * Tổng quan năm: 12 tháng thu/chi + số dư luỹ kế.
  *

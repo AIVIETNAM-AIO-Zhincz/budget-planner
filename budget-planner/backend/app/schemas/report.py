@@ -40,6 +40,32 @@ class ReportSummary(BaseModel):
     by_day: list[DayFlow]
 
 
+class AllocationGroup(BaseModel):
+    """Một nhóm 50/30/20: số thực tế + % so với mục tiêu."""
+
+    key: str  # needs | wants | savings
+    actual: float
+    actual_pct: float
+    target_pct: float
+    ok: bool
+
+
+class ReportAllocation(BaseModel):
+    """Đánh giá phân bổ ngân sách theo 50/30/20 + đề xuất."""
+
+    income: float
+    expense: float
+    savings: float
+    savings_rate: float
+    wasteful: float
+    verdict: str  # good | warning | unknown
+    groups: list[AllocationGroup]
+    findings: list[str]
+    suggested_needs: float
+    suggested_wants: float
+    suggested_savings: float
+
+
 class MonthlyFlow(BaseModel):
     """Thu/chi + số dư luỹ kế của một tháng (YYYY-MM)."""
 

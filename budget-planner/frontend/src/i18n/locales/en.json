@@ -363,7 +363,18 @@
     "loadError": "Could not load report",
     "vsPrev": "vs prev.",
     "byNeedLevel": "Spending by need level",
-    "exportError": "Could not export CSV"
+    "exportError": "Could not export CSV",
+    "allocationTitle": "Allocation health (50/30/20)",
+    "allocationTarget": "target {{pct}}",
+    "allocationSavings": "Savings rate {{pct}}",
+    "allocation": {
+      "verdictGood": "Healthy",
+      "verdictWarning": "Needs adjustment",
+      "verdictUnknown": "Not enough data",
+      "needs": "Needs",
+      "wants": "Wants",
+      "savings": "Savings"
+    }
   },
   "recurring": {
     "add": "Add recurring rule",

@@ -154,3 +154,47 @@ def test_llm_failure_falls_back(client: TestClient, owner: dict, monkeypatch) ->
     )
     assert r.json()["kind"] == "transaction"
     assert r.json()["draft"]["amount"] == 50000
+
+
+def test_parse_question_allocation() -> None:
+    assert parse_llm_json('{"kind":"question","question":"allocation_review"}', TODAY) == {
+        "kind": "question",
+        "question": "allocation_review",
+    }
+
+
+def test_llm_allocation_route(client: TestClient, owner: dict, monkeypatch) -> None:
+    """LLM chọn intent allocation_review → backend tính đánh giá từ DB."""
+    h = owner["headers"]
+    today = date.today()
+    client.post(
+        "/categories",
+        json={"name": "Tiền nhà", "type": "expense", "need_level": "mandatory"},
+        headers=h,
+    )
+    client.post(
+        "/transactions",
+        json={"amount": 20_000_000, "type": "income", "note": "l", "date": today.isoformat()},
+        headers=h,
+    )
+    client.post(
+        "/transactions",
+        json={
+            "amount": 9_000_000,
+            "type": "expense",
+            "note": "x",
+            "category_name": "Tiền nhà",
+            "date": today.isoformat(),
+        },
+        headers=h,
+    )
+    monkeypatch.setattr(llm, "llm_enabled", lambda: True)
+    monkeypatch.setattr(
+        llm,
+        "classify_message",
+        lambda text, today2: {"kind": "question", "question": "allocation_review"},
+    )
+    r = client.post("/assistant/message", json={"text": "abc"}, headers=h)
+    b = r.json()
+    assert b["kind"] == "answer"
+    assert "Phân bổ" in b["reply"] and "50/30/20" in b["reply"]

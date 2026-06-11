@@ -14,7 +14,9 @@ from sqlalchemy.orm import Session
 from app.core.format import format_vnd as _fmt
 from app.models import Transaction, Wallet
 from app.services import faq, llm
+from app.services.allocation import assess_allocation
 from app.services.categorizer import suggest_category
+from app.services.report import build_summary
 
 _INCOME_KEYWORDS = ("thu nhập", "thu ", "nhận", "lương", "thưởng", "được trả", "bán", "hoàn tiền")
 
@@ -145,6 +147,23 @@ def _faq_context(db: Session, space_id: str, today: date) -> dict:
     }
 
 
+def _allocation_reply(db: Session, space_id: str, today: date) -> str:
+    """Đánh giá phân bổ 50/30/20 của tháng hiện tại thành câu trả lời (không bịa số)."""
+    start, end = _month_range(today)
+    summary = build_summary(db, space_id, start, end - timedelta(days=1))
+    a = assess_allocation(
+        summary["total_income"], summary["total_expense"], summary["by_need_level"]
+    )
+    if a["verdict"] == "unknown":
+        return a["findings"][0]
+    head = (
+        "Phân bổ tháng này khá hợp lý 👍"
+        if a["verdict"] == "good"
+        else "Phân bổ tháng này cần điều chỉnh:"
+    )
+    return f"{head} " + " ".join(a["findings"])
+
+
 def compute_answer(db: Session, space_id: str, intent: str | None, today: date) -> str | None:
     """Tính câu trả lời số liệu từ DB theo intent cố định (không bịa số)."""
     if intent == "wallet_balance":
@@ -153,6 +172,8 @@ def compute_answer(db: Session, space_id: str, intent: str | None, today: date) 
         return _month_total(db, space_id, "expense", today)
     if intent == "income_month":
         return _month_total(db, space_id, "income", today)
+    if intent == "allocation_review":
+        return _allocation_reply(db, space_id, today)
     return None
 
 
@@ -160,6 +181,13 @@ def answer_query(db: Session, space_id: str, text: str, today: date) -> str | No
     """Trả lời câu hỏi số liệu cơ bản bằng rule (keyword) → None nếu không khớp."""
     t = text.lower()
     is_question = any(k in t for k in ("bao nhiêu", "?", "tổng", "số dư", "còn"))
+
+    if (
+        "phân bổ" in t
+        or "hợp lý" in t
+        or ("đánh giá" in t and ("ngân sách" in t or "chi tiêu" in t))
+    ):
+        return _allocation_reply(db, space_id, today)
 
     if "số dư" in t or ("ví" in t and is_question):
         return _wallet_summary(db, space_id)

@@ -15,7 +15,8 @@ import {
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import StatCard from "../components/StatCard.jsx";
-import { getSummary, exportCsv } from "../api/reports.js";
+import AllocationCard from "../components/AllocationCard.jsx";
+import { getSummary, getAllocation, exportCsv } from "../api/reports.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount, formatCompactVnd, categoryColor } from "../utils/format.js";
 import { useStaggerIn } from "../utils/gsap.js";
@@ -75,6 +76,7 @@ export default function Reports() {
   const [to, setTo] = useState(dayjs());
   const [summary, setSummary] = useState(null);
   const [prev, setPrev] = useState(null);
+  const [allocation, setAllocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -100,9 +102,14 @@ export default function Reports() {
         from: prevFrom ? prevFrom.format("YYYY-MM-DD") : "",
         to: prevTo ? prevTo.format("YYYY-MM-DD") : "",
       };
-      const [cur, prv] = await Promise.all([getSummary(range), getSummary(prevRange)]);
+      const [cur, prv, alloc] = await Promise.all([
+        getSummary(range),
+        getSummary(prevRange),
+        getAllocation(range),
+      ]);
       setSummary(cur);
       setPrev(prv);
+      setAllocation(alloc);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : t("reports.loadError"));
     } finally {
@@ -283,6 +290,11 @@ export default function Reports() {
                     {t("reports.empty")}
                   </Box>
                 )}
+              </ChartCard>
+            </Grid>
+            <Grid item xs={12} className="gsap-in">
+              <ChartCard title={t("reports.allocationTitle")}>
+                <AllocationCard data={allocation} />
               </ChartCard>
             </Grid>
             <Grid item xs={12} className="gsap-in">

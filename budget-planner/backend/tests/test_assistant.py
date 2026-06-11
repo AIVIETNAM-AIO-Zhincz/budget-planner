@@ -121,6 +121,39 @@ def test_assistant_faq_not_hijacked_by_data_query(client: TestClient, owner: dic
     assert r.json()["kind"] == "faq"
 
 
+def test_assistant_allocation_review(client: TestClient, owner: dict) -> None:
+    h = owner["headers"]
+    today = date.today()
+    client.post(
+        "/categories",
+        json={"name": "Tiền nhà", "type": "expense", "need_level": "mandatory"},
+        headers=h,
+    )
+    client.post(
+        "/transactions",
+        json={"amount": 20_000_000, "type": "income", "note": "luong", "date": today.isoformat()},
+        headers=h,
+    )
+    client.post(
+        "/transactions",
+        json={
+            "amount": 9_000_000,
+            "type": "expense",
+            "note": "x",
+            "category_name": "Tiền nhà",
+            "date": today.isoformat(),
+        },
+        headers=h,
+    )
+    r = client.post(
+        "/assistant/message", json={"text": "phân bổ của tôi đã hợp lý chưa?"}, headers=h
+    )
+    b = r.json()
+    assert b["kind"] == "answer"
+    assert "Phân bổ" in b["reply"]
+    assert "50/30/20" in b["reply"]  # có đề xuất
+
+
 def test_assistant_unknown(client: TestClient, owner: dict) -> None:
     r = client.post("/assistant/message", json={"text": "xin chào bạn"}, headers=owner["headers"])
     assert r.json()["kind"] == "unknown"
