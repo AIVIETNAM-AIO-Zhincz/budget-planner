@@ -137,6 +137,12 @@ export function buildTheme(mode = "light", language = "vi") {
             tooltip: { fontSize: 12, fontWeight: 500, padding: "6px 10px", borderRadius: 6 },
           },
         },
+        MuiIconButton: {
+          // Vùng chạm to hơn cho nút icon nhỏ (dễ bấm, đạt chuẩn a11y).
+          styleOverrides: {
+            sizeSmall: { padding: 8 },
+          },
+        },
         MuiTableCell: {
           styleOverrides: {
             head: {

@@ -209,6 +209,7 @@
     "colRole": "Vai trò",
     "colActions": "Thao tác",
     "you": "(bạn)",
+    "ownerLocked": "Chủ sở hữu — không thể đổi vai trò",
     "empty": "Chưa có thành viên nào.",
     "roles": {
       "owner": "Chủ sở hữu",
@@ -284,6 +285,7 @@
   "wallets": {
     "add": "Thêm ví",
     "emptyTitle": "Chưa có ví nào",
+    "txStats": "{{count}} giao dịch tháng này",
     "empty": "Chưa có ví. Bấm \"Thêm ví\" để bắt đầu.",
     "total": "Tổng số dư",
     "transfer": "Chuyển tiền",

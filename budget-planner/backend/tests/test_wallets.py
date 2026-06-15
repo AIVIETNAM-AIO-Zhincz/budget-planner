@@ -111,3 +111,29 @@ def test_transfer_unknown_wallet_404(client: TestClient, owner: dict) -> None:
         headers=owner["headers"],
     )
     assert r.status_code == 404
+
+
+def test_list_wallets_includes_month_stats(client: TestClient, owner: dict) -> None:
+    """GET /wallets kèm thống kê tháng hiện tại theo ví (count/income/expense)."""
+    h = owner["headers"]
+    wid = _wallet(client, h, name="Tiền mặt", balance=1000000).json()["id"]
+
+    def _tx(amount, tx_type, wallet=wid, date=None):
+        body = {"amount": amount, "type": tx_type, "note": "x", "wallet_id": wallet}
+        if date:
+            body["date"] = date
+        client.post("/transactions", json=body, headers=h)
+
+    _tx(50000, "expense")
+    _tx(30000, "expense")
+    _tx(200000, "income")
+    _tx(999, "expense", date="2020-01-01")  # tháng cũ → không tính
+    client.post(  # không gắn ví → không tính
+        "/transactions", json={"amount": 777, "type": "expense", "note": "n"}, headers=h
+    )
+
+    wallets = client.get("/wallets", headers=h).json()
+    w = next(x for x in wallets if x["id"] == wid)
+    assert w["tx_count"] == 3
+    assert w["tx_income"] == 200000
+    assert w["tx_expense"] == 80000

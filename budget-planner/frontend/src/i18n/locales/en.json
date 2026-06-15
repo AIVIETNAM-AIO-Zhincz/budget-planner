@@ -209,6 +209,7 @@
     "colRole": "Role",
     "colActions": "Actions",
     "you": "(you)",
+    "ownerLocked": "Owner — role can't be changed",
     "empty": "No members yet.",
     "roles": {
       "owner": "Owner",
@@ -284,6 +285,7 @@
   "wallets": {
     "add": "Add wallet",
     "emptyTitle": "No wallets",
+    "txStats": "{{count}} this month",
     "empty": "No wallets yet. Click \"Add wallet\" to start.",
     "total": "Total balance",
     "transfer": "Transfer",

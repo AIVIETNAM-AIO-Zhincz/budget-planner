@@ -29,13 +29,16 @@ class WalletUpdate(BaseModel):
 
 
 class WalletRead(WalletBase):
-    """Ví trả về client."""
+    """Ví trả về client (kèm thống kê giao dịch tháng hiện tại)."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     space_id: str
     balance: float
+    tx_count: int = 0
+    tx_income: float = 0.0
+    tx_expense: float = 0.0
 
 
 class TransferRequest(BaseModel):

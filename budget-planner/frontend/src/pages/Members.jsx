@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Chip,
@@ -9,6 +10,7 @@ import {
   Paper,
   Skeleton,
   Snackbar,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -16,11 +18,13 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
+import { categoryColor } from "../utils/format.js";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import InviteMemberDialog from "../components/InviteMemberDialog.jsx";
 import { listMembers, inviteMember, updateMemberRole, removeMember } from "../api/members.js";
@@ -166,19 +170,37 @@ export default function Members() {
                   return (
                     <TableRow key={m.id} hover>
                       <TableCell>
-                        <Typography sx={{ fontWeight: 600 }}>
-                          {m.name || m.email}
-                          {isSelf && (
-                            <Typography component="span" sx={{ ml: 1, fontSize: 12, color: "text.disabled" }}>
-                              {t("members.you")}
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <Avatar
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              fontSize: 15,
+                              fontWeight: 700,
+                              bgcolor: categoryColor(m.email || m.name || "?"),
+                            }}
+                          >
+                            {(m.name || m.email || "?").charAt(0).toUpperCase()}
+                          </Avatar>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography sx={{ fontWeight: 600 }} noWrap>
+                              {m.name || m.email}
+                              {isSelf && (
+                                <Typography
+                                  component="span"
+                                  sx={{ ml: 1, fontSize: 12, color: "text.disabled" }}
+                                >
+                                  {t("members.you")}
+                                </Typography>
+                              )}
                             </Typography>
-                          )}
-                        </Typography>
-                        {m.name && (
-                          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                            {m.email}
-                          </Typography>
-                        )}
+                            {m.name && (
+                              <Typography variant="caption" sx={{ color: "text.secondary" }} noWrap>
+                                {m.email}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Stack>
                       </TableCell>
                       <TableCell>
                         {editable ? (
@@ -196,13 +218,18 @@ export default function Members() {
                             ))}
                           </TextField>
                         ) : (
-                          <Chip
-                            size="small"
-                            label={t(`members.roles.${m.role}`)}
-                            color={ROLE_COLOR[m.role] || "default"}
-                            variant={m.role === "owner" ? "filled" : "outlined"}
-                            sx={{ height: 24, fontWeight: 600 }}
-                          />
+                          <Tooltip
+                            title={m.role === "owner" ? t("members.ownerLocked") : ""}
+                            disableHoverListener={m.role !== "owner"}
+                          >
+                            <Chip
+                              size="small"
+                              label={t(`members.roles.${m.role}`)}
+                              color={ROLE_COLOR[m.role] || "default"}
+                              variant={m.role === "owner" ? "filled" : "outlined"}
+                              sx={{ height: 24, fontWeight: 600 }}
+                            />
+                          </Tooltip>
                         )}
                       </TableCell>
                       <TableCell align="right">
