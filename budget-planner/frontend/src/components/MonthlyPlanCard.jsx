@@ -158,7 +158,12 @@ export default function MonthlyPlanCard({ onError, onSaved }) {
           InputProps={{ endAdornment: <InputAdornment position="end">₫</InputAdornment> }}
           fullWidth
         />
-        <Button variant="contained" onClick={handleSave} disabled={saving} sx={{ whiteSpace: "nowrap" }}>
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          disabled={saving}
+          sx={{ whiteSpace: "nowrap", flexShrink: 0, px: 3 }}
+        >
           {t("plan.save")}
         </Button>
       </Stack>
