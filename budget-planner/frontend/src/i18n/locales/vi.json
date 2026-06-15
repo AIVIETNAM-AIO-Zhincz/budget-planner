@@ -205,6 +205,7 @@
     "noCategory": "Chưa gán danh mục",
     "spentOf": "Đã chi {{spent}} / {{limit}} ₫",
     "remaining": "Còn lại: {{remaining}} ₫",
+    "overLimit": "Vượt hạn mức",
     "deleteTitle": "Xoá ngân sách",
     "deleteConfirm": "Xoá ngân sách kỳ {{period}}?",
     "created": "Đã thêm ngân sách",

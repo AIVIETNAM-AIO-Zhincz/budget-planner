@@ -3,16 +3,20 @@ import {
   Alert,
   Box,
   Button,
-  Grid,
   IconButton,
-  LinearProgress,
   Paper,
   Skeleton,
   Snackbar,
   Stack,
   Typography,
 } from "@mui/material";
-import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useTheme } from "@mui/material/styles";
+import {
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import BudgetFormDialog from "../components/BudgetFormDialog.jsx";
@@ -21,64 +25,146 @@ import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import { listBudgets, createBudget, updateBudget, deleteBudget } from "../api/budgets.js";
 import { listCategories } from "../api/categories.js";
 import { ApiError } from "../api/client.js";
-import { formatAmount, budgetTone } from "../utils/format.js";
+import { formatAmount, categoryColor } from "../utils/format.js";
+import { hexToRgba, lighten } from "../utils/badgeColors.js";
 
-/** Một thẻ ngân sách với thanh tiến độ. */
+/** Lấy ký tự đầu (in hoa) của tên danh mục cho avatar. */
+function initialOf(name) {
+  const ch = String(name || "").trim()[0];
+  return ch ? ch.toUpperCase() : "?";
+}
+
+/**
+ * Một thẻ ngân sách: avatar màu theo danh mục, thanh tiến độ gradient,
+ * dòng "đã chi / còn lại" và chip cảnh báo khi vượt hạn mức.
+ */
 function BudgetCard({ budget, categoryName, onEdit, onDelete }) {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
+  const name = categoryName || t("budgets.noCategory");
   const percent = Math.round(budget.percent || 0);
-  const tone = budgetTone(percent);
   const overspent = budget.remaining < 0;
 
+  const accent = categoryColor(name);
+  const avBg = hexToRgba(accent, isDark ? 0.18 : 0.14);
+  const avText = isDark ? lighten(accent, 0.38) : accent;
+
+  const barFill = overspent
+    ? `linear-gradient(90deg, ${theme.palette.warning.main}, ${theme.palette.error.main})`
+    : `linear-gradient(90deg, ${lighten(theme.palette.success.main, 0.18)}, ${theme.palette.success.main})`;
+  const pctColor = overspent ? theme.palette.error.main : theme.palette.success.main;
+
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 3, border: (th) => `1px solid ${th.palette.divider}`, height: "100%" }}>
-      <Stack direction="row" alignItems="flex-start" sx={{ mb: 1.5 }}>
+    <Paper
+      sx={{
+        p: 2.75,
+        borderRadius: 4,
+        height: "100%",
+        border: (th) => `1px solid ${overspent ? hexToRgba(th.palette.error.main, 0.45) : th.palette.divider}`,
+        transition: "box-shadow .16s, border-color .16s",
+        "&:hover": { boxShadow: 3 },
+      }}
+    >
+      <Stack direction="row" alignItems="flex-start" sx={{ gap: 1.5, mb: 2 }}>
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            borderRadius: "12px",
+            display: "grid",
+            placeItems: "center",
+            fontWeight: 800,
+            fontSize: 17,
+            bgcolor: avBg,
+            color: avText,
+          }}
+        >
+          {initialOf(name)}
+        </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 700 }} noWrap>
-            {categoryName || t("budgets.noCategory")}
+          <Typography sx={{ fontWeight: 600, fontSize: 16 }} noWrap>
+            {name}
           </Typography>
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+          <Typography className="tnum" variant="caption" sx={{ color: "text.secondary" }}>
             {budget.period}
           </Typography>
         </Box>
-        <IconButton size="small" onClick={() => onEdit(budget)} aria-label="edit">
-          <PencilSquareIcon width={18} />
-        </IconButton>
-        <IconButton size="small" color="error" onClick={() => onDelete(budget)} aria-label="delete">
-          <TrashIcon width={18} />
-        </IconButton>
+        <Stack direction="row" sx={{ gap: 0.25 }}>
+          <IconButton size="small" onClick={() => onEdit(budget)} aria-label="edit">
+            <PencilSquareIcon width={17} />
+          </IconButton>
+          <IconButton size="small" color="error" onClick={() => onDelete(budget)} aria-label="delete">
+            <TrashIcon width={17} />
+          </IconButton>
+        </Stack>
       </Stack>
 
-      <Stack direction="row" alignItems="center" sx={{ mb: 0.75, gap: 1 }}>
-        <LinearProgress
-          variant="determinate"
-          value={Math.min(percent, 100)}
-          color={tone}
-          sx={{ flex: 1, height: 8, borderRadius: 999 }}
-        />
-        <Typography
+      <Stack direction="row" alignItems="center" sx={{ mb: 1.5, gap: 1.5 }}>
+        <Box
           sx={{
-            fontFamily: '"JetBrains Mono", monospace',
-            fontWeight: 700,
-            fontSize: 13,
-            color: `${tone}.main`,
-            minWidth: 44,
-            textAlign: "right",
+            flex: 1,
+            height: 10,
+            borderRadius: 999,
+            overflow: "hidden",
+            bgcolor: "background.subtle",
+            border: (th) => `1px solid ${th.palette.divider}`,
           }}
+        >
+          <Box
+            sx={{
+              height: "100%",
+              width: `${Math.min(percent, 100)}%`,
+              borderRadius: 999,
+              background: barFill,
+              transition: "width 1s cubic-bezier(.2,.8,.2,1)",
+            }}
+          />
+        </Box>
+        <Typography
+          className="tnum"
+          sx={{ fontWeight: 800, fontSize: 14, color: pctColor, minWidth: 46, textAlign: "right" }}
         >
           {percent}%
         </Typography>
       </Stack>
 
-      <Typography variant="body2" sx={{ color: "text.secondary" }}>
+      <Typography className="tnum" variant="body2" sx={{ color: "text.secondary" }}>
         {t("budgets.spentOf", {
           spent: formatAmount(budget.spent_amount),
           limit: formatAmount(budget.limit_amount),
         })}
       </Typography>
-      <Typography variant="body2" sx={{ color: overspent ? "error.main" : "text.secondary", fontWeight: overspent ? 600 : 400 }}>
+      <Typography
+        className="tnum"
+        variant="body2"
+        sx={{ mt: 0.5, color: overspent ? "error.main" : "text.secondary", fontWeight: overspent ? 600 : 400 }}
+      >
         {t("budgets.remaining", { remaining: formatAmount(budget.remaining) })}
       </Typography>
+
+      {overspent && (
+        <Box
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.75,
+            mt: 1.5,
+            px: 1.5,
+            py: 0.5,
+            borderRadius: 999,
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: "error.main",
+            bgcolor: (th) => hexToRgba(th.palette.error.main, isDark ? 0.18 : 0.12),
+          }}
+        >
+          <ExclamationTriangleIcon width={14} />
+          {t("budgets.overLimit")}
+        </Box>
+      )}
     </Paper>
   );
 }
@@ -176,13 +262,11 @@ export default function Budgets() {
       <MonthlyPlanCard onError={setError} onSaved={setToast} />
 
       {loading ? (
-        <Grid container spacing={2.5}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
           {[0, 1, 2].map((i) => (
-            <Grid item xs={12} md={6} key={i}>
-              <Skeleton variant="rounded" height={150} sx={{ borderRadius: 3 }} />
-            </Grid>
+            <Skeleton key={i} variant="rounded" height={172} sx={{ borderRadius: 4 }} />
           ))}
-        </Grid>
+        </Box>
       ) : budgets.length === 0 ? (
         <Paper sx={{ p: 5, borderRadius: 3, textAlign: "center", border: (th) => `1px dashed ${th.palette.divider}` }}>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
@@ -190,18 +274,17 @@ export default function Budgets() {
           </Typography>
         </Paper>
       ) : (
-        <Grid container spacing={2.5}>
+        <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
           {budgets.map((b) => (
-            <Grid item xs={12} md={6} key={b.id}>
-              <BudgetCard
-                budget={b}
-                categoryName={catNames[b.category_id]}
-                onEdit={openEdit}
-                onDelete={setConfirmTarget}
-              />
-            </Grid>
+            <BudgetCard
+              key={b.id}
+              budget={b}
+              categoryName={catNames[b.category_id]}
+              onEdit={openEdit}
+              onDelete={setConfirmTarget}
+            />
           ))}
-        </Grid>
+        </Box>
       )}
 
       <BudgetFormDialog

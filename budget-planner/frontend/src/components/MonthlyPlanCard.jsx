@@ -2,14 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   InputAdornment,
-  LinearProgress,
   Paper,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -19,47 +18,64 @@ import { getMonthlyPlan, saveMonthlyPlan } from "../api/plans.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount } from "../utils/format.js";
 
-/** Một dòng so sánh planned vs actual + badge đạt/chưa. */
+/** Một dòng so sánh planned vs actual: thanh gradient + pill đạt/chưa. */
 function PlanRow({ label, planned, actual, goodWhenUp }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const pct = planned > 0 ? Math.min((actual / planned) * 100, 100) : 0;
   const good = goodWhenUp ? actual >= planned : actual <= planned;
   const showBadge = planned > 0;
+  const statusColor = good ? theme.palette.success.main : theme.palette.error.main;
+  const barFill = good
+    ? `linear-gradient(90deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`
+    : `linear-gradient(90deg, ${theme.palette.warning.main}, ${theme.palette.error.main})`;
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ gap: 1.5, mb: 1 }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
           {label}
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography
-            variant="caption"
-            sx={{ fontFamily: '"JetBrains Mono", monospace', color: "text.secondary" }}
-          >
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Typography className="tnum" variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
             {formatAmount(actual)} / {formatAmount(planned)} ₫
           </Typography>
           {showBadge && (
-            <Chip
-              size="small"
-              color={good ? "success" : "error"}
-              label={
-                good
-                  ? t("plan.met")
-                  : goodWhenUp
-                    ? t("plan.notMet")
-                    : t("plan.over")
-              }
-              sx={{ fontWeight: 600 }}
-            />
+            <Box
+              sx={{
+                px: 1.25,
+                py: 0.375,
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#fff",
+                bgcolor: statusColor,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {good ? t("plan.met") : goodWhenUp ? t("plan.notMet") : t("plan.over")}
+            </Box>
           )}
         </Stack>
+      </Stack>
+      <Box
+        sx={{
+          height: 11,
+          borderRadius: 999,
+          overflow: "hidden",
+          bgcolor: "background.subtle",
+          border: (th) => `1px solid ${th.palette.divider}`,
+        }}
+      >
+        <Box
+          sx={{
+            height: "100%",
+            width: `${pct}%`,
+            borderRadius: 999,
+            background: barFill,
+            transition: "width 1s cubic-bezier(.2,.8,.2,1)",
+          }}
+        />
       </Box>
-      <LinearProgress
-        variant="determinate"
-        value={pct}
-        color={good ? "success" : "error"}
-        sx={{ height: 8, borderRadius: 4 }}
-      />
     </Box>
   );
 }
