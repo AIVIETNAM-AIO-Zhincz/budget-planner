@@ -138,6 +138,17 @@
       "clear": "Xoá lọc"
     },
     "noResult": "Không có giao dịch khớp bộ lọc.",
+    "emptyResultTitle": "Không tìm thấy giao dịch nào",
+    "emptyResultDesc": "Thử đổi bộ lọc loại, danh mục hoặc từ khoá tìm kiếm.",
+    "hero": {
+      "balanceLabel": "Số dư còn lại",
+      "positive": "Dương",
+      "negative": "Âm",
+      "inflow": "Thu vào",
+      "outflow": "Chi ra",
+      "spentRatio": "Đã chi {{pct}}% thu nhập kỳ này",
+      "leftRatio": "Còn {{pct}}%"
+    },
     "summary": { "income": "Tổng thu", "expense": "Tổng chi", "balance": "Số dư" },
     "rowsPerPage": "Số dòng/trang",
     "import": {
@@ -338,6 +349,10 @@
     "q2": "Cà phê 30k",
     "q3": "Số dư ví?",
     "knowledgeTag": "Kiến thức tài chính",
+    "emptyTitle": "Trợ lý tài chính của bạn",
+    "emptyDesc": "Nhập giao dịch bằng lời, hỏi số liệu chi tiêu, hoặc hỏi kiến thức tài chính cá nhân.",
+    "quickStart": "Bắt đầu nhanh",
+    "knowledgeGroup": "Hỏi kiến thức tài chính",
     "faqHint": "Hỏi kiến thức tài chính:",
     "faq1": "Tôi nên tiết kiệm bao nhiêu % thu nhập?",
     "faq2": "Quỹ khẩn cấp nên có bao nhiêu?",
