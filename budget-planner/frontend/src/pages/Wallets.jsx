@@ -3,26 +3,23 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   IconButton,
   Paper,
   Skeleton,
   Snackbar,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   PlusIcon,
   PencilSquareIcon,
   TrashIcon,
   ArrowsRightLeftIcon,
   WalletIcon,
+  BanknotesIcon,
+  BuildingLibraryIcon,
+  CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
@@ -40,10 +37,246 @@ import {
 import { ApiError } from "../api/client.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { formatAmount } from "../utils/format.js";
+import { hexToRgba, lighten } from "../utils/badgeColors.js";
 
-const TYPE_COLOR = { cash: "success", bank: "info", "e-wallet": "warning" };
+/** Bảng màu nhấn cho ví — xoay vòng theo thứ tự để các ví khác màu nhau. */
+const WALLET_ACCENTS = ["#0f9d74", "#3f72d6", "#8868e0", "#e09a3d", "#d8568c"];
 
-/** Trang Ví — CRUD + chuyển tiền, hiển thị số dư, RBAC-aware. */
+/** Icon Heroicon theo loại ví. */
+const TYPE_ICON = {
+  cash: BanknotesIcon,
+  bank: BuildingLibraryIcon,
+  "e-wallet": CreditCardIcon,
+};
+
+/** Lấy bộ màu nhấn (accent + nền + chữ) cho ví thứ `i`, nhận biết dark mode. */
+function walletAccent(i, isDark) {
+  const accent = WALLET_ACCENTS[i % WALLET_ACCENTS.length];
+  return {
+    accent,
+    bg: hexToRgba(accent, isDark ? 0.18 : 0.12),
+    text: isDark ? lighten(accent, 0.4) : accent,
+  };
+}
+
+/** Một thẻ ví: icon theo loại, tên, pill loại, số dư + hành động. */
+function WalletCard({ wallet, index, canManage, onEdit, onDelete }) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const { accent, bg, text } = walletAccent(index, isDark);
+  const Icon = TYPE_ICON[wallet.type] || WalletIcon;
+  const negative = wallet.balance < 0;
+
+  return (
+    <Paper
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        p: 2.5,
+        borderRadius: 4,
+        height: "100%",
+        border: (th) => `1px solid ${th.palette.divider}`,
+        transition: "box-shadow .16s, transform .16s",
+        "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 4,
+          bgcolor: accent,
+        },
+      }}
+    >
+      <Stack direction="row" alignItems="flex-start" sx={{ gap: 1.5, mb: 2 }}>
+        <Box
+          sx={{
+            width: 44,
+            height: 44,
+            flexShrink: 0,
+            borderRadius: "13px",
+            display: "grid",
+            placeItems: "center",
+            bgcolor: bg,
+            color: text,
+          }}
+        >
+          <Icon width={22} />
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 600, fontSize: 16 }} noWrap>
+            {wallet.name}
+          </Typography>
+          <Box
+            sx={{
+              display: "inline-flex",
+              mt: 0.75,
+              px: 1.25,
+              py: 0.375,
+              borderRadius: 999,
+              fontSize: 12,
+              fontWeight: 600,
+              bgcolor: bg,
+              color: text,
+            }}
+          >
+            {t(`wallets.types.${wallet.type}`)}
+          </Box>
+        </Box>
+        {canManage && (
+          <Stack direction="row" sx={{ gap: 0.25 }}>
+            <IconButton size="small" onClick={() => onEdit(wallet)} aria-label="edit">
+              <PencilSquareIcon width={16} />
+            </IconButton>
+            <IconButton size="small" color="error" onClick={() => onDelete(wallet)} aria-label="delete">
+              <TrashIcon width={16} />
+            </IconButton>
+          </Stack>
+        )}
+      </Stack>
+
+      <Typography
+        sx={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "text.disabled",
+        }}
+      >
+        {t("wallets.form.balance")}
+      </Typography>
+      <Typography
+        className="tnum"
+        sx={{
+          mt: 0.25,
+          fontSize: 25,
+          fontWeight: 800,
+          lineHeight: 1.1,
+          color: negative ? "error.main" : "text.primary",
+        }}
+      >
+        {formatAmount(wallet.balance)}
+        <Box component="span" sx={{ fontSize: 15, color: "text.secondary", fontWeight: 600, ml: 0.5 }}>
+          ₫
+        </Box>
+      </Typography>
+
+      {wallet.tx_count > 0 && (
+        <Typography variant="caption" sx={{ display: "block", mt: 1, color: "text.secondary" }}>
+          {t("wallets.txStats", { count: wallet.tx_count })} ·{" "}
+          <Box component="span" sx={{ color: "success.main" }}>
+            +{formatAmount(wallet.tx_income)}
+          </Box>{" "}
+          /{" "}
+          <Box component="span" sx={{ color: "error.main" }}>
+            −{formatAmount(wallet.tx_expense)}
+          </Box>
+        </Typography>
+      )}
+    </Paper>
+  );
+}
+
+/** Hero tổng số dư: số lớn + thanh xếp chồng theo tỉ trọng từng ví + chú thích. */
+function TotalHero({ wallets, total }) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const positiveTotal = wallets.reduce((s, w) => s + Math.max(Number(w.balance) || 0, 0), 0);
+
+  return (
+    <Paper
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        p: { xs: 3, sm: 3.5 },
+        mb: 2.5,
+        borderRadius: 5,
+        border: (th) => `1px solid ${th.palette.divider}`,
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          right: -70,
+          top: -80,
+          width: 240,
+          height: 240,
+          background: `radial-gradient(circle, ${hexToRgba(theme.palette.success.main, 0.1)}, transparent 65%)`,
+          pointerEvents: "none",
+        },
+      }}
+    >
+      <Typography
+        sx={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "text.disabled" }}
+      >
+        {t("wallets.total").toUpperCase()} · {t("wallets.countWallets", { count: wallets.length })}
+      </Typography>
+      <Typography
+        className="tnum"
+        sx={{
+          mt: 1,
+          mb: 2.25,
+          fontSize: { xs: 36, sm: 44 },
+          fontWeight: 800,
+          lineHeight: 1,
+          letterSpacing: "-0.02em",
+          color: total < 0 ? "error.main" : "text.primary",
+        }}
+      >
+        {formatAmount(total)}
+        <Box component="span" sx={{ fontSize: 22, color: "text.secondary", fontWeight: 600, ml: 0.75 }}>
+          ₫
+        </Box>
+      </Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          height: 14,
+          borderRadius: 999,
+          overflow: "hidden",
+          bgcolor: "background.subtle",
+          border: (th) => `1px solid ${th.palette.divider}`,
+        }}
+      >
+        {wallets.map((w, i) => {
+          const share =
+            positiveTotal > 0 ? (Math.max(Number(w.balance) || 0, 0) / positiveTotal) * 100 : 0;
+          return (
+            <Box
+              key={w.id}
+              sx={{
+                width: `${share}%`,
+                bgcolor: walletAccent(i, isDark).accent,
+                transition: "width 1s cubic-bezier(.2,.8,.2,1)",
+              }}
+            />
+          );
+        })}
+      </Box>
+
+      <Stack direction="row" flexWrap="wrap" sx={{ gap: 2, mt: 1.75 }}>
+        {wallets.map((w, i) => (
+          <Stack key={w.id} direction="row" alignItems="center" sx={{ gap: 1 }}>
+            <Box
+              sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: walletAccent(i, isDark).accent }}
+            />
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              {w.name} ·{" "}
+              <Box component="span" className="tnum" sx={{ fontWeight: 600, color: "text.primary" }}>
+                {formatAmount(w.balance)} ₫
+              </Box>
+            </Typography>
+          </Stack>
+        ))}
+      </Stack>
+    </Paper>
+  );
+}
+
+/** Trang Ví — CRUD + chuyển tiền, hero tổng số dư + thẻ ví, RBAC-aware. */
 export default function Wallets() {
   const { t } = useTranslation();
   const { spaces, spaceId } = useAuth();
@@ -166,131 +399,44 @@ export default function Wallets() {
         </Alert>
       )}
 
-      <Paper sx={{ borderRadius: 3, border: (th) => `1px solid ${th.palette.divider}`, overflow: "hidden" }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t("wallets.form.name")}</TableCell>
-                <TableCell>{t("wallets.form.type")}</TableCell>
-                <TableCell align="right">{t("wallets.form.balance")}</TableCell>
-                {canManage && <TableCell align="right">{t("transactions.colActions")}</TableCell>}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading &&
-                Array.from({ length: 3 }).map((_, i) => (
-                  <TableRow key={`sk-${i}`}>
-                    {Array.from({ length: canManage ? 4 : 3 }).map((__, j) => (
-                      <TableCell key={j}>
-                        <Skeleton />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-
-              {!loading &&
-                items.map((w) => (
-                  <TableRow key={w.id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>
-                      {w.name}
-                      {w.tx_count > 0 && (
-                        <Typography
-                          component="div"
-                          variant="caption"
-                          sx={{ fontWeight: 400, color: "text.secondary", mt: 0.25 }}
-                        >
-                          {t("wallets.txStats", { count: w.tx_count })} ·{" "}
-                          <Box component="span" sx={{ color: "success.main" }}>
-                            +{formatAmount(w.tx_income)}
-                          </Box>{" "}
-                          /{" "}
-                          <Box component="span" sx={{ color: "error.main" }}>
-                            −{formatAmount(w.tx_expense)}
-                          </Box>
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        size="small"
-                        label={t(`wallets.types.${w.type}`)}
-                        color={TYPE_COLOR[w.type] || "default"}
-                        variant="outlined"
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{
-                        fontFamily: '"JetBrains Mono", monospace',
-                        fontVariantNumeric: "tabular-nums",
-                        fontWeight: 600,
-                        color: w.balance < 0 ? "error.main" : "text.primary",
-                      }}
-                    >
-                      {formatAmount(w.balance)} ₫
-                    </TableCell>
-                    {canManage && (
-                      <TableCell align="right">
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setEditing(w);
-                            setDialogOpen(true);
-                          }}
-                          aria-label="edit"
-                        >
-                          <PencilSquareIcon width={18} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => setConfirmTarget(w)}
-                          aria-label="delete"
-                        >
-                          <TrashIcon width={18} />
-                        </IconButton>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {!loading && items.length === 0 && (
+      {loading ? (
+        <>
+          <Skeleton variant="rounded" height={170} sx={{ borderRadius: 5, mb: 2.5 }} />
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} variant="rounded" height={170} sx={{ borderRadius: 4 }} />
+            ))}
+          </Box>
+        </>
+      ) : items.length === 0 ? (
+        <Paper sx={{ borderRadius: 4, border: (th) => `1px solid ${th.palette.divider}`, overflow: "hidden" }}>
           <EmptyState
             bare
             icon={<WalletIcon width={26} />}
             title={t("wallets.emptyTitle")}
             description={t("wallets.empty")}
           />
-        )}
-
-        {!loading && items.length > 0 && (
-          <Box
-            sx={{
-              px: 2,
-              py: 1.5,
-              display: "flex",
-              justifyContent: "space-between",
-              borderTop: (th) => `1px solid ${th.palette.divider}`,
-            }}
-          >
-            <Typography sx={{ fontWeight: 700 }}>{t("wallets.total")}</Typography>
-            <Typography
-              sx={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontWeight: 700,
-                color: total < 0 ? "error.main" : "text.primary",
-              }}
-            >
-              {formatAmount(total)} ₫
-            </Typography>
+        </Paper>
+      ) : (
+        <>
+          <TotalHero wallets={items} total={total} />
+          <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
+            {items.map((w, i) => (
+              <WalletCard
+                key={w.id}
+                wallet={w}
+                index={i}
+                canManage={canManage}
+                onEdit={(wallet) => {
+                  setEditing(wallet);
+                  setDialogOpen(true);
+                }}
+                onDelete={setConfirmTarget}
+              />
+            ))}
           </Box>
-        )}
-      </Paper>
+        </>
+      )}
 
       <WalletFormDialog
         open={dialogOpen}

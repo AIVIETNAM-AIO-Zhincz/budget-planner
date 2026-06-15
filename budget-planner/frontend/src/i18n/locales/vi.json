@@ -316,6 +316,7 @@
     "txStats": "{{count}} giao dịch tháng này",
     "empty": "Chưa có ví. Bấm \"Thêm ví\" để bắt đầu.",
     "total": "Tổng số dư",
+    "countWallets": "{{count}} ví",
     "transfer": "Chuyển tiền",
     "types": {
       "cash": "Tiền mặt",

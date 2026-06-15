@@ -316,6 +316,8 @@
     "txStats": "{{count}} this month",
     "empty": "No wallets yet. Click \"Add wallet\" to start.",
     "total": "Total balance",
+    "countWallets": "{{count}} wallet",
+    "countWallets_other": "{{count}} wallets",
     "transfer": "Transfer",
     "types": {
       "cash": "Cash",
