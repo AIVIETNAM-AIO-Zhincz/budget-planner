@@ -367,7 +367,20 @@
     "faqHint": "Hỏi kiến thức tài chính:",
     "faq1": "Tôi nên tiết kiệm bao nhiêu % thu nhập?",
     "faq2": "Quỹ khẩn cấp nên có bao nhiêu?",
-    "faq3": "Cần bao nhiêu để tự do tài chính?"
+    "faq3": "Cần bao nhiêu để tự do tài chính?",
+    "threads": {
+      "new": "Trò chuyện mới",
+      "title": "Lịch sử",
+      "empty": "Chưa có cuộc trò chuyện",
+      "untitled": "Cuộc trò chuyện",
+      "rename": "Đổi tên",
+      "delete": "Xoá",
+      "open": "Lịch sử trò chuyện",
+      "renameTitle": "Đổi tên cuộc trò chuyện",
+      "nameLabel": "Tên cuộc trò chuyện",
+      "deleteTitle": "Xoá cuộc trò chuyện",
+      "deleteConfirm": "Xoá \"{{title}}\"? Toàn bộ tin nhắn sẽ mất và không thể hoàn tác."
+    }
   },
   "annual": {
     "year": "Năm",

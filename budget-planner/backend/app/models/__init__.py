@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, text
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -168,6 +168,34 @@ class Notification(Base):
     type: Mapped[str] = mapped_column(String(32))  # budget.exceeded/member.invited/recurring.ran
     message: Mapped[str] = mapped_column(String(500))
     is_read: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class Conversation(Base):
+    """Một thread chat với Trợ lý — riêng tư theo user, gắn không gian."""
+
+    __tablename__ = "conversations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    space_id: Mapped[str] = mapped_column(ForeignKey("spaces.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    title: Mapped[str] = mapped_column(String(255), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    # Cập nhật mỗi khi có tin mới → sắp thread theo hoạt động gần nhất.
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now)
+
+
+class ChatMessage(Base):
+    """Một tin nhắn trong thread chat (user hoặc bot)."""
+
+    __tablename__ = "chat_messages"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
+    role: Mapped[str] = mapped_column(String(8))  # user | bot
+    text: Mapped[str] = mapped_column(Text)
+    kind: Mapped[str | None] = mapped_column(String(16), nullable=True)  # transaction/answer/faq…
+    draft_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON nháp giao dịch (bot)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 

@@ -367,7 +367,20 @@
     "faqHint": "Ask a finance question:",
     "faq1": "What % of income should I save?",
     "faq2": "How big should my emergency fund be?",
-    "faq3": "How much do I need for financial freedom?"
+    "faq3": "How much do I need for financial freedom?",
+    "threads": {
+      "new": "New chat",
+      "title": "History",
+      "empty": "No conversations yet",
+      "untitled": "Conversation",
+      "rename": "Rename",
+      "delete": "Delete",
+      "open": "Chat history",
+      "renameTitle": "Rename conversation",
+      "nameLabel": "Conversation name",
+      "deleteTitle": "Delete conversation",
+      "deleteConfirm": "Delete \"{{title}}\"? All messages will be lost and cannot be undone."
+    }
   },
   "annual": {
     "year": "Year",
