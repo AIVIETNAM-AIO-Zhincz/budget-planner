@@ -1,10 +1,10 @@
-.PHONY: help backend-install migrate migration backend-dev test lint frontend-install frontend-dev up down
+.PHONY: help backend-install migrate migration backend-dev test lint eval-categorizer frontend-install frontend-dev up down
 
 BE = backend
 VENV = $(BE)/.venv/bin
 
 help:
-	@echo "Targets: backend-install migrate migration backend-dev test lint frontend-install frontend-dev up down"
+	@echo "Targets: backend-install migrate migration backend-dev test lint eval-categorizer frontend-install frontend-dev up down"
 
 backend-install:
 	cd $(BE) && python3 -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -r requirements.txt
@@ -24,6 +24,10 @@ test:
 
 lint:
 	cd $(BE) && .venv/bin/ruff check app tests
+
+# Eval mô hình phân loại danh mục (accuracy + F1):
+eval-categorizer:
+	cd $(BE) && PYTHONPATH=. .venv/bin/python scripts/eval_categorizer.py
 
 frontend-install:
 	cd frontend && npm install
