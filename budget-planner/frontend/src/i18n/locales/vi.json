@@ -236,6 +236,17 @@
       "save": "Lưu hồ sơ",
       "saved": "Đã lưu hồ sơ"
     },
+    "financialProfile": {
+      "title": "Hồ sơ tài chính",
+      "desc": "Giúp Trợ lý cá nhân hoá lời khuyên (thu nhập, người phụ thuộc…)",
+      "income": "Thu nhập hằng tháng (₫)",
+      "occupation": "Nghề nghiệp",
+      "age": "Độ tuổi",
+      "location": "Nơi sống",
+      "dependents": "Số người phụ thuộc",
+      "save": "Lưu hồ sơ tài chính",
+      "saved": "Đã lưu hồ sơ tài chính"
+    },
     "password": {
       "title": "Đổi mật khẩu",
       "desc": "Cần đúng mật khẩu hiện tại",

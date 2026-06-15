@@ -161,21 +161,31 @@ def _month_total(db: Session, space_id: str, tx_type: str, today: date) -> str:
     return f"Tháng {start.strftime('%m/%Y')} bạn đã {label} {_fmt(total)} đ."
 
 
-def _faq_context(db: Session, space_id: str, today: date) -> dict:
-    """Số liệu thật để cá nhân hoá câu trả lời FAQ (thu/chi tháng hiện tại)."""
+def _profile_income(profile: dict | None) -> float:
+    """Thu nhập từ hồ sơ (0 nếu chưa đặt) — dùng làm fallback khi chưa ghi giao dịch thu."""
+    return (profile or {}).get("monthly_income") or 0.0
+
+
+def _faq_context(db: Session, space_id: str, today: date, profile: dict | None = None) -> dict:
+    """Số liệu thật để cá nhân hoá FAQ; thu nhập hồ sơ làm fallback, kèm số người phụ thuộc."""
+    income = _month_amount(db, space_id, "income", today)
+    if income <= 0:
+        income = _profile_income(profile)
     return {
-        "monthly_income": _month_amount(db, space_id, "income", today),
+        "monthly_income": income,
         "monthly_expense": _month_amount(db, space_id, "expense", today),
+        "dependents": (profile or {}).get("dependents", 0),
     }
 
 
-def _allocation_reply(db: Session, space_id: str, today: date) -> str:
+def _allocation_reply(db: Session, space_id: str, today: date, profile: dict | None = None) -> str:
     """Đánh giá phân bổ 50/30/20 của tháng hiện tại thành câu trả lời (không bịa số)."""
     start, end = _month_range(today)
     summary = build_summary(db, space_id, start, end - timedelta(days=1))
-    a = assess_allocation(
-        summary["total_income"], summary["total_expense"], summary["by_need_level"]
-    )
+    income = summary["total_income"]
+    if income <= 0:  # chưa ghi giao dịch thu → dùng thu nhập hồ sơ (nếu có)
+        income = _profile_income(profile)
+    a = assess_allocation(income, summary["total_expense"], summary["by_need_level"])
     if a["verdict"] == "unknown":
         return a["findings"][0]
     head = (
@@ -187,10 +197,19 @@ def _allocation_reply(db: Session, space_id: str, today: date) -> str:
 
 
 def _goal_reply(
-    db: Session, space_id: str, target_amount: float, months: int | None, today: date
+    db: Session,
+    space_id: str,
+    target_amount: float,
+    months: int | None,
+    today: date,
+    profile: dict | None = None,
 ) -> str:
     """Đánh giá khả thi một mục tiêu (saved=0) theo khả năng để dành tháng hiện tại."""
     cap = current_month_net(db, space_id, today)
+    if (
+        cap <= 0 and _profile_income(profile) > 0
+    ):  # chưa ghi giao dịch → ước tính 20% thu nhập hồ sơ
+        cap = 0.2 * _profile_income(profile)
     a = assess_goal(target_amount, 0.0, cap, months_left=months)
     target_str = f"{_fmt(target_amount)} đ"
     if a["verdict"] == "no_surplus":
@@ -217,7 +236,9 @@ def _goal_reply(
     )
 
 
-def compute_answer(db: Session, space_id: str, intent: str | None, today: date) -> str | None:
+def compute_answer(
+    db: Session, space_id: str, intent: str | None, today: date, profile: dict | None = None
+) -> str | None:
     """Tính câu trả lời số liệu từ DB theo intent cố định (không bịa số)."""
     if intent == "wallet_balance":
         return _wallet_summary(db, space_id)
@@ -226,11 +247,13 @@ def compute_answer(db: Session, space_id: str, intent: str | None, today: date) 
     if intent == "income_month":
         return _month_total(db, space_id, "income", today)
     if intent == "allocation_review":
-        return _allocation_reply(db, space_id, today)
+        return _allocation_reply(db, space_id, today, profile)
     return None
 
 
-def answer_query(db: Session, space_id: str, text: str, today: date) -> str | None:
+def answer_query(
+    db: Session, space_id: str, text: str, today: date, profile: dict | None = None
+) -> str | None:
     """Trả lời câu hỏi số liệu cơ bản bằng rule (keyword) → None nếu không khớp."""
     t = text.lower()
     is_question = any(k in t for k in ("bao nhiêu", "?", "tổng", "số dư", "còn"))
@@ -240,7 +263,7 @@ def answer_query(db: Session, space_id: str, text: str, today: date) -> str | No
         or "hợp lý" in t
         or ("đánh giá" in t and ("ngân sách" in t or "chi tiêu" in t))
     ):
-        return _allocation_reply(db, space_id, today)
+        return _allocation_reply(db, space_id, today, profile)
 
     if "số dư" in t or ("ví" in t and is_question):
         return _wallet_summary(db, space_id)
@@ -261,7 +284,9 @@ def _transaction_reply(draft: dict) -> str:
     )
 
 
-def _route_llm(db: Session, space_id: str, res: dict | None, today: date) -> dict | None:
+def _route_llm(
+    db: Session, space_id: str, res: dict | None, today: date, profile: dict | None = None
+) -> dict | None:
     """Diễn giải kết quả LLM thành phản hồi; None để fallback về rule."""
     if not res:
         return None
@@ -273,17 +298,17 @@ def _route_llm(db: Session, space_id: str, res: dict | None, today: date) -> dic
             "draft": res["draft"],
         }
     if kind == "question":
-        answer = compute_answer(db, space_id, res.get("question"), today)
+        answer = compute_answer(db, space_id, res.get("question"), today, profile)
         if answer is not None:
             return {"kind": "answer", "reply": answer, "draft": None}
         return None
     if kind == "faq":
-        reply = faq.answer_faq(res.get("faq"), _faq_context(db, space_id, today))
+        reply = faq.answer_faq(res.get("faq"), _faq_context(db, space_id, today, profile))
         if reply is not None:
             return {"kind": "faq", "reply": reply, "draft": None}
         return None
     if kind == "goal" and res.get("target_amount"):
-        reply = _goal_reply(db, space_id, res["target_amount"], res.get("months"), today)
+        reply = _goal_reply(db, space_id, res["target_amount"], res.get("months"), today, profile)
         return {"kind": "answer", "reply": reply, "draft": None}
     if kind == "other":
         reply = (
@@ -293,30 +318,33 @@ def _route_llm(db: Session, space_id: str, res: dict | None, today: date) -> dic
     return None
 
 
-def handle_message(db: Session, space_id: str, text: str, today: date) -> dict:
+def handle_message(
+    db: Session, space_id: str, text: str, today: date, profile: dict | None = None
+) -> dict:
     """Định tuyến tin nhắn: LLM (nếu bật) → fallback rule (FAQ → hỏi-đáp → nháp → không hiểu).
 
     FAQ đặt trước hỏi-đáp số liệu: câu hỏi kiến thức khớp theo cụm từ đặc thù (vd "nên tiết
     kiệm bao nhiêu % thu nhập") để không bị câu hỏi số liệu (keyword "thu"/"tháng") nuốt mất.
+    ``profile`` (hồ sơ tài chính) để cá nhân hoá lời khuyên (None nếu chưa đặt).
     """
     if llm.llm_enabled():
-        routed = _route_llm(db, space_id, llm.classify_message(text, today), today)
+        routed = _route_llm(db, space_id, llm.classify_message(text, today), today, profile)
         if routed is not None:
             return routed
 
     faq_id = faq.match_faq(text)
     if faq_id is not None:
-        reply = faq.answer_faq(faq_id, _faq_context(db, space_id, today))
+        reply = faq.answer_faq(faq_id, _faq_context(db, space_id, today, profile))
         if reply is not None:
             return {"kind": "faq", "reply": reply, "draft": None}
 
-    answer = answer_query(db, space_id, text, today)
+    answer = answer_query(db, space_id, text, today, profile)
     if answer is not None:
         return {"kind": "answer", "reply": answer, "draft": None}
 
     goal = parse_goal(text)
     if goal is not None:
-        reply = _goal_reply(db, space_id, goal["target_amount"], goal["months"], today)
+        reply = _goal_reply(db, space_id, goal["target_amount"], goal["months"], today, profile)
         return {"kind": "answer", "reply": reply, "draft": None}
 
     draft = parse_transaction(text, today)

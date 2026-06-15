@@ -37,6 +37,13 @@ def test_answer_faq_personalized_emergency() -> None:
     assert "60.000.000" in ans  # 6× chi tiêu tháng
 
 
+def test_answer_faq_emergency_dependents() -> None:
+    # Có người phụ thuộc → quỹ 6–12× (thay vì 3–6×).
+    ans = answer_faq("emergency_fund", {"monthly_expense": 10_000_000, "dependents": 2})
+    assert "6–12 tháng" in ans
+    assert "60.000.000" in ans and "120.000.000" in ans
+
+
 def test_answer_faq_personalized_saving() -> None:
     ans = answer_faq("saving_rate", {"monthly_income": 20_000_000})
     assert "4.000.000" in ans  # 20% × 20tr

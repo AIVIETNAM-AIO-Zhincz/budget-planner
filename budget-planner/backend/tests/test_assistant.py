@@ -181,6 +181,24 @@ def test_assistant_goal_feasibility(client: TestClient, owner: dict) -> None:
     assert "tháng" in b["reply"]
 
 
+def test_assistant_personalized_by_profile(client: TestClient, owner: dict) -> None:
+    """Hồ sơ (thu nhập + người phụ thuộc) cá nhân hoá lời khuyên khi chưa ghi giao dịch thu."""
+    h = owner["headers"]
+    client.put("/profile", json={"monthly_income": 20_000_000, "dependents": 2}, headers=h)
+    # Phân bổ: dùng thu nhập hồ sơ làm gốc (không rơi vào "chưa ghi thu nhập").
+    r = client.post(
+        "/assistant/message", json={"text": "phân bổ của tôi đã hợp lý chưa?"}, headers=h
+    )
+    assert r.json()["kind"] == "answer"
+    assert "Phân bổ" in r.json()["reply"]
+    # Quỹ khẩn cấp: bội số 6–12 do có người phụ thuộc.
+    r2 = client.post(
+        "/assistant/message", json={"text": "quỹ khẩn cấp nên có bao nhiêu?"}, headers=h
+    )
+    assert r2.json()["kind"] == "faq"
+    assert "6–12 tháng" in r2.json()["reply"]
+
+
 def test_assistant_unknown(client: TestClient, owner: dict) -> None:
     r = client.post("/assistant/message", json={"text": "xin chào bạn"}, headers=owner["headers"])
     assert r.json()["kind"] == "unknown"

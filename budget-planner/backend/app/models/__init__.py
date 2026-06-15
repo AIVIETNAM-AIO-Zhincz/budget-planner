@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, String
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -183,6 +183,21 @@ class Goal(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
+class UserProfile(Base):
+    """Hồ sơ tài chính cá nhân (1-1 với user) — nền cá nhân hoá lời khuyên chatbot."""
+
+    __tablename__ = "user_profiles"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    monthly_income: Mapped[float | None] = mapped_column(Float, nullable=True)
+    occupation: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    dependents: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
 __all__ = [
     "User",
     "Space",
@@ -195,4 +210,5 @@ __all__ = [
     "RecurringRule",
     "Notification",
     "Goal",
+    "UserProfile",
 ]

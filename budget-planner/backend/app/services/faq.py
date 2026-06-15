@@ -28,17 +28,19 @@ def _saving_rate(ctx: dict) -> str:
 
 
 def _emergency_fund(ctx: dict) -> str:
-    """Quỹ khẩn cấp nên có bao nhiêu."""
+    """Quỹ khẩn cấp nên có bao nhiêu (bội số tăng theo số người phụ thuộc)."""
+    # Có người phụ thuộc → cần đệm dày hơn (6–12 tháng thay vì 3–6).
+    low, high = (6, 12) if (ctx.get("dependents") or 0) > 0 else (3, 6)
     base = (
-        "Quỹ khẩn cấp nên đủ trang trải chi tiêu thiết yếu trong 3–6 tháng, phòng khi mất thu nhập "
-        "hoặc có sự cố bất ngờ. Giữ ở nơi thanh khoản cao (tiền mặt/tài khoản dễ rút), tách khỏi "
-        "tiền đầu tư."
+        f"Quỹ khẩn cấp nên đủ trang trải chi tiêu thiết yếu trong {low}–{high} tháng, phòng khi "
+        "mất thu nhập hoặc có sự cố bất ngờ. Giữ ở nơi thanh khoản cao (tiền mặt/tài khoản dễ "
+        "rút), tách khỏi tiền đầu tư."
     )
     expense = ctx.get("monthly_expense") or 0
     if expense > 0:
         base += (
             f" Với chi tiêu ~{_fmt(expense)} đ/tháng, quỹ khẩn cấp nên khoảng "
-            f"{_fmt(3 * expense)}–{_fmt(6 * expense)} đ."
+            f"{_fmt(low * expense)}–{_fmt(high * expense)} đ."
         )
     return base
 

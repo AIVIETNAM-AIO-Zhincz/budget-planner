@@ -236,6 +236,17 @@
       "save": "Save profile",
       "saved": "Profile saved"
     },
+    "financialProfile": {
+      "title": "Financial profile",
+      "desc": "Helps the Assistant personalize advice (income, dependents…)",
+      "income": "Monthly income (₫)",
+      "occupation": "Occupation",
+      "age": "Age",
+      "location": "Location",
+      "dependents": "Dependents",
+      "save": "Save financial profile",
+      "saved": "Financial profile saved"
+    },
     "password": {
       "title": "Change password",
       "desc": "Requires your current password",

@@ -15,6 +15,7 @@ from app.api import (
     members,
     notifications,
     plans,
+    profile,
     recurring,
     reports,
     spaces,
@@ -47,6 +48,7 @@ app.include_router(wallets.router)
 app.include_router(goals.router)
 app.include_router(reports.router)
 app.include_router(plans.router)
+app.include_router(profile.router)
 app.include_router(recurring.router)
 app.include_router(notifications.router)
 app.include_router(assistant.router)

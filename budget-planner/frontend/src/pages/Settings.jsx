@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
@@ -14,6 +14,7 @@ import PageHeader from "../components/PageHeader.jsx";
 import CurrencySelect from "../components/CurrencySelect.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { changePassword, updateProfile } from "../api/auth.js";
+import { getProfile, saveProfile } from "../api/profile.js";
 import { createSpace, updateSpace } from "../api/spaces.js";
 import { ApiError } from "../api/client.js";
 
@@ -47,6 +48,55 @@ export default function Settings() {
   const [name, setName] = useState(user?.name ?? "");
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileErr, setProfileErr] = useState("");
+
+  // Hồ sơ tài chính (cá nhân hoá lời khuyên chatbot)
+  const [fin, setFin] = useState({
+    monthly_income: "",
+    occupation: "",
+    age: "",
+    location: "",
+    dependents: "",
+  });
+  const [savingFin, setSavingFin] = useState(false);
+  const [finErr, setFinErr] = useState("");
+
+  useEffect(() => {
+    getProfile()
+      .then((p) =>
+        setFin({
+          monthly_income: p.monthly_income ?? "",
+          occupation: p.occupation ?? "",
+          age: p.age ?? "",
+          location: p.location ?? "",
+          dependents: p.dependents ?? "",
+        })
+      )
+      .catch(() => {});
+  }, []);
+
+  const setFinField = (key) => (e) => setFin((prev) => ({ ...prev, [key]: e.target.value }));
+
+  const saveFinancial = async (e) => {
+    e.preventDefault();
+    setSavingFin(true);
+    setFinErr("");
+    try {
+      // Chuỗi rỗng → null (không gửi) / số → Number.
+      const num = (v) => (v === "" || v === null ? null : Number(v));
+      await saveProfile({
+        monthly_income: num(fin.monthly_income),
+        occupation: fin.occupation.trim() || null,
+        age: num(fin.age),
+        location: fin.location.trim() || null,
+        dependents: num(fin.dependents),
+      });
+      setToast(t("settings.financialProfile.saved"));
+    } catch (err) {
+      setFinErr(err instanceof ApiError ? err.message : t("settings.saveError"));
+    } finally {
+      setSavingFin(false);
+    }
+  };
 
   // Mật khẩu
   const [curPw, setCurPw] = useState("");
@@ -160,6 +210,63 @@ export default function Settings() {
               <Box>
                 <Button type="submit" variant="contained" disabled={savingProfile}>
                   {t("settings.profile.save")}
+                </Button>
+              </Box>
+            </Stack>
+          </Box>
+        </SettingCard>
+
+        {/* Hồ sơ tài chính (cá nhân hoá lời khuyên) */}
+        <SettingCard
+          title={t("settings.financialProfile.title")}
+          desc={t("settings.financialProfile.desc")}
+        >
+          <Box component="form" onSubmit={saveFinancial}>
+            <Stack spacing={2}>
+              {finErr && <Alert severity="error">{finErr}</Alert>}
+              <TextField
+                label={t("settings.financialProfile.income")}
+                value={fin.monthly_income}
+                onChange={setFinField("monthly_income")}
+                type="number"
+                size="small"
+                fullWidth
+              />
+              <TextField
+                label={t("settings.financialProfile.occupation")}
+                value={fin.occupation}
+                onChange={setFinField("occupation")}
+                size="small"
+                fullWidth
+              />
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label={t("settings.financialProfile.age")}
+                  value={fin.age}
+                  onChange={setFinField("age")}
+                  type="number"
+                  size="small"
+                  fullWidth
+                />
+                <TextField
+                  label={t("settings.financialProfile.dependents")}
+                  value={fin.dependents}
+                  onChange={setFinField("dependents")}
+                  type="number"
+                  size="small"
+                  fullWidth
+                />
+              </Stack>
+              <TextField
+                label={t("settings.financialProfile.location")}
+                value={fin.location}
+                onChange={setFinField("location")}
+                size="small"
+                fullWidth
+              />
+              <Box>
+                <Button type="submit" variant="contained" disabled={savingFin}>
+                  {t("settings.financialProfile.save")}
                 </Button>
               </Box>
             </Stack>
