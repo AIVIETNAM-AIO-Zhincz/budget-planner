@@ -8,6 +8,30 @@ dự án dùng [Semantic Versioning](https://semver.org/lang/vi/).
 
 - (chưa có)
 
+## [0.3.0] — 2026-06-15
+
+Mốc **Phase 3 — Chatbot tư vấn tài chính**: nâng Trợ lý từ "nhập giao dịch" thành trợ lý tư vấn theo
+Production Description (4 PR, `#35`, `#38`, `#37`, `#39`). Tag: `budget-planner-v0.3.0`.
+
+### Added — Năng lực tư vấn của Trợ lý
+
+- **Hỏi-đáp kiến thức tài chính (FAQ)**: KB tuyển chọn (tiết kiệm %, quỹ khẩn cấp, tự do tài chính,
+  50/30/20, pay-yourself-first); LLM chỉ khớp ý định, backend trả nội dung chuẩn (không bịa). (`#35`)
+- **Đánh giá & đề xuất phân bổ**: engine 50/30/20 đánh giá ngân sách "hợp lý/chưa" + đề xuất; endpoint
+  `/reports/allocation` + thẻ "Mức độ hợp lý" ở Báo cáo + intent chatbot. (`#38`)
+- **Đánh giá khả thi mục tiêu**: khả thi/bao lâu/cần mỗi tháng theo net thu-chi; nhúng `feasibility` vào
+  Goals + thẻ khả thi; chatbot phân tích mục tiêu nhập bằng lời ("để dành 100tr trong 2 năm"). (`#37`)
+- **Hồ sơ tài chính + cá nhân hoá**: bảng `user_profiles` + `/profile`; quỹ khẩn cấp tăng theo người
+  phụ thuộc (3–6×→6–12×); thu nhập hồ sơ làm fallback cho lời khuyên khi chưa ghi giao dịch thu. (`#39`)
+
+### Changed
+
+- `parse_amount` của Trợ lý hỗ trợ đơn vị **"tỷ"**.
+
+### Database
+
+- Migration mới: bảng `user_profiles` (hồ sơ tài chính người dùng).
+
 ## [0.2.0] — 2026-06-11
 
 Mốc **Phase 2**: animation, hoàn thiện UI/UX, và 4 tính năng lập kế hoạch lấy cảm hứng từ template
