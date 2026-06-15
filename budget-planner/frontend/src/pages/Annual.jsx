@@ -1,5 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Box, Grid, Paper, Skeleton, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Grid,
+  Paper,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -12,7 +25,7 @@ import PageHeader from "../components/PageHeader.jsx";
 import StatCard from "../components/StatCard.jsx";
 import { getAnnual } from "../api/reports.js";
 import { ApiError } from "../api/client.js";
-import { formatCompactVnd } from "../utils/format.js";
+import { formatAmount, formatCompactVnd } from "../utils/format.js";
 import { annualOption } from "../utils/charts.js";
 import { echartsAnimationDefaults } from "../utils/motion.js";
 import { useStaggerIn } from "../utils/gsap.js";
@@ -142,6 +155,39 @@ export default function Annual() {
                   opts={{ renderer: "svg" }}
                   notMerge
                 />
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} className="gsap-in">
+              <Paper sx={{ borderRadius: 3, border: (th) => `1px solid ${th.palette.divider}`, overflow: "hidden" }}>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t("annual.month")}</TableCell>
+                        <TableCell align="right">{t("annual.income")}</TableCell>
+                        <TableCell align="right">{t("annual.expense")}</TableCell>
+                        <TableCell align="right">{t("annual.cumulative")}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {months.map((m) => (
+                        <TableRow key={m.month} hover>
+                          <TableCell>{`T${m.month.slice(5)}`}</TableCell>
+                          <TableCell align="right" sx={{ color: "success.main", fontFamily: '"JetBrains Mono", monospace' }}>
+                            {formatAmount(m.income)} ₫
+                          </TableCell>
+                          <TableCell align="right" sx={{ color: "error.main", fontFamily: '"JetBrains Mono", monospace' }}>
+                            {formatAmount(m.expense)} ₫
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, fontFamily: '"JetBrains Mono", monospace' }}>
+                            {formatAmount(m.balance)} ₫
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Paper>
             </Grid>
           </Grid>

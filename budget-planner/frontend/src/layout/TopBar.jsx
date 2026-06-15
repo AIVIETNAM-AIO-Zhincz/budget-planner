@@ -46,6 +46,7 @@ function titleKeyFromPath(pathname) {
     "/transactions": "nav.transactions",
     "/assistant": "nav.assistant",
     "/reports": "nav.reports",
+    "/annual": "nav.annual",
     "/categories": "nav.categories",
     "/budgets": "nav.budgets",
     "/wallets": "nav.wallets",

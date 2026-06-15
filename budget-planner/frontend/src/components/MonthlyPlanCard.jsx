@@ -126,19 +126,19 @@ export default function MonthlyPlanCard({ onError, onSaved }) {
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2.5 }}>
         <TextField
           label={t("plan.plannedIncome")}
-          type="number"
+          inputMode="numeric"
           size="small"
-          value={income}
-          onChange={(e) => setIncome(e.target.value)}
+          value={income === "" ? "" : formatAmount(income)}
+          onChange={(e) => setIncome(e.target.value.replace(/\D/g, ""))}
           InputProps={{ endAdornment: <InputAdornment position="end">₫</InputAdornment> }}
           fullWidth
         />
         <TextField
           label={t("plan.plannedExpense")}
-          type="number"
+          inputMode="numeric"
           size="small"
-          value={expense}
-          onChange={(e) => setExpense(e.target.value)}
+          value={expense === "" ? "" : formatAmount(expense)}
+          onChange={(e) => setExpense(e.target.value.replace(/\D/g, ""))}
           InputProps={{ endAdornment: <InputAdornment position="end">₫</InputAdornment> }}
           fullWidth
         />

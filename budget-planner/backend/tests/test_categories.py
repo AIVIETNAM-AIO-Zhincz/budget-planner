@@ -101,3 +101,23 @@ def test_delete_category(client: TestClient, owner: dict) -> None:
 
     logs = client.get("/audit-logs", headers=owner["headers"]).json()
     assert any(log["action"] == "category.deleted" for log in logs)
+
+
+def test_list_categories_includes_tx_stats(client: TestClient, owner: dict) -> None:
+    """GET /categories trả kèm tx_count + tx_total theo tên danh mục."""
+    h = owner["headers"]
+    client.post("/categories", json={"name": "Ăn uống", "type": "expense"}, headers=h)
+    client.post(
+        "/transactions",
+        json={"amount": 50000, "category_name": "Ăn uống", "note": "x"},
+        headers=h,
+    )
+    client.post(
+        "/transactions",
+        json={"amount": 30000, "category_name": "Ăn uống", "note": "y"},
+        headers=h,
+    )
+    cats = client.get("/categories", headers=h).json()
+    cat = next(c for c in cats if c["name"] == "Ăn uống")
+    assert cat["tx_count"] == 2
+    assert cat["tx_total"] == 80000
