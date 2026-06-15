@@ -70,14 +70,14 @@ function BudgetCard({ budget, categoryName, onEdit, onDelete }) {
       <Stack direction="row" alignItems="flex-start" sx={{ gap: 1.5, mb: 2 }}>
         <Box
           sx={{
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             flexShrink: 0,
-            borderRadius: "12px",
+            borderRadius: "11px",
             display: "grid",
             placeItems: "center",
             fontWeight: 800,
-            fontSize: 17,
+            fontSize: 15,
             bgcolor: avBg,
             color: avText,
           }}

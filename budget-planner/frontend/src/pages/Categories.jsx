@@ -88,7 +88,7 @@ function CategoryRow({ category, child, onEdit, onDelete }) {
   const isIncome = category.type === "income";
 
   const accent = categoryColor(category.name);
-  const avSize = child ? 38 : 46;
+  const avSize = child ? 30 : 38;
   const avBg = hexToRgba(accent, isDark ? 0.18 : 0.14);
   const avText = isDark ? lighten(accent, 0.38) : accent;
 
@@ -128,11 +128,11 @@ function CategoryRow({ category, child, onEdit, onDelete }) {
           width: avSize,
           height: avSize,
           flexShrink: 0,
-          borderRadius: child ? 3 : "14px",
+          borderRadius: child ? 2.5 : "11px",
           display: "grid",
           placeItems: "center",
           fontWeight: 800,
-          fontSize: child ? 15 : 19,
+          fontSize: child ? 13 : 16,
           bgcolor: avBg,
           color: avText,
         }}
