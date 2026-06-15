@@ -199,6 +199,29 @@ def test_assistant_personalized_by_profile(client: TestClient, owner: dict) -> N
     assert "6–12 tháng" in r2.json()["reply"]
 
 
+def test_assistant_forecast(client: TestClient, owner: dict) -> None:
+    h = owner["headers"]
+    today = date.today()
+
+    def month_ago(n: int) -> str:
+        m, y = today.month - n, today.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        return date(y, m, 15).isoformat()
+
+    for n, amt in ((3, 1_000_000), (2, 2_000_000), (1, 3_000_000)):
+        client.post(
+            "/transactions",
+            json={"amount": amt, "type": "expense", "note": "x", "date": month_ago(n)},
+            headers=h,
+        )
+    r = client.post("/assistant/message", json={"text": "dự báo chi tháng sau"}, headers=h)
+    b = r.json()
+    assert b["kind"] == "answer"
+    assert "Dự báo chi tháng sau" in b["reply"]
+
+
 def test_assistant_unknown(client: TestClient, owner: dict) -> None:
     r = client.post("/assistant/message", json={"text": "xin chào bạn"}, headers=owner["headers"])
     assert r.json()["kind"] == "unknown"

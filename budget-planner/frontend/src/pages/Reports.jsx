@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import StatCard from "../components/StatCard.jsx";
 import AllocationCard from "../components/AllocationCard.jsx";
-import { getSummary, getAllocation, exportCsv } from "../api/reports.js";
+import { getSummary, getAllocation, getForecast, exportCsv } from "../api/reports.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount, formatCompactVnd, categoryColor } from "../utils/format.js";
 import { useStaggerIn } from "../utils/gsap.js";
@@ -77,6 +77,7 @@ export default function Reports() {
   const [summary, setSummary] = useState(null);
   const [prev, setPrev] = useState(null);
   const [allocation, setAllocation] = useState(null);
+  const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -102,14 +103,16 @@ export default function Reports() {
         from: prevFrom ? prevFrom.format("YYYY-MM-DD") : "",
         to: prevTo ? prevTo.format("YYYY-MM-DD") : "",
       };
-      const [cur, prv, alloc] = await Promise.all([
+      const [cur, prv, alloc, fcast] = await Promise.all([
         getSummary(range),
         getSummary(prevRange),
         getAllocation(range),
+        getForecast(),
       ]);
       setSummary(cur);
       setPrev(prv);
       setAllocation(alloc);
+      setForecast(fcast);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : t("reports.loadError"));
     } finally {
@@ -292,9 +295,48 @@ export default function Reports() {
                 )}
               </ChartCard>
             </Grid>
-            <Grid item xs={12} className="gsap-in">
+            <Grid item xs={12} md={6} className="gsap-in">
               <ChartCard title={t("reports.allocationTitle")}>
                 <AllocationCard data={allocation} />
+              </ChartCard>
+            </Grid>
+            <Grid item xs={12} md={6} className="gsap-in">
+              <ChartCard title={t("reports.forecastTitle")}>
+                {forecast && forecast.total_forecast != null ? (
+                  <Stack spacing={1.5}>
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {formatAmount(forecast.total_forecast)} ₫
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        {t("reports.forecastRange", {
+                          low: formatAmount(forecast.total_low),
+                          high: formatAmount(forecast.total_high),
+                        })}{" "}
+                        · {t("reports.forecastBasis", { months: forecast.months_used })}
+                      </Typography>
+                    </Box>
+                    {forecast.by_category.length > 0 && (
+                      <Stack spacing={0.5}>
+                        {forecast.by_category.map((c) => (
+                          <Stack
+                            key={c.name}
+                            direction="row"
+                            justifyContent="space-between"
+                            sx={{ color: "text.secondary" }}
+                          >
+                            <Typography variant="body2">{c.name}</Typography>
+                            <Typography variant="body2">{formatAmount(c.forecast)} ₫</Typography>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    )}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    {t("reports.forecastNotEnough")}
+                  </Typography>
+                )}
               </ChartCard>
             </Grid>
             <Grid item xs={12} className="gsap-in">

@@ -66,6 +66,27 @@ class ReportAllocation(BaseModel):
     suggested_savings: float
 
 
+class CategoryForecast(BaseModel):
+    """Dự báo chi tháng tới của một danh mục."""
+
+    name: str
+    forecast: float
+    low: float
+    high: float
+
+
+class ReportForecast(BaseModel):
+    """Dự báo chi tháng tới (tổng + theo danh mục) bằng trung bình trượt."""
+
+    month: str  # nhãn tháng được dự báo (YYYY-MM)
+    method: str
+    months_used: int
+    total_forecast: float | None
+    total_low: float | None
+    total_high: float | None
+    by_category: list[CategoryForecast]
+
+
 class MonthlyFlow(BaseModel):
     """Thu/chi + số dư luỹ kế của một tháng (YYYY-MM)."""
 
