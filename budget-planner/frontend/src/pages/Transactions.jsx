@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -11,16 +10,13 @@ import {
   Skeleton,
   Snackbar,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
   TablePagination,
-  TableRow,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -47,11 +43,25 @@ import {
 } from "../api/transactions.js";
 import { listCategories } from "../api/categories.js";
 import { ApiError } from "../api/client.js";
-import { formatAmount } from "../utils/format.js";
+import { formatAmount, categoryColor } from "../utils/format.js";
 
-/** Trang Giao dịch — bảng + lọc/tìm + thêm/sửa/xoá. */
+// Tông màu thu/chi (xanh / cam-đất) — êm hơn đỏ gắt, dùng cục bộ cho trang này.
+const POS = "#1F8A5B";
+const POS_SOFT = "#E6F4EC";
+const NEG = "#C2553E";
+const NEG_SOFT = "#FBEAE4";
+const FALLBACK_CAT = "#8B8C96";
+const MONO = '"JetBrains Mono", ui-monospace, monospace';
+const SERIF = '"Fraunces", Georgia, "Times New Roman", serif';
+
+/** Định dạng tiền có dấu +/− và đơn vị ₫. */
+function signedAmount(value, isIncome) {
+  return `${isIncome ? "+" : "−"}${formatAmount(value)} ₫`;
+}
+
+/** Trang Giao dịch — hero số dư + sổ cái nhóm theo ngày + lọc/tìm thật. */
 export default function Transactions() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +100,7 @@ export default function Transactions() {
     () => ({ income: stats.income, expense: stats.expense, balance: stats.income - stats.expense }),
     [stats]
   );
+  const spentPct = stats.income ? Math.round((stats.expense / stats.income) * 100) : 0;
 
   // Đổi bộ lọc → về trang đầu.
   useEffect(() => {
@@ -123,6 +134,16 @@ export default function Transactions() {
       .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch(() => setCategories([]));
   }, []);
+
+  // Gom giao dịch của trang hiện tại theo ngày, mới nhất trước.
+  const groups = useMemo(() => {
+    const map = new Map();
+    for (const row of items) {
+      if (!map.has(row.date)) map.set(row.date, []);
+      map.get(row.date).push(row);
+    }
+    return [...map.entries()].sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  }, [items]);
 
   const openAdd = () => {
     setEditing(null);
@@ -169,10 +190,104 @@ export default function Transactions() {
     setQ("");
   };
 
-  const formatDate = (d) => {
-    if (!d) return "—";
-    const p = String(d).split("-");
-    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
+  // Nhãn ngày/thứ theo ngôn ngữ hiện tại.
+  const localeTag = i18n.language === "en" ? "en-US" : "vi-VN";
+  const dayLabel = (iso) => {
+    const d = new Date(`${iso}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return iso;
+    return i18n.language === "en"
+      ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : `${d.getDate()} tháng ${d.getMonth() + 1}`;
+  };
+  const weekdayLabel = (iso) => {
+    const d = new Date(`${iso}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(localeTag, { weekday: "long" });
+  };
+
+  const periodLabel = month ? month.format("MM/YYYY") : t("transactions.filter.all");
+  const negative = summary.balance < 0;
+
+  /** Một dòng giao dịch trong sổ cái. */
+  const renderRow = (row, idx) => {
+    const isIncome = row.type === "income";
+    const color = row.category_name ? categoryColor(row.category_name) || FALLBACK_CAT : FALLBACK_CAT;
+    return (
+      <Stack
+        key={row.id}
+        direction="row"
+        alignItems="center"
+        spacing={2}
+        sx={{
+          px: 3,
+          py: 1.5,
+          borderTop: idx > 0 ? (th) => `1px solid ${alpha(th.palette.divider, 0.6)}` : "none",
+          transition: "background-color .12s",
+          "&:hover": { bgcolor: "background.subtle" },
+          "&:hover .rowTools": { opacity: 1 },
+        }}
+      >
+        <Box
+          sx={{
+            width: 38,
+            height: 38,
+            flex: "none",
+            borderRadius: 2,
+            display: "grid",
+            placeItems: "center",
+            fontWeight: 700,
+            fontSize: 15,
+            color,
+            bgcolor: alpha(color, 0.14),
+          }}
+        >
+          {(row.category_name || "?").charAt(0).toUpperCase()}
+        </Box>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            sx={{ fontWeight: 500, fontSize: 14.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          >
+            {row.note || "—"}
+          </Typography>
+          {row.category_name && (
+            <Box sx={{ mt: 0.5 }}>
+              <CategoryChip name={row.category_name} />
+            </Box>
+          )}
+        </Box>
+
+        <Typography
+          sx={{
+            fontFamily: MONO,
+            fontVariantNumeric: "tabular-nums",
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            color: isIncome ? POS : NEG,
+          }}
+        >
+          {signedAmount(row.amount, isIncome)}
+        </Typography>
+
+        <Stack
+          className="rowTools"
+          direction="row"
+          spacing={0.5}
+          sx={{ flex: "none", opacity: { xs: 1, md: 0 }, transition: "opacity .15s" }}
+        >
+          <IconButton size="small" onClick={() => openEdit(row)} aria-label={t("transactions.edit")}>
+            <PencilSquareIcon width={18} />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => setConfirmTarget(row)}
+            aria-label={t("common.delete")}
+          >
+            <TrashIcon width={18} />
+          </IconButton>
+        </Stack>
+      </Stack>
+    );
   };
 
   return (
@@ -197,24 +312,155 @@ export default function Transactions() {
         }
       />
 
-      {/* Thanh lọc */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Hero: số dư + dòng thu/chi + thanh tỉ lệ đã chi */}
+      {!loading && stats.total > 0 && (
+        <Paper
+          sx={{
+            mb: 2.5,
+            p: { xs: 2.5, md: 3.5 },
+            borderRadius: 3,
+            border: (th) => `1px solid ${th.palette.divider}`,
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "minmax(0,1fr) auto minmax(260px,1fr)" },
+            gap: { xs: 3, md: 4 },
+            alignItems: "center",
+          }}
+        >
+          <Box>
+            <Typography
+              sx={{
+                fontSize: 11.5,
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "text.secondary",
+              }}
+            >
+              {t("transactions.hero.balanceLabel")} · {periodLabel}
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.75, mt: 1, flexWrap: "wrap" }}>
+              <Typography
+                component="span"
+                sx={{
+                  fontFamily: SERIF,
+                  fontWeight: 500,
+                  fontSize: { xs: 40, md: 48 },
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                  color: negative ? NEG : "text.primary",
+                }}
+              >
+                {formatAmount(summary.balance)}
+              </Typography>
+              <Typography component="span" sx={{ fontFamily: SERIF, fontSize: 24, color: "text.secondary" }}>
+                ₫
+              </Typography>
+              <Box
+                component="span"
+                sx={{
+                  ml: 1,
+                  alignSelf: "center",
+                  px: 1.1,
+                  py: 0.4,
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: negative ? NEG : POS,
+                  bgcolor: negative ? NEG_SOFT : POS_SOFT,
+                }}
+              >
+                {negative ? t("transactions.hero.negative") : t("transactions.hero.positive")}
+              </Box>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: { xs: "none", md: "block" }, width: "1px", alignSelf: "stretch", bgcolor: "divider" }} />
+
+          <Stack spacing={1.75}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={1.25}>
+                <Box sx={{ width: 9, height: 9, borderRadius: 0.75, bgcolor: POS }} />
+                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
+                  {t("transactions.hero.inflow")}
+                </Typography>
+              </Stack>
+              <Typography sx={{ fontFamily: MONO, fontWeight: 600, color: POS }}>
+                {signedAmount(summary.income, true)}
+              </Typography>
+            </Stack>
+
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={1.25}>
+                <Box sx={{ width: 9, height: 9, borderRadius: 0.75, bgcolor: NEG }} />
+                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
+                  {t("transactions.hero.outflow")}
+                </Typography>
+              </Stack>
+              <Typography sx={{ fontFamily: MONO, fontWeight: 600, color: NEG }}>
+                {signedAmount(summary.expense, false)}
+              </Typography>
+            </Stack>
+
+            <Box>
+              <Box sx={{ height: 8, borderRadius: 6, bgcolor: "background.subtle", overflow: "hidden" }}>
+                <Box
+                  sx={{
+                    height: "100%",
+                    width: `${Math.min(spentPct, 100)}%`,
+                    borderRadius: 6,
+                    background: `linear-gradient(90deg, #D98A5F, ${NEG})`,
+                  }}
+                />
+              </Box>
+              <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                  {t("transactions.hero.spentRatio", { pct: spentPct })}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                  {t("transactions.hero.leftRatio", { pct: Math.max(0, 100 - spentPct) })}
+                </Typography>
+              </Stack>
+            </Box>
+          </Stack>
+        </Paper>
+      )}
+
+      {/* Thanh công cụ: loại / danh mục / tháng / tìm */}
       <Stack
         direction={{ xs: "column", md: "row" }}
         spacing={1.5}
-        sx={{ mb: 2, flexWrap: "wrap", gap: 1.5 }}
+        sx={{ mb: 2, flexWrap: "wrap", gap: 1.5, alignItems: { md: "center" } }}
       >
-        <TextField
-          select
+        <ToggleButtonGroup
           size="small"
-          label={t("transactions.filter.type")}
+          exclusive
           value={type}
-          onChange={(e) => setType(e.target.value)}
-          sx={{ minWidth: 140 }}
+          onChange={(_e, v) => v !== null && setType(v)}
+          sx={{
+            "& .MuiToggleButton-root": {
+              textTransform: "none",
+              fontWeight: 500,
+              px: 1.75,
+              border: (th) => `1px solid ${th.palette.divider}`,
+            },
+            "& .Mui-selected": {
+              bgcolor: "primary.main",
+              color: "#fff",
+              fontWeight: 600,
+              "&:hover": { bgcolor: "primary.dark" },
+            },
+          }}
         >
-          <MenuItem value="">{t("transactions.filter.all")}</MenuItem>
-          <MenuItem value="expense">{t("transactions.expense")}</MenuItem>
-          <MenuItem value="income">{t("transactions.income")}</MenuItem>
-        </TextField>
+          <ToggleButton value="">{t("transactions.filter.all")}</ToggleButton>
+          <ToggleButton value="income">{t("transactions.income")}</ToggleButton>
+          <ToggleButton value="expense">{t("transactions.expense")}</ToggleButton>
+        </ToggleButtonGroup>
 
         <TextField
           select
@@ -268,133 +514,85 @@ export default function Transactions() {
         )}
       </Stack>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
-      )}
+      {/* Sổ cái */}
+      <Paper sx={{ borderRadius: 3, border: (th) => `1px solid ${th.palette.divider}`, overflow: "hidden" }}>
+        {loading &&
+          Array.from({ length: 5 }).map((_, i) => (
+            <Stack key={`sk-${i}`} direction="row" spacing={2} alignItems="center" sx={{ px: 3, py: 1.5 }}>
+              <Skeleton variant="rounded" width={38} height={38} />
+              <Box sx={{ flex: 1 }}>
+                <Skeleton width="40%" />
+                <Skeleton width="22%" />
+              </Box>
+              <Skeleton width={90} />
+            </Stack>
+          ))}
 
-      {!loading && stats.total > 0 && (
-        <Stack direction="row" spacing={1.5} sx={{ mb: 2, flexWrap: "wrap", gap: 1 }}>
-          <Chip
-            color="success"
-            variant="outlined"
-            label={`${t("transactions.summary.income")}: ${formatAmount(summary.income)} ₫`}
-            sx={{ fontWeight: 600 }}
-          />
-          <Chip
-            color="error"
-            variant="outlined"
-            label={`${t("transactions.summary.expense")}: ${formatAmount(summary.expense)} ₫`}
-            sx={{ fontWeight: 600 }}
-          />
-          <Chip
-            color={summary.balance < 0 ? "error" : "primary"}
-            variant="outlined"
-            label={`${t("transactions.summary.balance")}: ${formatAmount(summary.balance)} ₫`}
-            sx={{ fontWeight: 600 }}
-          />
-        </Stack>
-      )}
-
-      <Paper sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}`, overflow: "hidden" }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t("transactions.colDate")}</TableCell>
-                <TableCell>{t("transactions.colNote")}</TableCell>
-                <TableCell>{t("transactions.colCategory")}</TableCell>
-                <TableCell>{t("transactions.colType")}</TableCell>
-                <TableCell align="right">{t("transactions.colAmount")}</TableCell>
-                <TableCell align="right">{t("transactions.colActions")}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading &&
-                Array.from({ length: 4 }).map((_, i) => (
-                  <TableRow key={`sk-${i}`}>
-                    {Array.from({ length: 6 }).map((__, j) => (
-                      <TableCell key={j}>
-                        <Skeleton />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-
-              {!loading &&
-                items.map((row) => {
-                  const isIncome = row.type === "income";
-                  return (
-                    <TableRow key={row.id} hover>
-                      <TableCell>{formatDate(row.date)}</TableCell>
-                      <TableCell>{row.note || "—"}</TableCell>
-                      <TableCell>
-                        <CategoryChip name={row.category_name} />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          label={isIncome ? t("transactions.income") : t("transactions.expense")}
-                          color={isIncome ? "success" : "error"}
-                          variant="outlined"
-                          sx={{ height: 22, fontWeight: 600 }}
-                        />
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{
-                          fontFamily: '"JetBrains Mono", monospace',
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 600,
-                          color: isIncome ? "success.main" : "text.primary",
-                        }}
-                      >
-                        {isIncome ? "+" : "-"}
-                        {formatAmount(row.amount)} ₫
-                      </TableCell>
-                      <TableCell align="right">
-                        <IconButton size="small" onClick={() => openEdit(row)} aria-label="edit">
-                          <PencilSquareIcon width={18} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => setConfirmTarget(row)}
-                          aria-label="delete"
-                        >
-                          <TrashIcon width={18} />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {!loading &&
+          groups.map(([date, rows], gi) => {
+            const net = rows.reduce((s, r) => s + (r.type === "income" ? r.amount : -r.amount), 0);
+            return (
+              <Box key={date} sx={{ borderTop: gi > 0 ? (th) => `1px solid ${th.palette.divider}` : "none" }}>
+                <Stack
+                  direction="row"
+                  alignItems="baseline"
+                  justifyContent="space-between"
+                  sx={{ px: 3, py: 1.5, bgcolor: "background.subtle" }}
+                >
+                  <Stack direction="row" alignItems="baseline" spacing={1.25}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13.5 }}>{dayLabel(date)}</Typography>
+                    <Typography sx={{ fontSize: 12.5, color: "text.secondary", textTransform: "capitalize" }}>
+                      {weekdayLabel(date)}
+                    </Typography>
+                  </Stack>
+                  <Typography sx={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: "text.secondary" }}>
+                    {signedAmount(Math.abs(net), net >= 0)}
+                  </Typography>
+                </Stack>
+                {rows.map((row, ri) => renderRow(row, ri))}
+              </Box>
+            );
+          })}
 
         {!loading && items.length === 0 && (
-          <Box sx={{ py: 6, textAlign: "center" }}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {hasFilter ? t("transactions.noResult") : t("transactions.empty")}
-            </Typography>
+          <Box sx={{ py: 8, px: 3, textAlign: "center" }}>
+            <Box sx={{ color: "text.disabled", display: "flex", justifyContent: "center", mb: 1.5 }}>
+              <MagnifyingGlassIcon width={40} />
+            </Box>
+            {hasFilter ? (
+              <>
+                <Typography sx={{ fontWeight: 600, mb: 0.5 }}>{t("transactions.emptyResultTitle")}</Typography>
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                  {t("transactions.emptyResultDesc")}
+                </Typography>
+                <Button onClick={clearFilters} sx={{ mt: 2 }}>
+                  {t("transactions.filter.clear")}
+                </Button>
+              </>
+            ) : (
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                {t("transactions.empty")}
+              </Typography>
+            )}
           </Box>
         )}
 
         {!loading && stats.total > 0 && (
-          <TablePagination
-            component="div"
-            count={stats.total}
-            page={page}
-            onPageChange={(_e, p) => setPage(p)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPage(0);
-            }}
-            rowsPerPageOptions={[10, 20, 50]}
-            labelRowsPerPage={t("transactions.rowsPerPage")}
-          />
+          <Box sx={{ borderTop: (th) => `1px solid ${th.palette.divider}` }}>
+            <TablePagination
+              component="div"
+              count={stats.total}
+              page={page}
+              onPageChange={(_e, p) => setPage(p)}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(e) => {
+                setRowsPerPage(parseInt(e.target.value, 10));
+                setPage(0);
+              }}
+              rowsPerPageOptions={[10, 20, 50]}
+              labelRowsPerPage={t("transactions.rowsPerPage")}
+            />
+          </Box>
         )}
       </Paper>
 

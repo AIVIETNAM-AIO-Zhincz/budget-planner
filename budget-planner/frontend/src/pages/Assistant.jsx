@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  ButtonBase,
   Chip,
   IconButton,
   Paper,
@@ -11,7 +12,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { PaperAirplaneIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { alpha } from "@mui/material/styles";
+import {
+  AcademicCapIcon,
+  ChartBarIcon,
+  ChevronRightIcon,
+  PaperAirplaneIcon,
+  PlusCircleIcon,
+  SparklesIcon,
+  WalletIcon,
+} from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import TransactionFormDialog from "../components/TransactionFormDialog.jsx";
@@ -69,10 +79,140 @@ function Bubble({ role, children }) {
   );
 }
 
+/** Nhãn nhỏ phía trên mỗi nhóm gợi ý. */
+function GroupLabel({ children }) {
+  return (
+    <Typography
+      variant="caption"
+      sx={{
+        display: "block",
+        mb: 1,
+        color: "text.secondary",
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+      }}
+    >
+      {children}
+    </Typography>
+  );
+}
+
+/**
+ * Trạng thái màn hình trống — lời chào căn giữa + 2 nhóm gợi ý.
+ * @param {{onPick: (text: string) => void}} props
+ */
+function EmptyState({ onPick }) {
+  const { t } = useTranslation();
+  const quickPrompts = [
+    { label: t("assistant.q1"), icon: <ChartBarIcon width={15} /> },
+    { label: t("assistant.q2"), icon: <PlusCircleIcon width={15} /> },
+    { label: t("assistant.q3"), icon: <WalletIcon width={15} /> },
+  ];
+  const faqPrompts = [t("assistant.faq1"), t("assistant.faq2"), t("assistant.faq3")];
+
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        gap: 3,
+        py: 4,
+      }}
+    >
+      <Stack alignItems="center" spacing={1.25} sx={{ maxWidth: 440 }}>
+        <Box
+          sx={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "primary.main",
+            bgcolor: (th) => alpha(th.palette.primary.main, 0.12),
+          }}
+        >
+          <SparklesIcon width={26} />
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          {t("assistant.emptyTitle")}
+        </Typography>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          {t("assistant.emptyDesc")}
+        </Typography>
+      </Stack>
+
+      <Box sx={{ width: "100%", maxWidth: 440 }}>
+        <GroupLabel>{t("assistant.quickStart")}</GroupLabel>
+        <Stack direction="row" justifyContent="center" sx={{ flexWrap: "wrap", gap: 1 }}>
+          {quickPrompts.map((q) => (
+            <Chip
+              key={q.label}
+              icon={q.icon}
+              label={q.label}
+              clickable
+              onClick={() => onPick(q.label)}
+              sx={{
+                bgcolor: "background.subtle",
+                color: "text.primary",
+                fontWeight: 500,
+                border: "none",
+                "& .MuiChip-icon": { color: "primary.main", ml: 1 },
+                "&:hover": { bgcolor: (th) => alpha(th.palette.primary.main, 0.1) },
+              }}
+            />
+          ))}
+        </Stack>
+      </Box>
+
+      <Box sx={{ width: "100%", maxWidth: 440 }}>
+        <GroupLabel>{t("assistant.knowledgeGroup")}</GroupLabel>
+        <Stack spacing={1}>
+          {faqPrompts.map((p) => (
+            <ButtonBase
+              key={p}
+              onClick={() => onPick(p)}
+              sx={{
+                width: "100%",
+                gap: 1.25,
+                px: 1.75,
+                py: 1.25,
+                borderRadius: 2,
+                bgcolor: "background.paper",
+                border: (th) => `1px solid ${th.palette.divider}`,
+                transition: "background-color .15s, border-color .15s",
+                "&:hover": {
+                  bgcolor: "background.subtle",
+                  borderColor: (th) => alpha(th.palette.primary.main, 0.4),
+                },
+              }}
+            >
+              <Box sx={{ color: "primary.main", display: "flex" }}>
+                <AcademicCapIcon width={18} />
+              </Box>
+              <Typography variant="body2" sx={{ flex: 1, textAlign: "left" }}>
+                {p}
+              </Typography>
+              <Box sx={{ color: "text.disabled", display: "flex" }}>
+                <ChevronRightIcon width={16} />
+              </Box>
+            </ButtonBase>
+          ))}
+        </Stack>
+      </Box>
+    </Box>
+  );
+}
+
 /** Trang Trợ lý — chat nhập NL + hỏi-đáp số liệu. */
 export default function Assistant() {
   const { t } = useTranslation();
-  const [messages, setMessages] = useState([{ role: "bot", text: t("assistant.greeting") }]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [prefill, setPrefill] = useState(null);
@@ -113,9 +253,6 @@ export default function Assistant() {
     send(input);
   };
 
-  const quickPrompts = [t("assistant.q1"), t("assistant.q2"), t("assistant.q3")];
-  const faqPrompts = [t("assistant.faq1"), t("assistant.faq2"), t("assistant.faq3")];
-
   const openConfirm = (draft) => {
     setPrefill(draft);
     setDialogOpen(true);
@@ -149,103 +286,87 @@ export default function Assistant() {
           height: { xs: "calc(100vh - 220px)", md: "calc(100vh - 200px)" },
         }}
       >
-        <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
-          {messages.map((m, i) => (
-            <Bubble key={i} role={m.role}>
-              {m.kind === "faq" && (
-                <Stack
-                  direction="row"
-                  spacing={0.5}
-                  alignItems="center"
-                  sx={{ mb: 0.5, color: "primary.main" }}
-                >
-                  <SparklesIcon width={14} />
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                    {t("assistant.knowledgeTag")}
+        <Box sx={{ flex: 1, overflowY: "auto", p: 2, display: "flex", flexDirection: "column" }}>
+          {messages.length === 0 ? (
+            <EmptyState onPick={send} />
+          ) : (
+            <>
+              {messages.map((m, i) => (
+                <Bubble key={i} role={m.role}>
+                  {m.kind === "faq" && (
+                    <Stack
+                      direction="row"
+                      spacing={0.5}
+                      alignItems="center"
+                      sx={{ mb: 0.5, color: "primary.main" }}
+                    >
+                      <SparklesIcon width={14} />
+                      <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                        {t("assistant.knowledgeTag")}
+                      </Typography>
+                    </Stack>
+                  )}
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                    {m.text}
                   </Typography>
-                </Stack>
-              )}
-              <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                {m.text}
-              </Typography>
-              {m.draft && <DraftCard draft={m.draft} onConfirm={openConfirm} />}
-            </Bubble>
-          ))}
-          <Box ref={endRef} />
+                  {m.draft && <DraftCard draft={m.draft} onConfirm={openConfirm} />}
+                </Bubble>
+              ))}
+              <Box ref={endRef} />
+            </>
+          )}
         </Box>
-
-        {messages.length <= 1 && (
-          <Box sx={{ px: 1.5, pb: 1 }}>
-            <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
-              {quickPrompts.map((p) => (
-                <Chip
-                  key={p}
-                  label={p}
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                  clickable
-                  onClick={() => send(p)}
-                />
-              ))}
-            </Stack>
-            <Typography
-              variant="caption"
-              sx={{ color: "text.secondary", display: "block", mt: 1.25, mb: 0.5 }}
-            >
-              {t("assistant.faqHint")}
-            </Typography>
-            <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
-              {faqPrompts.map((p) => (
-                <Chip
-                  key={p}
-                  label={p}
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  icon={<SparklesIcon width={14} />}
-                  clickable
-                  onClick={() => send(p)}
-                />
-              ))}
-            </Stack>
-          </Box>
-        )}
 
         <Box
           component="form"
           onSubmit={handleSend}
-          sx={{
-            p: 1.5,
-            borderTop: (th) => `1px solid ${th.palette.divider}`,
-            display: "flex",
-            gap: 1,
-            alignItems: "center",
-          }}
+          sx={{ p: 1.5, borderTop: (th) => `1px solid ${th.palette.divider}` }}
         >
-          <TextField
-            fullWidth
-            placeholder={t("assistant.placeholder")}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            autoComplete="off"
-            InputProps={{
-              startAdornment: <SparklesIcon width={18} style={{ marginRight: 8, opacity: 0.5 }} />,
-            }}
-          />
-          <IconButton
-            type="submit"
-            disabled={sending || !input.trim()}
-            aria-label="send"
+          <Box
             sx={{
-              bgcolor: "primary.main",
-              color: "#fff",
-              "&:hover": { bgcolor: "primary.dark" },
-              "&.Mui-disabled": { bgcolor: "action.disabledBackground", color: "action.disabled" },
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              pl: 2,
+              pr: 0.75,
+              py: 0.5,
+              borderRadius: 999,
+              bgcolor: "background.subtle",
+              border: (th) => `1px solid ${th.palette.divider}`,
+              transition: "border-color .15s, background-color .15s",
+              "&:focus-within": {
+                borderColor: "primary.main",
+                bgcolor: "background.paper",
+              },
             }}
           >
-            <PaperAirplaneIcon width={20} />
-          </IconButton>
+            <TextField
+              fullWidth
+              variant="standard"
+              placeholder={t("assistant.placeholder")}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              autoComplete="off"
+              InputProps={{ disableUnderline: true }}
+            />
+            <IconButton
+              type="submit"
+              disabled={sending || !input.trim()}
+              aria-label={t("assistant.send")}
+              sx={{
+                bgcolor: "primary.main",
+                color: "#fff",
+                flexShrink: 0,
+                "&:hover": { bgcolor: "primary.dark" },
+                "&.Mui-disabled": {
+                  bgcolor: "action.disabledBackground",
+                  color: "action.disabled",
+                },
+              }}
+            >
+              <PaperAirplaneIcon width={20} />
+            </IconButton>
+          </Box>
         </Box>
       </Paper>
 

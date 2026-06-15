@@ -136,6 +136,17 @@
       "clear": "Clear filters"
     },
     "noResult": "No transactions match the filters.",
+    "emptyResultTitle": "No transactions found",
+    "emptyResultDesc": "Try changing the type, category, or search filter.",
+    "hero": {
+      "balanceLabel": "Balance left",
+      "positive": "Positive",
+      "negative": "Negative",
+      "inflow": "Income",
+      "outflow": "Expense",
+      "spentRatio": "Spent {{pct}}% of this period's income",
+      "leftRatio": "{{pct}}% left"
+    },
     "summary": { "income": "Total income", "expense": "Total expense", "balance": "Balance" },
     "rowsPerPage": "Rows per page",
     "import": {
@@ -325,6 +336,10 @@
     "q2": "Coffee 30k",
     "q3": "Wallet balance?",
     "knowledgeTag": "Personal finance",
+    "emptyTitle": "Your finance assistant",
+    "emptyDesc": "Log transactions in plain words, ask about your spending, or ask a personal finance question.",
+    "quickStart": "Quick start",
+    "knowledgeGroup": "Ask a finance question",
     "faqHint": "Ask a finance question:",
     "faq1": "What % of income should I save?",
     "faq2": "How big should my emergency fund be?",
