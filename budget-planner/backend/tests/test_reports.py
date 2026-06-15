@@ -1,6 +1,6 @@
 """Test API Reports (tổng hợp + xuất CSV)."""
 
-from datetime import date
+from datetime import date, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -148,6 +148,27 @@ def test_forecast(client: TestClient, owner: dict) -> None:
 
 def test_forecast_requires_token(client: TestClient) -> None:
     assert client.get("/reports/forecast").status_code == 401
+
+
+def test_weekly_summary(client: TestClient, owner: dict) -> None:
+    """Tóm tắt tuần: thu/chi/net + cảnh báo danh mục chi vọt so tuần trước."""
+    h = owner["headers"]
+    today = date.today()
+    # Tuần trước: Ăn uống 1tr; tuần này: Ăn uống 3tr + lương 10tr.
+    _tx(client, h, 1_000_000, "expense", "Ăn uống", (today - timedelta(days=9)).isoformat())
+    _tx(client, h, 3_000_000, "expense", "Ăn uống", (today - timedelta(days=1)).isoformat())
+    _tx(client, h, 10_000_000, "income", "Lương", (today - timedelta(days=1)).isoformat())
+    r = client.get("/reports/weekly-summary", headers=h)
+    assert r.status_code == 200
+    b = r.json()
+    assert b["income"] == 10_000_000 and b["expense"] == 3_000_000 and b["net"] == 7_000_000
+    anomalies = {a["name"]: a for a in b["anomalies"]}
+    assert "Ăn uống" in anomalies and anomalies["Ăn uống"]["current"] == 3_000_000
+    assert "Tuần qua" in b["text"]
+
+
+def test_weekly_summary_requires_token(client: TestClient) -> None:
+    assert client.get("/reports/weekly-summary").status_code == 401
 
 
 def test_summary_range_filter(client: TestClient, owner: dict) -> None:

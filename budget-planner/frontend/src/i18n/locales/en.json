@@ -70,6 +70,8 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Income & expense overview of the space",
+    "weeklySummary": "Weekly summary",
+    "weeklyAnomaly": "{{name}} ~{{factor}}× usual",
     "totalIncome": "Total income",
     "totalExpense": "Total expense",
     "balance": "Balance",

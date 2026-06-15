@@ -70,6 +70,8 @@
   "dashboard": {
     "title": "Bảng điều khiển",
     "subtitle": "Tổng quan thu chi của không gian",
+    "weeklySummary": "Tóm tắt tuần",
+    "weeklyAnomaly": "{{name}} ~{{factor}}× mức thường",
     "totalIncome": "Tổng thu",
     "totalExpense": "Tổng chi",
     "balance": "Số dư",

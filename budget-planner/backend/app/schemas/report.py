@@ -87,6 +87,29 @@ class ReportForecast(BaseModel):
     by_category: list[CategoryForecast]
 
 
+class WeeklyAnomaly(BaseModel):
+    """Danh mục chi cao bất thường trong tuần."""
+
+    name: str
+    current: float
+    average: float
+    factor: float
+
+
+class WeeklySummary(BaseModel):
+    """Tóm tắt tài chính tuần + cảnh báo bất thường."""
+
+    week_start: date_type
+    week_end: date_type
+    income: float
+    expense: float
+    net: float
+    expense_change_pct: float | None
+    top_categories: list[CategoryAmount]
+    anomalies: list[WeeklyAnomaly]
+    text: str
+
+
 class MonthlyFlow(BaseModel):
     """Thu/chi + số dư luỹ kế của một tháng (YYYY-MM)."""
 

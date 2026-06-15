@@ -17,6 +17,7 @@ from app.schemas.report import (
     ReportAllocation,
     ReportForecast,
     ReportSummary,
+    WeeklySummary,
 )
 from app.services.allocation import assess_allocation
 from app.services.forecast import forecast_series
@@ -25,7 +26,9 @@ from app.services.report import (
     build_summary,
     recent_monthly_expense,
     transactions_for_export,
+    weekly_windows,
 )
+from app.services.weekly import build_weekly_summary
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -104,6 +107,15 @@ def forecast(
         "total_high": total["high"],
         "by_category": by_category,
     }
+
+
+@router.get("/weekly-summary", response_model=WeeklySummary)
+def weekly_summary(
+    db: Session = Depends(get_db),
+    space_id: str = Depends(get_current_space_id),
+) -> dict:
+    """Tóm tắt tài chính tuần (thu/chi/net + thay đổi + top + cảnh báo bất thường)."""
+    return build_weekly_summary(weekly_windows(db, space_id, date.today()))
 
 
 @router.get("/annual", response_model=AnnualReportSummary)

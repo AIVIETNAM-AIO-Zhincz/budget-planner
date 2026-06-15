@@ -23,6 +23,11 @@ export function getForecast() {
   return apiFetch("/reports/forecast");
 }
 
+/** Tóm tắt tài chính tuần (thu/chi/net + cảnh báo bất thường). */
+export function getWeeklySummary() {
+  return apiFetch("/reports/weekly-summary");
+}
+
 /**
  * Tổng quan năm: 12 tháng thu/chi + số dư luỹ kế.
  *

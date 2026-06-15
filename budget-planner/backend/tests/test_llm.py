@@ -194,6 +194,37 @@ def test_llm_goal_route(client: TestClient, owner: dict, monkeypatch) -> None:
     assert "Mục tiêu" in b["reply"]
 
 
+def test_parse_question_weekly() -> None:
+    assert parse_llm_json('{"kind":"question","question":"weekly_summary"}', TODAY) == {
+        "kind": "question",
+        "question": "weekly_summary",
+    }
+
+
+def test_llm_weekly_route(client: TestClient, owner: dict, monkeypatch) -> None:
+    """LLM chọn intent weekly_summary → backend dựng tóm tắt tuần."""
+    h = owner["headers"]
+    client.post(
+        "/transactions",
+        json={
+            "amount": 2_000_000,
+            "type": "expense",
+            "note": "x",
+            "date": date.today().isoformat(),
+        },
+        headers=h,
+    )
+    monkeypatch.setattr(llm, "llm_enabled", lambda: True)
+    monkeypatch.setattr(
+        llm,
+        "classify_message",
+        lambda text, today2: {"kind": "question", "question": "weekly_summary"},
+    )
+    r = client.post("/assistant/message", json={"text": "abc"}, headers=h)
+    b = r.json()
+    assert b["kind"] == "answer" and "Tuần qua" in b["reply"]
+
+
 def test_parse_question_forecast() -> None:
     assert parse_llm_json('{"kind":"question","question":"expense_forecast"}', TODAY) == {
         "kind": "question",
