@@ -155,6 +155,8 @@
   },
   "categories": {
     "add": "Thêm danh mục",
+    "emptyTitle": "Chưa có danh mục",
+    "txStats": "{{count}} giao dịch · {{total}} ₫",
     "empty": "Chưa có danh mục. Bấm \"Thêm danh mục\" để bắt đầu.",
     "expense": "Chi",
     "income": "Thu",
@@ -279,6 +281,7 @@
   },
   "wallets": {
     "add": "Thêm ví",
+    "emptyTitle": "Chưa có ví nào",
     "empty": "Chưa có ví. Bấm \"Thêm ví\" để bắt đầu.",
     "total": "Tổng số dư",
     "transfer": "Chuyển tiền",
@@ -329,6 +332,7 @@
   },
   "annual": {
     "year": "Năm",
+    "month": "Tháng",
     "empty": "Chưa có dữ liệu năm {{year}}",
     "totalIncome": "Tổng thu cả năm",
     "totalExpense": "Tổng chi cả năm",
@@ -391,6 +395,9 @@
     "add": "Thêm mẫu định kỳ",
     "runNow": "Chạy ngay",
     "ranDone": "Đã tạo {{count}} giao dịch",
+    "emptyTitle": "Chưa có khoản định kỳ",
+    "monthlyExpense": "Chi định kỳ/tháng",
+    "monthlyIncome": "Thu định kỳ/tháng",
     "empty": "Chưa có mẫu định kỳ. Bấm \"Thêm mẫu định kỳ\" để bắt đầu.",
     "colName": "Tên",
     "colAmount": "Số tiền",

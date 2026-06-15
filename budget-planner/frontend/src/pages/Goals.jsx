@@ -198,17 +198,19 @@ export default function Goals() {
         </Alert>
       )}
 
-      {!loading && items.length > 0 && (
+      {!loading && items.length > 0 && ["emergency", "long_term", "general"].some((ft) => fundTotals[ft] > 0) && (
         <Stack direction="row" spacing={1.5} sx={{ mb: 2.5, flexWrap: "wrap", gap: 1 }}>
-          {["emergency", "long_term", "general"].map((ft) => (
-            <Chip
-              key={ft}
-              variant="outlined"
-              color={FUND_COLOR[ft] === "default" ? undefined : FUND_COLOR[ft]}
-              label={`${t(`goals.fundTypes.${ft}`)}: ${formatAmount(fundTotals[ft] || 0)} ₫`}
-              sx={{ fontWeight: 600 }}
-            />
-          ))}
+          {["emergency", "long_term", "general"]
+            .filter((ft) => fundTotals[ft] > 0)
+            .map((ft) => (
+              <Chip
+                key={ft}
+                variant="outlined"
+                color={FUND_COLOR[ft] === "default" ? undefined : FUND_COLOR[ft]}
+                label={`${t(`goals.fundTypes.${ft}`)}: ${formatAmount(fundTotals[ft])} ₫`}
+                sx={{ fontWeight: 600 }}
+              />
+            ))}
         </Stack>
       )}
 

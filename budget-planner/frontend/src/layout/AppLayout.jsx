@@ -45,7 +45,8 @@ export default function AppLayout() {
   useGSAP(
     () => {
       if (reduced(theme) || !mainRef.current) return;
-      gsap.from(mainRef.current, { opacity: 0, y: 10, duration: 0.3, ease: "power2.out" });
+      // Trượt nhẹ (không mờ opacity) để tránh cảm giác "loading mờ" khi đổi trang.
+      gsap.from(mainRef.current, { y: 8, duration: 0.25, ease: "power2.out" });
     },
     { dependencies: [location.pathname], scope: mainRef },
   );

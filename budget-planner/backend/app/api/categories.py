@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api._common import get_owned_or_404, write_audit
 from app.core.db import get_db
-from app.models import Category, User
+from app.models import Category, Transaction, User
 from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
 
@@ -49,10 +49,27 @@ def create_category(
 def list_categories(
     db: Session = Depends(get_db),
     space_id: str = Depends(get_current_space_id),
-) -> list[Category]:
-    """Liệt kê danh mục của không gian hiện tại."""
-    stmt = select(Category).where(Category.space_id == space_id)
-    return list(db.scalars(stmt))
+) -> list[CategoryRead]:
+    """Liệt kê danh mục + thống kê (số giao dịch, tổng tiền) theo tên danh mục."""
+    cats = list(db.scalars(select(Category).where(Category.space_id == space_id)))
+    rows = db.execute(
+        select(
+            Transaction.category_name,
+            func.count(Transaction.id),
+            func.coalesce(func.sum(Transaction.amount), 0.0),
+        )
+        .where(Transaction.space_id == space_id)
+        .group_by(Transaction.category_name)
+    ).all()
+    stats = {name: (int(cnt), float(total)) for name, cnt, total in rows}
+    result = []
+    for cat in cats:
+        cnt, total = stats.get(cat.name, (0, 0.0))
+        read = CategoryRead.model_validate(cat)
+        read.tx_count = cnt
+        read.tx_total = total
+        result.append(read)
+    return result
 
 
 @router.get("/{category_id}", response_model=CategoryRead)

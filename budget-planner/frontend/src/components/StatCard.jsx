@@ -45,6 +45,7 @@ export default function StatCard({
             : "0 12px 24px rgba(15, 23, 42, 0.08)",
         display: "grid",
         gap: 0.5,
+        alignContent: "center",
         height: "100%",
         willChange: "transform",
       })}

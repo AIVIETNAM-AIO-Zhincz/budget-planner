@@ -335,7 +335,8 @@ export default function Dashboard() {
           </SectionCard>
         </Grid>
 
-        {/* Định kỳ sắp đến hạn */}
+        {/* Định kỳ sắp đến hạn — ẩn hẳn khi không có khoản nào (tránh ô trống) */}
+        {(loading || upcoming.length > 0) && (
         <Grid item xs={12} md={5}>
           <SectionCard
             title={t("dashboard.upcomingRecurring")}
@@ -347,8 +348,6 @@ export default function Dashboard() {
           >
             {loading ? (
               <Skeleton variant="rounded" height={200} />
-            ) : upcoming.length === 0 ? (
-              <EmptyRow text={t("dashboard.noUpcoming")} />
             ) : (
               <Stack divider={<Divider flexItem />} spacing={1}>
                 {upcoming.map((r) => (
@@ -371,6 +370,7 @@ export default function Dashboard() {
             )}
           </SectionCard>
         </Grid>
+        )}
 
         {/* Mục tiêu tiết kiệm */}
         <Grid item xs={12}>

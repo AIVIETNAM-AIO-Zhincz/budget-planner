@@ -22,9 +22,11 @@ import {
   PencilSquareIcon,
   TrashIcon,
   ArrowsRightLeftIcon,
+  WalletIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import WalletFormDialog from "../components/WalletFormDialog.jsx";
 import TransferDialog from "../components/TransferDialog.jsx";
@@ -240,11 +242,12 @@ export default function Wallets() {
         </TableContainer>
 
         {!loading && items.length === 0 && (
-          <Box sx={{ py: 6, textAlign: "center" }}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {t("wallets.empty")}
-            </Typography>
-          </Box>
+          <EmptyState
+            bare
+            icon={<WalletIcon width={26} />}
+            title={t("wallets.emptyTitle")}
+            description={t("wallets.empty")}
+          />
         )}
 
         {!loading && items.length > 0 && (

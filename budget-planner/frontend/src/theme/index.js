@@ -109,23 +109,27 @@ export function buildTheme(mode = "light", language = "vi") {
         MuiTextField: { defaultProps: { size: "small" } },
         MuiOutlinedInput: {
           styleOverrides: {
+            // Viền rõ hơn (cả light/dark) cho dễ đọc, đạt độ tương phản tốt.
             notchedOutline: ({ theme }) => ({
-              ...(theme.palette.mode === "dark" && {
-                borderColor: "rgba(255, 255, 255, 0.15)",
-              }),
+              borderColor:
+                theme.palette.mode === "dark"
+                  ? "rgba(255, 255, 255, 0.23)"
+                  : "rgba(15, 23, 42, 0.23)",
             }),
-            root: ({ theme }) =>
-              theme.palette.mode === "dark"
-                ? {
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(255, 255, 255, 0.28)",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#7eb8f7",
-                      borderWidth: 1.5,
-                    },
-                  }
-                : {},
+            root: ({ theme }) => ({
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.4)"
+                    : "rgba(15, 23, 42, 0.42)",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: theme.palette.mode === "dark" ? "#7eb8f7" : theme.palette.primary.main,
+                borderWidth: 1.5,
+              },
+            }),
+            // Placeholder rõ hơn (mặc định MUI quá mờ).
+            input: { "&::placeholder": { opacity: 0.72 } },
           },
         },
         MuiTooltip: {
