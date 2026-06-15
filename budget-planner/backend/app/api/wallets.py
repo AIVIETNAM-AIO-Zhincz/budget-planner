@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.api._common import get_owned_or_404, raise_transfer_error, write_audit
@@ -11,6 +13,7 @@ from app.core.db import get_db
 from app.models import Membership, Transaction, Wallet
 from app.rbac import get_current_space_id, get_current_user, require_min_role
 from app.schemas.wallet import TransferRequest, WalletCreate, WalletRead, WalletUpdate
+from app.services.budget import _period_range
 from app.services.wallet import transfer_funds
 
 router = APIRouter(prefix="/wallets", tags=["wallets"])
@@ -46,10 +49,40 @@ def create_wallet(
 def list_wallets(
     db: Session = Depends(get_db),
     space_id: str = Depends(get_current_space_id),
-) -> list[Wallet]:
-    """Liệt kê ví của không gian hiện tại."""
-    stmt = select(Wallet).where(Wallet.space_id == space_id)
-    return list(db.scalars(stmt))
+) -> list[WalletRead]:
+    """Liệt kê ví + thống kê giao dịch tháng hiện tại (số giao dịch, thu, chi) theo ví."""
+    wallets = list(db.scalars(select(Wallet).where(Wallet.space_id == space_id)))
+    start, end = _period_range(date.today().strftime("%Y-%m"))
+    rows = db.execute(
+        select(
+            Transaction.wallet_id,
+            Transaction.type,
+            func.count(Transaction.id),
+            func.coalesce(func.sum(Transaction.amount), 0.0),
+        )
+        .where(
+            Transaction.space_id == space_id,
+            Transaction.wallet_id.isnot(None),
+            Transaction.date >= start,
+            Transaction.date < end,
+        )
+        .group_by(Transaction.wallet_id, Transaction.type)
+    ).all()
+    stats: dict[str, dict] = {}
+    for wid, tx_type, cnt, total in rows:
+        entry = stats.setdefault(wid, {"count": 0, "income": 0.0, "expense": 0.0})
+        entry["count"] += int(cnt)
+        entry[tx_type] = float(total)
+
+    result = []
+    for wallet in wallets:
+        entry = stats.get(wallet.id, {"count": 0, "income": 0.0, "expense": 0.0})
+        read = WalletRead.model_validate(wallet)
+        read.tx_count = entry["count"]
+        read.tx_income = entry["income"]
+        read.tx_expense = entry["expense"]
+        result.append(read)
+    return result
 
 
 @router.post("/transfer", response_model=dict[str, WalletRead])

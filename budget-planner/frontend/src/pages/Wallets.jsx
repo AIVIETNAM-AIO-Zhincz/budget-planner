@@ -192,7 +192,25 @@ export default function Wallets() {
               {!loading &&
                 items.map((w) => (
                   <TableRow key={w.id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{w.name}</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>
+                      {w.name}
+                      {w.tx_count > 0 && (
+                        <Typography
+                          component="div"
+                          variant="caption"
+                          sx={{ fontWeight: 400, color: "text.secondary", mt: 0.25 }}
+                        >
+                          {t("wallets.txStats", { count: w.tx_count })} ·{" "}
+                          <Box component="span" sx={{ color: "success.main" }}>
+                            +{formatAmount(w.tx_income)}
+                          </Box>{" "}
+                          /{" "}
+                          <Box component="span" sx={{ color: "error.main" }}>
+                            −{formatAmount(w.tx_expense)}
+                          </Box>
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Chip
                         size="small"
