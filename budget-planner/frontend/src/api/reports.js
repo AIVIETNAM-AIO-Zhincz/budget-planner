@@ -18,6 +18,11 @@ export function getAllocation(range = {}) {
   return apiFetch(`/reports/allocation${buildQuery(range)}`);
 }
 
+/** Dự báo chi tháng tới (tổng + theo danh mục) bằng trung bình trượt. */
+export function getForecast() {
+  return apiFetch("/reports/forecast");
+}
+
 /**
  * Tổng quan năm: 12 tháng thu/chi + số dư luỹ kế.
  *

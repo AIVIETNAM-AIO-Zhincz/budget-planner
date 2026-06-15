@@ -194,6 +194,42 @@ def test_llm_goal_route(client: TestClient, owner: dict, monkeypatch) -> None:
     assert "Mục tiêu" in b["reply"]
 
 
+def test_parse_question_forecast() -> None:
+    assert parse_llm_json('{"kind":"question","question":"expense_forecast"}', TODAY) == {
+        "kind": "question",
+        "question": "expense_forecast",
+    }
+
+
+def test_llm_forecast_route(client: TestClient, owner: dict, monkeypatch) -> None:
+    """LLM chọn intent expense_forecast → backend dự báo từ lịch sử."""
+    h = owner["headers"]
+    today = date.today()
+    m, y = today.month - 1, today.year
+    if m <= 0:
+        m, y = m + 12, y - 1
+    client.post(
+        "/transactions",
+        json={
+            "amount": 2_000_000,
+            "type": "expense",
+            "note": "x",
+            "date": date(y, m, 15).isoformat(),
+        },
+        headers=h,
+    )
+    monkeypatch.setattr(llm, "llm_enabled", lambda: True)
+    monkeypatch.setattr(
+        llm,
+        "classify_message",
+        lambda text, today2: {"kind": "question", "question": "expense_forecast"},
+    )
+    r = client.post("/assistant/message", json={"text": "abc"}, headers=h)
+    b = r.json()
+    assert b["kind"] == "answer"
+    assert "Dự báo chi tháng sau" in b["reply"]
+
+
 def test_parse_question_allocation() -> None:
     assert parse_llm_json('{"kind":"question","question":"allocation_review"}', TODAY) == {
         "kind": "question",

@@ -1,6 +1,18 @@
 """Test API Reports (tổng hợp + xuất CSV)."""
 
+from datetime import date
+
 from fastapi.testclient import TestClient
+
+
+def _month_ago(n: int) -> date:
+    """Ngày giữa tháng cách hiện tại n tháng (cho test dự báo)."""
+    today = date.today()
+    m, y = today.month - n, today.year
+    while m <= 0:
+        m += 12
+        y -= 1
+    return date(y, m, 15)
 
 
 def _tx(client: TestClient, headers: dict, amount: float, tx_type: str, cat: str, d: str) -> None:
@@ -117,6 +129,25 @@ def test_allocation_assessment(client: TestClient, owner: dict) -> None:
 
 def test_allocation_requires_token(client: TestClient) -> None:
     assert client.get("/reports/allocation").status_code == 401
+
+
+def test_forecast(client: TestClient, owner: dict) -> None:
+    """Dự báo = trung bình 3 tháng gần nhất (tổng + theo danh mục)."""
+    h = owner["headers"]
+    for n, amt in ((3, 1_000_000), (2, 2_000_000), (1, 3_000_000)):
+        _tx(client, h, amt, "expense", "Ăn uống", _month_ago(n).isoformat())
+    r = client.get("/reports/forecast", headers=h)
+    assert r.status_code == 200
+    b = r.json()
+    assert b["months_used"] == 3
+    assert b["total_forecast"] == 2_000_000  # (1+2+3)/3 tr
+    cats = {c["name"]: c for c in b["by_category"]}
+    assert "Ăn uống" in cats
+    assert cats["Ăn uống"]["forecast"] == 2_000_000
+
+
+def test_forecast_requires_token(client: TestClient) -> None:
+    assert client.get("/reports/forecast").status_code == 401
 
 
 def test_summary_range_filter(client: TestClient, owner: dict) -> None:

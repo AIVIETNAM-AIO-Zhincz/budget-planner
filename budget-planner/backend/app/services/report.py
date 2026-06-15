@@ -77,6 +77,31 @@ def build_summary(db: Session, space_id: str, start: date | None, end: date | No
     }
 
 
+def recent_monthly_expense(db: Session, space_id: str, today: date, months: int = 3) -> list[dict]:
+    """Chi của ``months`` tháng hoàn chỉnh gần nhất (cũ→mới), loại tháng hiện tại đang dở.
+
+    Trả ``[{"month": "YYYY-MM", "total": <chi>, "by_category": {tên: số}}]`` — nền cho dự báo.
+    """
+    result: list[dict] = []
+    for i in range(months, 0, -1):  # oldest (M-months) → newest (M-1)
+        m, y = today.month - i, today.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        start = date(y, m, 1)
+        end = date(y + 1, 1, 1) if m == 12 else date(y, m + 1, 1)
+        summary = build_summary(db, space_id, start, end - timedelta(days=1))
+        by_category = {c["name"]: c["amount"] for c in summary["by_category"]}
+        result.append(
+            {
+                "month": f"{y:04d}-{m:02d}",
+                "total": summary["total_expense"],
+                "by_category": by_category,
+            }
+        )
+    return result
+
+
 def current_month_net(db: Session, space_id: str, today: date) -> float:
     """Net (thu − chi) của tháng hiện tại — khả năng để dành mỗi tháng."""
     start = today.replace(day=1)
