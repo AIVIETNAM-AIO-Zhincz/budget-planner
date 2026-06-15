@@ -149,7 +149,11 @@
       "spentRatio": "Đã chi {{pct}}% thu nhập kỳ này",
       "leftRatio": "Còn {{pct}}%"
     },
-    "summary": { "income": "Tổng thu", "expense": "Tổng chi", "balance": "Số dư" },
+    "summary": {
+      "income": "Tổng thu",
+      "expense": "Tổng chi",
+      "balance": "Số dư"
+    },
     "rowsPerPage": "Số dòng/trang",
     "import": {
       "button": "Nhập CSV",
@@ -173,6 +177,9 @@
     "empty": "Chưa có danh mục. Bấm \"Thêm danh mục\" để bắt đầu.",
     "expense": "Chi",
     "income": "Thu",
+    "totalCount": "Tổng danh mục",
+    "totalExpense": "Tổng chi",
+    "totalIncome": "Tổng thu",
     "deleteTitle": "Xoá danh mục",
     "deleteConfirm": "Xoá danh mục \"{{name}}\"? Danh mục con (nếu có) sẽ không còn cha.",
     "created": "Đã thêm danh mục",
@@ -309,7 +316,11 @@
     "empty": "Chưa có ví. Bấm \"Thêm ví\" để bắt đầu.",
     "total": "Tổng số dư",
     "transfer": "Chuyển tiền",
-    "types": { "cash": "Tiền mặt", "bank": "Ngân hàng", "e-wallet": "Ví điện tử" },
+    "types": {
+      "cash": "Tiền mặt",
+      "bank": "Ngân hàng",
+      "e-wallet": "Ví điện tử"
+    },
     "created": "Đã thêm ví",
     "updated": "Đã cập nhật ví",
     "deleted": "Đã xoá ví",
@@ -440,7 +451,11 @@
     "colActions": "Thao tác",
     "active": "Đang chạy",
     "inactive": "Đã dừng",
-    "frequencies": { "daily": "Hàng ngày", "weekly": "Hàng tuần", "monthly": "Hàng tháng" },
+    "frequencies": {
+      "daily": "Hàng ngày",
+      "weekly": "Hàng tuần",
+      "monthly": "Hàng tháng"
+    },
     "created": "Đã thêm mẫu định kỳ",
     "updated": "Đã cập nhật",
     "deleted": "Đã xoá mẫu định kỳ",
@@ -487,7 +502,11 @@
     "deleteConfirm": "Xoá mục tiêu \"{{name}}\"? Ví tiết kiệm vẫn được giữ.",
     "empty": "Chưa có mục tiêu. Bấm \"Thêm mục tiêu\" để bắt đầu.",
     "noWallets": "Cần có ít nhất một ví để tạo mục tiêu.",
-    "fundTypes": { "emergency": "Khẩn cấp", "long_term": "Dài hạn", "general": "Chung" },
+    "fundTypes": {
+      "emergency": "Khẩn cấp",
+      "long_term": "Dài hạn",
+      "general": "Chung"
+    },
     "form": {
       "addTitle": "Thêm mục tiêu",
       "editTitle": "Sửa mục tiêu",

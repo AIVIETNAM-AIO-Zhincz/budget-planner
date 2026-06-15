@@ -11,9 +11,11 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { PlusIcon, PencilSquareIcon, TrashIcon, TagIcon } from "@heroicons/react/24/outline";
 import EmptyState from "../components/EmptyState.jsx";
-import { formatAmount } from "../utils/format.js";
+import { formatAmount, categoryColor } from "../utils/format.js";
+import { hexToRgba, lighten } from "../utils/badgeColors.js";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import CategoryFormDialog from "../components/CategoryFormDialog.jsx";
@@ -38,36 +40,118 @@ function buildTree(categories) {
   return roots.map((root) => ({ ...root, children: childrenOf.get(root.id) || [] }));
 }
 
-/** Một hàng danh mục (gốc hoặc con). */
+/** Lấy ký tự đầu (in hoa) của tên danh mục cho avatar. */
+function initialOf(name) {
+  const ch = String(name || "").trim()[0];
+  return ch ? ch.toUpperCase() : "?";
+}
+
+/** Một ô thống kê trong dải tổng quan. */
+function StatCard({ label, value, tone }) {
+  const color = tone === "neg" ? "error.main" : tone === "pos" ? "success.main" : "text.primary";
+  return (
+    <Paper
+      sx={{
+        flex: 1,
+        minWidth: 180,
+        p: 2,
+        borderRadius: 3,
+        border: (th) => `1px solid ${th.palette.divider}`,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "text.disabled",
+        }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        className="tnum"
+        sx={{ mt: 0.75, fontSize: 22, fontWeight: 800, lineHeight: 1.1, color }}
+      >
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
+
+/** Một hàng danh mục (gốc hoặc con) — avatar màu + pill loại + hành động. */
 function CategoryRow({ category, child, onEdit, onDelete }) {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const isIncome = category.type === "income";
+
+  const accent = categoryColor(category.name);
+  const avSize = child ? 38 : 46;
+  const avBg = hexToRgba(accent, isDark ? 0.18 : 0.14);
+  const avText = isDark ? lighten(accent, 0.38) : accent;
+
+  const tagColor = isIncome ? theme.palette.success.main : theme.palette.error.main;
+
   return (
     <Stack
       direction="row"
       alignItems="center"
       sx={{
-        py: 1,
-        pl: child ? 4.5 : 1.5,
-        pr: 1,
-        borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-        gap: 1,
+        position: "relative",
+        gap: 2,
+        py: 1.5,
+        pl: child ? 5 : 2.5,
+        pr: 2.5,
+        borderTop: (th) => `1px solid ${th.palette.divider}`,
+        transition: "background-color .14s",
+        "&:first-of-type": { borderTop: 0 },
+        "&:hover": { bgcolor: "background.subtle" },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          left: 0,
+          top: 14,
+          bottom: 14,
+          width: 3,
+          borderRadius: "0 3px 3px 0",
+          bgcolor: accent,
+          opacity: 0,
+          transition: "opacity .14s",
+        },
+        "&:hover::before": { opacity: 0.85 },
       }}
     >
-      {child && <Box sx={{ color: "text.disabled", mr: 0.5 }}>└</Box>}
+      <Box
+        sx={{
+          width: avSize,
+          height: avSize,
+          flexShrink: 0,
+          borderRadius: child ? 3 : "14px",
+          display: "grid",
+          placeItems: "center",
+          fontWeight: 800,
+          fontSize: child ? 15 : 19,
+          bgcolor: avBg,
+          color: avText,
+        }}
+      >
+        {initialOf(category.name)}
+      </Box>
+
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography noWrap sx={{ fontWeight: child ? 400 : 600 }}>
+        <Typography noWrap sx={{ fontWeight: child ? 500 : 600, fontSize: 15.5 }}>
           {category.name}
         </Typography>
-        {category.tx_count > 0 && (
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            {t("categories.txStats", {
-              count: category.tx_count,
-              total: formatAmount(category.tx_total),
-            })}
-          </Typography>
-        )}
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+          {t("categories.txStats", {
+            count: category.tx_count || 0,
+            total: formatAmount(category.tx_total),
+          })}
+        </Typography>
       </Box>
+
       {!isIncome && category.need_level && (
         <Chip
           size="small"
@@ -82,19 +166,33 @@ function CategoryRow({ category, child, onEdit, onDelete }) {
           sx={{ height: 20, fontWeight: 600 }}
         />
       )}
-      <Chip
-        size="small"
-        label={isIncome ? t("categories.income") : t("categories.expense")}
-        color={isIncome ? "success" : "error"}
-        variant="outlined"
-        sx={{ height: 22, fontWeight: 600 }}
-      />
-      <IconButton size="small" onClick={() => onEdit(category)} aria-label="edit">
-        <PencilSquareIcon width={18} />
-      </IconButton>
-      <IconButton size="small" color="error" onClick={() => onDelete(category)} aria-label="delete">
-        <TrashIcon width={18} />
-      </IconButton>
+
+      <Box
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 0.75,
+          px: 1.5,
+          py: 0.5,
+          borderRadius: 999,
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: tagColor,
+          bgcolor: hexToRgba(tagColor, isDark ? 0.18 : 0.12),
+        }}
+      >
+        <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "currentColor" }} />
+        {isIncome ? t("categories.income") : t("categories.expense")}
+      </Box>
+
+      <Stack direction="row" sx={{ gap: 0.25 }}>
+        <IconButton size="small" onClick={() => onEdit(category)} aria-label="edit">
+          <PencilSquareIcon width={18} />
+        </IconButton>
+        <IconButton size="small" color="error" onClick={() => onDelete(category)} aria-label="delete">
+          <TrashIcon width={18} />
+        </IconButton>
+      </Stack>
     </Stack>
   );
 }
@@ -168,6 +266,13 @@ export default function Categories() {
   };
 
   const tree = buildTree(items);
+  // Tổng quan: đếm theo danh mục, cộng số tiền theo loại (trên danh sách phẳng).
+  const totalExpense = items
+    .filter((c) => c.type !== "income")
+    .reduce((s, c) => s + (Number(c.tx_total) || 0), 0);
+  const totalIncome = items
+    .filter((c) => c.type === "income")
+    .reduce((s, c) => s + (Number(c.tx_total) || 0), 0);
 
   return (
     <>
@@ -185,6 +290,14 @@ export default function Categories() {
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
           {error}
         </Alert>
+      )}
+
+      {!loading && items.length > 0 && (
+        <Stack direction={{ xs: "column", sm: "row" }} sx={{ gap: 1.5, mb: 2.5 }}>
+          <StatCard label={t("categories.totalCount")} value={items.length} />
+          <StatCard label={t("categories.totalExpense")} value={`${formatAmount(totalExpense)} ₫`} tone="neg" />
+          <StatCard label={t("categories.totalIncome")} value={`${formatAmount(totalIncome)} ₫`} tone="pos" />
+        </Stack>
       )}
 
       {loading ? (

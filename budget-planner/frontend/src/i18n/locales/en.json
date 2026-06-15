@@ -149,7 +149,11 @@
       "spentRatio": "Spent {{pct}}% of this period's income",
       "leftRatio": "{{pct}}% left"
     },
-    "summary": { "income": "Total income", "expense": "Total expense", "balance": "Balance" },
+    "summary": {
+      "income": "Total income",
+      "expense": "Total expense",
+      "balance": "Balance"
+    },
     "rowsPerPage": "Rows per page",
     "import": {
       "button": "Import CSV",
@@ -173,6 +177,9 @@
     "empty": "No categories yet. Click \"Add category\" to start.",
     "expense": "Expense",
     "income": "Income",
+    "totalCount": "Total categories",
+    "totalExpense": "Total expense",
+    "totalIncome": "Total income",
     "deleteTitle": "Delete category",
     "deleteConfirm": "Delete category \"{{name}}\"? Its children (if any) will lose their parent.",
     "created": "Category added",
@@ -309,7 +316,11 @@
     "empty": "No wallets yet. Click \"Add wallet\" to start.",
     "total": "Total balance",
     "transfer": "Transfer",
-    "types": { "cash": "Cash", "bank": "Bank", "e-wallet": "E-wallet" },
+    "types": {
+      "cash": "Cash",
+      "bank": "Bank",
+      "e-wallet": "E-wallet"
+    },
     "created": "Wallet added",
     "updated": "Wallet updated",
     "deleted": "Wallet deleted",
@@ -440,7 +451,11 @@
     "colActions": "Actions",
     "active": "Active",
     "inactive": "Stopped",
-    "frequencies": { "daily": "Daily", "weekly": "Weekly", "monthly": "Monthly" },
+    "frequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
     "created": "Recurring rule added",
     "updated": "Updated",
     "deleted": "Recurring rule deleted",
@@ -487,7 +502,11 @@
     "deleteConfirm": "Delete goal \"{{name}}\"? The savings wallet is kept.",
     "empty": "No goals yet. Click \"Add goal\" to start.",
     "noWallets": "You need at least one wallet to create a goal.",
-    "fundTypes": { "emergency": "Emergency", "long_term": "Long-term", "general": "General" },
+    "fundTypes": {
+      "emergency": "Emergency",
+      "long_term": "Long-term",
+      "general": "General"
+    },
     "form": {
       "addTitle": "Add goal",
       "editTitle": "Edit goal",
