@@ -102,6 +102,28 @@ def recent_monthly_expense(db: Session, space_id: str, today: date, months: int 
     return result
 
 
+def weekly_windows(db: Session, space_id: str, today: date, weeks: int = 4) -> list[dict]:
+    """Chuỗi cửa sổ 7 ngày (cũ→mới): tuần hiện tại [today-6, today] + (weeks-1) tuần trước.
+
+    Mỗi cửa sổ ``{start, end, income, expense, by_category}`` — nền cho tóm tắt tuần.
+    """
+    out: list[dict] = []
+    for i in range(weeks - 1, -1, -1):  # oldest → newest (i=0 = tuần hiện tại)
+        end = today - timedelta(days=7 * i)
+        start = end - timedelta(days=6)
+        summary = build_summary(db, space_id, start, end)
+        out.append(
+            {
+                "start": start,
+                "end": end,
+                "income": summary["total_income"],
+                "expense": summary["total_expense"],
+                "by_category": {c["name"]: c["amount"] for c in summary["by_category"]},
+            }
+        )
+    return out
+
+
 def current_month_net(db: Session, space_id: str, today: date) -> float:
     """Net (thu − chi) của tháng hiện tại — khả năng để dành mỗi tháng."""
     start = today.replace(day=1)

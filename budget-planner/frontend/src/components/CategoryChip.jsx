@@ -1,4 +1,4 @@
-import { Chip } from "@mui/material";
+import { Chip, Tooltip } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { badgeTone, hexToRgba } from "../utils/badgeColors.js";
 import { categoryColor } from "../utils/format.js";
@@ -17,17 +17,20 @@ export default function CategoryChip({ name }) {
     theme.palette.mode
   );
   return (
-    <Chip
-      label={name}
-      size="small"
-      sx={{
-        height: 22,
-        fontWeight: 600,
-        borderRadius: 999,
-        color: tone.color,
-        backgroundColor: tone.bg,
-        border: `1px solid ${tone.border}`,
-      }}
-    />
+    <Tooltip title={name}>
+      <Chip
+        label={name}
+        size="small"
+        sx={{
+          height: 22,
+          fontWeight: 600,
+          borderRadius: 999,
+          maxWidth: 160,
+          color: tone.color,
+          backgroundColor: tone.bg,
+          border: `1px solid ${tone.border}`,
+        }}
+      />
+    </Tooltip>
   );
 }

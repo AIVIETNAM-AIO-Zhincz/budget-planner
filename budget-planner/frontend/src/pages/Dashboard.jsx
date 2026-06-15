@@ -31,6 +31,7 @@ import { listBudgets } from "../api/budgets.js";
 import { listRecurring } from "../api/recurring.js";
 import { listCategories } from "../api/categories.js";
 import { listGoals } from "../api/goals.js";
+import { getWeeklySummary } from "../api/reports.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount, formatCompactVnd, categoryColor } from "../utils/format.js";
 import { useStaggerIn } from "../utils/gsap.js";
@@ -94,19 +95,21 @@ export default function Dashboard() {
   const [recurring, setRecurring] = useState([]);
   const [goals, setGoals] = useState([]);
   const [catMap, setCatMap] = useState({});
+  const [weekly, setWeekly] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
     (async () => {
-      const [tx, wl, bg, rc, ct, gl] = await Promise.allSettled([
+      const [tx, wl, bg, rc, ct, gl, wk] = await Promise.allSettled([
         listTransactions(),
         listWallets(),
         listBudgets(),
         listRecurring(),
         listCategories(),
         listGoals(),
+        getWeeklySummary(),
       ]);
       if (!active) return;
       if (tx.status === "fulfilled") setItems(Array.isArray(tx.value) ? tx.value : []);
@@ -115,6 +118,7 @@ export default function Dashboard() {
       if (bg.status === "fulfilled") setBudgets(Array.isArray(bg.value) ? bg.value : []);
       if (rc.status === "fulfilled") setRecurring(Array.isArray(rc.value) ? rc.value : []);
       if (gl.status === "fulfilled") setGoals(Array.isArray(gl.value) ? gl.value : []);
+      if (wk.status === "fulfilled") setWeekly(wk.value);
       if (ct.status === "fulfilled") {
         const map = {};
         for (const c of Array.isArray(ct.value) ? ct.value : []) map[c.id] = c.name;
@@ -188,6 +192,31 @@ export default function Dashboard() {
           </Grid>
         ))}
       </Grid>
+
+      {!loading && weekly && (
+        <Box className="gsap-in" sx={{ mt: 1.5 }}>
+          <SectionCard title={t("dashboard.weeklySummary")}>
+            <Typography variant="body2" sx={{ color: "text.secondary", whiteSpace: "pre-wrap" }}>
+              {weekly.text}
+            </Typography>
+            {weekly.anomalies.length > 0 && (
+              <Stack direction="row" spacing={1} sx={{ mt: 1.25, flexWrap: "wrap", gap: 1 }}>
+                {weekly.anomalies.map((a) => (
+                  <Chip
+                    key={a.name}
+                    size="small"
+                    color="warning"
+                    label={t("dashboard.weeklyAnomaly", {
+                      name: a.name,
+                      factor: a.factor.toFixed(1),
+                    })}
+                  />
+                ))}
+              </Stack>
+            )}
+          </SectionCard>
+        </Box>
+      )}
 
       <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
         <Grid item xs={12} md={5} className="gsap-in">

@@ -222,6 +222,24 @@ def test_assistant_forecast(client: TestClient, owner: dict) -> None:
     assert "Dự báo chi tháng sau" in b["reply"]
 
 
+def test_assistant_weekly_summary(client: TestClient, owner: dict) -> None:
+    h = owner["headers"]
+    client.post(
+        "/transactions",
+        json={
+            "amount": 2_000_000,
+            "type": "expense",
+            "note": "x",
+            "date": date.today().isoformat(),
+        },
+        headers=h,
+    )
+    r = client.post("/assistant/message", json={"text": "tóm tắt tuần này"}, headers=h)
+    b = r.json()
+    assert b["kind"] == "answer"
+    assert "Tuần qua" in b["reply"]
+
+
 def test_assistant_unknown(client: TestClient, owner: dict) -> None:
     r = client.post("/assistant/message", json={"text": "xin chào bạn"}, headers=owner["headers"])
     assert r.json()["kind"] == "unknown"

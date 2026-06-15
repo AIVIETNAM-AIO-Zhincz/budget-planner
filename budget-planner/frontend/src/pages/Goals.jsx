@@ -226,7 +226,7 @@ export default function Goals() {
           items.map((g) => {
             const done = g.percent >= 100;
             return (
-              <Grid item xs={12} sm={6} md={4} key={g.id}>
+              <Grid item xs={12} sm={6} md={items.length === 1 ? 6 : 4} key={g.id}>
                 <Paper
                   sx={{
                     p: 2.5,

@@ -18,7 +18,13 @@ from app.services.allocation import assess_allocation
 from app.services.categorizer import suggest_category
 from app.services.forecast import forecast_series
 from app.services.goal import assess_goal, parse_timeframe_months
-from app.services.report import build_summary, current_month_net, recent_monthly_expense
+from app.services.report import (
+    build_summary,
+    current_month_net,
+    recent_monthly_expense,
+    weekly_windows,
+)
+from app.services.weekly import build_weekly_summary
 
 _INCOME_KEYWORDS = ("thu nhập", "thu ", "nhận", "lương", "thưởng", "được trả", "bán", "hoàn tiền")
 # Từ khoá báo hiệu câu hỏi về mục tiêu tiết kiệm (cần có cả số tiền mới coi là mục tiêu).
@@ -250,6 +256,11 @@ def _forecast_reply(db: Session, space_id: str, today: date) -> str:
     )
 
 
+def _weekly_reply(db: Session, space_id: str, today: date) -> str:
+    """Tóm tắt tài chính tuần (template, không bịa) thành câu trả lời."""
+    return build_weekly_summary(weekly_windows(db, space_id, today))["text"]
+
+
 def compute_answer(
     db: Session, space_id: str, intent: str | None, today: date, profile: dict | None = None
 ) -> str | None:
@@ -264,6 +275,8 @@ def compute_answer(
         return _allocation_reply(db, space_id, today, profile)
     if intent == "expense_forecast":
         return _forecast_reply(db, space_id, today)
+    if intent == "weekly_summary":
+        return _weekly_reply(db, space_id, today)
     return None
 
 
@@ -273,6 +286,9 @@ def answer_query(
     """Trả lời câu hỏi số liệu cơ bản bằng rule (keyword) → None nếu không khớp."""
     t = text.lower()
     is_question = any(k in t for k in ("bao nhiêu", "?", "tổng", "số dư", "còn"))
+
+    if "tóm tắt" in t or ("tuần" in t and ("thế nào" in t or "ra sao" in t or "tổng kết" in t)):
+        return _weekly_reply(db, space_id, today)
 
     if "dự báo" in t or "tháng sau" in t or "tháng tới" in t:
         return _forecast_reply(db, space_id, today)
