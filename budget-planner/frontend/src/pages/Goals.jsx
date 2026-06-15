@@ -36,6 +36,44 @@ function fmtDate(s) {
   return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : s;
 }
 
+/** Dòng đánh giá khả thi của mục tiêu (ẩn khi đã đạt). */
+function FeasibilityLine({ f, t }) {
+  if (!f || f.verdict === "done") return null;
+  if (f.verdict === "no_surplus") {
+    return (
+      <Typography variant="caption" sx={{ color: "warning.main" }}>
+        {t("goals.feasibility.noSurplus")}
+      </Typography>
+    );
+  }
+  if (f.verdict === "tight") {
+    return (
+      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexWrap: "wrap", gap: 0.5 }}>
+        <Chip
+          size="small"
+          color="warning"
+          label={t("goals.feasibility.tight")}
+          sx={{ height: 20, fontWeight: 600 }}
+        />
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+          {t("goals.feasibility.needPerMonth", {
+            need: formatAmount(f.required_monthly),
+            cap: formatAmount(f.monthly_capacity),
+          })}
+        </Typography>
+      </Stack>
+    );
+  }
+  // on_track
+  const eta = t("goals.feasibility.etaMonths", { months: f.months_needed });
+  const text = f.months_left != null ? `${eta} · ${t("goals.feasibility.onDeadline")}` : eta;
+  return (
+    <Typography variant="caption" sx={{ color: "success.main" }}>
+      {text}
+    </Typography>
+  );
+}
+
 /** Trang Mục tiêu tiết kiệm — card + tiến độ + góp, RBAC-aware. */
 export default function Goals() {
   const { t } = useTranslation();
@@ -237,6 +275,7 @@ export default function Goals() {
                   <Typography variant="caption" sx={{ color: "text.secondary" }}>
                     {g.deadline ? t("goals.deadline", { date: fmtDate(g.deadline) }) : t("goals.noDeadline")}
                   </Typography>
+                  <FeasibilityLine f={g.feasibility} t={t} />
 
                   {canManage && (
                     <Box sx={{ mt: "auto", pt: 1, display: "flex", gap: 1, alignItems: "center" }}>

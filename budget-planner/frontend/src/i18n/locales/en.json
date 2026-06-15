@@ -420,6 +420,13 @@
     "savedOf": "{{saved}} / {{target}} ₫",
     "deadline": "Due: {{date}}",
     "noDeadline": "No deadline",
+    "feasibility": {
+      "etaMonths": "Reach it in ~{{months}} months",
+      "onDeadline": "on track for deadline ✓",
+      "tight": "Hard to meet deadline",
+      "needPerMonth": "need ~{{need}} ₫/mo, now ~{{cap}} ₫/mo",
+      "noSurplus": "No surplus to save this month"
+    },
     "created": "Goal added",
     "updated": "Updated",
     "deleted": "Goal deleted",

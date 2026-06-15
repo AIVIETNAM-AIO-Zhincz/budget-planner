@@ -420,6 +420,13 @@
     "savedOf": "{{saved}} / {{target}} ₫",
     "deadline": "Hạn: {{date}}",
     "noDeadline": "Không thời hạn",
+    "feasibility": {
+      "etaMonths": "Dự kiến đạt sau ~{{months}} tháng",
+      "onDeadline": "kịp hạn ✓",
+      "tight": "Khó kịp hạn",
+      "needPerMonth": "cần ~{{need}} ₫/tháng, hiện ~{{cap}} ₫/tháng",
+      "noSurplus": "Tháng này chưa có dư để dành"
+    },
     "created": "Đã thêm mục tiêu",
     "updated": "Đã cập nhật",
     "deleted": "Đã xoá mục tiêu",

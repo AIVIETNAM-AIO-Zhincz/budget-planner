@@ -38,6 +38,17 @@ class Contribute(BaseModel):
     amount: float = Field(gt=0)
 
 
+class GoalFeasibility(BaseModel):
+    """Đánh giá khả thi mục tiêu theo khả năng để dành mỗi tháng."""
+
+    verdict: str  # done | no_surplus | on_track | tight
+    monthly_capacity: float
+    months_needed: int | None = None
+    required_monthly: float | None = None
+    months_left: int | None = None
+    feasible: bool | None = None
+
+
 class GoalRead(GoalBase):
     """Mục tiêu trả về client (kèm tiến độ soi từ ví tiết kiệm)."""
 
@@ -48,3 +59,4 @@ class GoalRead(GoalBase):
     wallet_name: str
     saved_amount: float
     percent: float
+    feasibility: GoalFeasibility | None = None

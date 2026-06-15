@@ -16,14 +16,20 @@ from app.models import Transaction, Wallet
 from app.services import faq, llm
 from app.services.allocation import assess_allocation
 from app.services.categorizer import suggest_category
-from app.services.report import build_summary
+from app.services.goal import assess_goal, parse_timeframe_months
+from app.services.report import build_summary, current_month_net
 
 _INCOME_KEYWORDS = ("thu nhập", "thu ", "nhận", "lương", "thưởng", "được trả", "bán", "hoàn tiền")
+# Từ khoá báo hiệu câu hỏi về mục tiêu tiết kiệm (cần có cả số tiền mới coi là mục tiêu).
+_GOAL_KEYWORDS = ("mục tiêu", "để dành", "dành dụm", "tích góp", "muốn có", "muốn để dành")
 
 
 def parse_amount(text: str) -> float | None:
-    """Trích số tiền: '50k', '1.5tr', '50 nghìn', '50.000', '50000'."""
+    """Trích số tiền: '50k', '1.5tr', '2 tỷ', '50 nghìn', '50.000', '50000'."""
     t = text.lower()
+    m = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:tỷ|tỉ)\b", t)
+    if m:
+        return float(m.group(1).replace(",", ".")) * 1_000_000_000
     m = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:tr|triệu)\b", t)
     if m:
         return float(m.group(1).replace(",", ".")) * 1_000_000
@@ -74,7 +80,9 @@ def parse_type(text: str) -> str:
 def _clean_note(text: str) -> str:
     """Bỏ bớt token số tiền/ngày để có ghi chú gọn (fallback: text gốc)."""
     s = text
-    s = re.sub(r"\d+(?:[.,]\d+)?\s*(?:tr|triệu|k|nghìn|ngàn|ngìn)\b", "", s, flags=re.IGNORECASE)
+    s = re.sub(
+        r"\d+(?:[.,]\d+)?\s*(?:tỷ|tỉ|tr|triệu|k|nghìn|ngàn|ngìn)\b", "", s, flags=re.IGNORECASE
+    )
     s = re.sub(r"\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b", "", s)
     s = re.sub(r"\d+\s*(?:ngày|hôm)\s*trước", "", s)
     for ph in ("hôm kia", "hôm qua", "hôm nay", "hnay"):
@@ -96,6 +104,20 @@ def parse_transaction(text: str, today: date) -> dict | None:
         "category_name": suggest_category(text),
         "date": parse_date(text, today),
     }
+
+
+def parse_goal(text: str) -> dict | None:
+    """Trích mục tiêu tiết kiệm (cần từ khoá mục tiêu + số tiền); None nếu không phải.
+
+    Trả ``{"target_amount": <số>, "months": <int|None>}`` — months suy từ "X năm/tháng".
+    """
+    t = text.lower()
+    if not any(k in t for k in _GOAL_KEYWORDS):
+        return None
+    amount = parse_amount(text)
+    if amount is None:
+        return None
+    return {"target_amount": amount, "months": parse_timeframe_months(text)}
 
 
 def _month_range(today: date) -> tuple[date, date]:
@@ -164,6 +186,37 @@ def _allocation_reply(db: Session, space_id: str, today: date) -> str:
     return f"{head} " + " ".join(a["findings"])
 
 
+def _goal_reply(
+    db: Session, space_id: str, target_amount: float, months: int | None, today: date
+) -> str:
+    """Đánh giá khả thi một mục tiêu (saved=0) theo khả năng để dành tháng hiện tại."""
+    cap = current_month_net(db, space_id, today)
+    a = assess_goal(target_amount, 0.0, cap, months_left=months)
+    target_str = f"{_fmt(target_amount)} đ"
+    if a["verdict"] == "no_surplus":
+        return (
+            f"Mục tiêu {target_str}: tháng này thu nhập chưa dư ra để dành (thu ≤ chi). "
+            "Hãy giảm chi hoặc tăng thu trước khi đặt mốc nhé."
+        )
+    months_needed = a["months_needed"]
+    if a["months_left"] is None:
+        return (
+            f"Mục tiêu {target_str}: với mức để dành ~{_fmt(cap)} đ/tháng hiện tại, "
+            f"bạn cần khoảng {months_needed} tháng để đạt."
+        )
+    req = f"{_fmt(a['required_monthly'])} đ"
+    if a["feasible"]:
+        return (
+            f"Mục tiêu {target_str} trong {a['months_left']} tháng là KHẢ THI: cần để dành "
+            f"~{req}/tháng (bạn đang dư ~{_fmt(cap)} đ/tháng). "
+            f"Dự kiến đạt sau ~{months_needed} tháng."
+        )
+    return (
+        f"Mục tiêu {target_str} trong {a['months_left']} tháng khá CĂNG: cần ~{req}/tháng nhưng "
+        f"hiện chỉ dư ~{_fmt(cap)} đ/tháng. Cân nhắc kéo dài thời hạn hoặc tăng tiết kiệm."
+    )
+
+
 def compute_answer(db: Session, space_id: str, intent: str | None, today: date) -> str | None:
     """Tính câu trả lời số liệu từ DB theo intent cố định (không bịa số)."""
     if intent == "wallet_balance":
@@ -229,6 +282,9 @@ def _route_llm(db: Session, space_id: str, res: dict | None, today: date) -> dic
         if reply is not None:
             return {"kind": "faq", "reply": reply, "draft": None}
         return None
+    if kind == "goal" and res.get("target_amount"):
+        reply = _goal_reply(db, space_id, res["target_amount"], res.get("months"), today)
+        return {"kind": "answer", "reply": reply, "draft": None}
     if kind == "other":
         reply = (
             res.get("reply") or "Mình là trợ lý chi tiêu. Bạn ghi giao dịch hoặc hỏi số liệu nhé."
@@ -257,6 +313,11 @@ def handle_message(db: Session, space_id: str, text: str, today: date) -> dict:
     answer = answer_query(db, space_id, text, today)
     if answer is not None:
         return {"kind": "answer", "reply": answer, "draft": None}
+
+    goal = parse_goal(text)
+    if goal is not None:
+        reply = _goal_reply(db, space_id, goal["target_amount"], goal["months"], today)
+        return {"kind": "answer", "reply": reply, "draft": None}
 
     draft = parse_transaction(text, today)
     if draft is not None:

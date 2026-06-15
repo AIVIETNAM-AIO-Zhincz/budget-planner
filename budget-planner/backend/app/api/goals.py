@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -11,6 +13,8 @@ from app.core.db import get_db
 from app.models import Goal, Membership, Wallet
 from app.rbac import get_current_space_id, require_min_role
 from app.schemas.goal import Contribute, GoalCreate, GoalRead, GoalUpdate
+from app.services.goal import assess_goal
+from app.services.report import current_month_net
 from app.services.wallet import transfer_funds
 
 router = APIRouter(prefix="/goals", tags=["goals"])
@@ -21,11 +25,26 @@ def _get_owned(db: Session, goal_id: str, space_id: str) -> Goal:
     return get_owned_or_404(db, Goal, goal_id, space_id, "Không tìm thấy mục tiêu")
 
 
-def _to_read(db: Session, goal: Goal) -> GoalRead:
-    """Dựng GoalRead kèm tiến độ (saved = số dư ví tiết kiệm)."""
+def _months_until(deadline: date | None, today: date) -> int | None:
+    """Số tháng từ today tới hạn (âm nếu đã qua); None nếu không đặt hạn."""
+    if deadline is None:
+        return None
+    return (deadline.year - today.year) * 12 + (deadline.month - today.month)
+
+
+def _capacity(db: Session, space_id: str) -> float:
+    """Khả năng để dành mỗi tháng = net thu/chi tháng hiện tại."""
+    return current_month_net(db, space_id, date.today())
+
+
+def _to_read(db: Session, goal: Goal, monthly_capacity: float) -> GoalRead:
+    """Dựng GoalRead kèm tiến độ (saved = số dư ví) + đánh giá khả thi."""
     wallet = db.get(Wallet, goal.wallet_id)
     saved = wallet.balance if wallet else 0.0
     percent = min(100.0, saved / goal.target_amount * 100.0) if goal.target_amount else 0.0
+    feasibility = assess_goal(
+        goal.target_amount, saved, monthly_capacity, _months_until(goal.deadline, date.today())
+    )
     return GoalRead(
         id=goal.id,
         space_id=goal.space_id,
@@ -37,6 +56,7 @@ def _to_read(db: Session, goal: Goal) -> GoalRead:
         wallet_name=wallet.name if wallet else "",
         saved_amount=saved,
         percent=round(percent, 1),
+        feasibility=feasibility,
     )
 
 
@@ -71,7 +91,7 @@ def create_goal(
     db.add(goal)
     db.commit()
     db.refresh(goal)
-    return _to_read(db, goal)
+    return _to_read(db, goal, _capacity(db, space_id))
 
 
 @router.get("", response_model=list[GoalRead])
@@ -79,9 +99,10 @@ def list_goals(
     db: Session = Depends(get_db),
     space_id: str = Depends(get_current_space_id),
 ) -> list[GoalRead]:
-    """Liệt kê mục tiêu của không gian (kèm tiến độ)."""
+    """Liệt kê mục tiêu của không gian (kèm tiến độ + khả thi)."""
+    cap = _capacity(db, space_id)
     goals = db.scalars(select(Goal).where(Goal.space_id == space_id))
-    return [_to_read(db, g) for g in goals]
+    return [_to_read(db, g, cap) for g in goals]
 
 
 @router.post("/{goal_id}/contribute", response_model=GoalRead)
@@ -106,7 +127,7 @@ def contribute(
     )
     db.commit()
     db.refresh(goal)
-    return _to_read(db, goal)
+    return _to_read(db, goal, _capacity(db, current.space_id))
 
 
 @router.get("/{goal_id}", response_model=GoalRead)
@@ -115,8 +136,8 @@ def get_goal(
     db: Session = Depends(get_db),
     space_id: str = Depends(get_current_space_id),
 ) -> GoalRead:
-    """Xem một mục tiêu (kèm tiến độ)."""
-    return _to_read(db, _get_owned(db, goal_id, space_id))
+    """Xem một mục tiêu (kèm tiến độ + khả thi)."""
+    return _to_read(db, _get_owned(db, goal_id, space_id), _capacity(db, space_id))
 
 
 @router.patch(
@@ -137,7 +158,7 @@ def update_goal(
         setattr(goal, field, value)
     db.commit()
     db.refresh(goal)
-    return _to_read(db, goal)
+    return _to_read(db, goal, _capacity(db, space_id))
 
 
 @router.delete("/{goal_id}", status_code=status.HTTP_204_NO_CONTENT)

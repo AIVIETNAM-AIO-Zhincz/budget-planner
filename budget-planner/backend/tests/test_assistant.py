@@ -14,6 +14,8 @@ def test_parse_amount() -> None:
     assert parse_amount("50 nghìn") == 50000
     assert parse_amount("lương 15tr") == 15000000
     assert parse_amount("1.5tr") == 1500000
+    assert parse_amount("mua nhà 2 tỷ") == 2000000000
+    assert parse_amount("1.5 tỷ") == 1500000000
     assert parse_amount("mua đồ 50.000") == 50000
     assert parse_amount("trả 1.000.000") == 1000000
     assert parse_amount("không có số") is None
@@ -152,6 +154,31 @@ def test_assistant_allocation_review(client: TestClient, owner: dict) -> None:
     assert b["kind"] == "answer"
     assert "Phân bổ" in b["reply"]
     assert "50/30/20" in b["reply"]  # có đề xuất
+
+
+def test_assistant_goal_feasibility(client: TestClient, owner: dict) -> None:
+    h = owner["headers"]
+    today = date.today().isoformat()
+    # Net tháng = 5tr (thu 10tr − chi 5tr).
+    client.post(
+        "/transactions",
+        json={"amount": 10_000_000, "type": "income", "note": "l", "date": today},
+        headers=h,
+    )
+    client.post(
+        "/transactions",
+        json={"amount": 5_000_000, "type": "expense", "note": "x", "date": today},
+        headers=h,
+    )
+    r = client.post(
+        "/assistant/message",
+        json={"text": "tôi muốn để dành 100 triệu trong 2 năm"},
+        headers=h,
+    )
+    b = r.json()
+    assert b["kind"] == "answer"
+    assert "Mục tiêu" in b["reply"]
+    assert "tháng" in b["reply"]
 
 
 def test_assistant_unknown(client: TestClient, owner: dict) -> None:

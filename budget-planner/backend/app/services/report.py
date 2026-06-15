@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -75,6 +75,14 @@ def build_summary(db: Session, space_id: str, start: date | None, end: date | No
         "by_need_level": by_need_level,
         "by_day": by_day,
     }
+
+
+def current_month_net(db: Session, space_id: str, today: date) -> float:
+    """Net (thu − chi) của tháng hiện tại — khả năng để dành mỗi tháng."""
+    start = today.replace(day=1)
+    end = date(start.year + 1, 1, 1) if start.month == 12 else date(start.year, start.month + 1, 1)
+    summary = build_summary(db, space_id, start, end - timedelta(days=1))
+    return summary["total_income"] - summary["total_expense"]
 
 
 def build_annual_summary(db: Session, space_id: str, year: int) -> dict:

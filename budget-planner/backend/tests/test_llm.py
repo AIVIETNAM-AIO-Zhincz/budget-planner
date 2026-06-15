@@ -156,6 +156,44 @@ def test_llm_failure_falls_back(client: TestClient, owner: dict, monkeypatch) ->
     assert r.json()["draft"]["amount"] == 50000
 
 
+def test_parse_goal_valid() -> None:
+    assert parse_llm_json('{"kind":"goal","target_amount":100000000,"months":24}', TODAY) == {
+        "kind": "goal",
+        "target_amount": 100000000.0,
+        "months": 24,
+    }
+
+
+def test_parse_goal_no_months() -> None:
+    r = parse_llm_json('{"kind":"goal","target_amount":50000000,"months":null}', TODAY)
+    assert r == {"kind": "goal", "target_amount": 50000000.0, "months": None}
+
+
+def test_parse_goal_bad_amount() -> None:
+    assert parse_llm_json('{"kind":"goal","target_amount":0}', TODAY) is None
+
+
+def test_llm_goal_route(client: TestClient, owner: dict, monkeypatch) -> None:
+    """LLM trích mục tiêu → backend đánh giá khả thi từ net tháng."""
+    h = owner["headers"]
+    today = date.today().isoformat()
+    client.post(
+        "/transactions",
+        json={"amount": 10_000_000, "type": "income", "note": "l", "date": today},
+        headers=h,
+    )
+    monkeypatch.setattr(llm, "llm_enabled", lambda: True)
+    monkeypatch.setattr(
+        llm,
+        "classify_message",
+        lambda text, today2: {"kind": "goal", "target_amount": 60_000_000, "months": 12},
+    )
+    r = client.post("/assistant/message", json={"text": "xyz"}, headers=h)
+    b = r.json()
+    assert b["kind"] == "answer"
+    assert "Mục tiêu" in b["reply"]
+
+
 def test_parse_question_allocation() -> None:
     assert parse_llm_json('{"kind":"question","question":"allocation_review"}', TODAY) == {
         "kind": "question",

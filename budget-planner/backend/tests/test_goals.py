@@ -1,5 +1,7 @@
 """Test Saving Goals (CRUD + contribute = transfer, RBAC, cô lập)."""
 
+from datetime import date
+
 from fastapi.testclient import TestClient
 
 
@@ -39,6 +41,29 @@ def test_goal_fund_type_default_and_set(client: TestClient, owner: dict) -> None
 
     upd = client.patch(f"/goals/{gid}", json={"fund_type": "long_term"}, headers=h)
     assert upd.status_code == 200 and upd.json()["fund_type"] == "long_term"
+
+
+def test_goal_feasibility(client: TestClient, owner: dict) -> None:
+    """GoalRead kèm đánh giá khả thi theo net tháng hiện tại."""
+    h = owner["headers"]
+    today = date.today().isoformat()
+    # Net tháng = 5tr (thu 6tr − chi 1tr).
+    client.post(
+        "/transactions",
+        json={"amount": 6_000_000, "type": "income", "note": "l", "date": today},
+        headers=h,
+    )
+    client.post(
+        "/transactions",
+        json={"amount": 1_000_000, "type": "expense", "note": "x", "date": today},
+        headers=h,
+    )
+    wid = _wallet(client, h, "Quỹ xe", 0)
+    gid = _goal(client, h, wid, name="Mua xe", target_amount=60_000_000).json()["id"]
+    f = client.get(f"/goals/{gid}", headers=h).json()["feasibility"]
+    assert f["verdict"] == "on_track"
+    assert f["months_needed"] == 12  # ceil(60/5)
+    assert f["monthly_capacity"] == 5_000_000
 
 
 def test_goal_invalid_fund_type_rejected(client: TestClient, owner: dict) -> None:
