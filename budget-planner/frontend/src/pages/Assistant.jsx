@@ -12,7 +12,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import {
   AcademicCapIcon,
   ChartBarIcon,
@@ -63,12 +63,20 @@ function Bubble({ role, children }) {
   return (
     <Box sx={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", mb: 1.25 }}>
       <Paper
+        elevation={0}
         sx={{
           px: 1.75,
           py: 1.25,
           maxWidth: "80%",
-          borderRadius: 3,
-          bgcolor: isUser ? "primary.main" : "background.paper",
+          borderRadius: "16px",
+          borderTopRightRadius: isUser ? "5px" : "16px",
+          borderTopLeftRadius: isUser ? "16px" : "5px",
+          background: (th) =>
+            isUser
+              ? th.palette.mode === "dark"
+                ? "linear-gradient(140deg, #2fcaa0, #23b58e)"
+                : "linear-gradient(140deg, #0f9d74, #0a7a59)"
+              : th.palette.background.subtle,
           color: isUser ? "#fff" : "text.primary",
           border: (th) => (isUser ? "none" : `1px solid ${th.palette.divider}`),
         }}
@@ -127,17 +135,18 @@ function EmptyState({ onPick }) {
       <Stack alignItems="center" spacing={1.25} sx={{ maxWidth: 440 }}>
         <Box
           sx={{
-            width: 56,
-            height: 56,
-            borderRadius: "50%",
+            width: 64,
+            height: 64,
+            borderRadius: "20px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "primary.main",
-            bgcolor: (th) => alpha(th.palette.primary.main, 0.12),
+            color: (th) => (th.palette.mode === "dark" ? "#2fcaa0" : "#0a7a59"),
+            bgcolor: (th) => (th.palette.mode === "dark" ? "rgba(47,202,160,0.16)" : "#e4f6ef"),
+            boxShadow: "0 12px 30px -14px rgba(15,157,116,0.6)",
           }}
         >
-          <SparklesIcon width={26} />
+          <SparklesIcon width={30} />
         </Box>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           {t("assistant.emptyTitle")}
@@ -212,6 +221,14 @@ function EmptyState({ onPick }) {
 /** Trang Trợ lý — chat nhập NL + hỏi-đáp số liệu. */
 export default function Assistant() {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const JADE = isDark ? "#2fcaa0" : "#0f9d74";
+  const JADE_DEEP = isDark ? "#23b58e" : "#0a7a59";
+  const userBubble = `linear-gradient(140deg, ${JADE}, ${JADE_DEEP})`;
+  const cardShadow = isDark
+    ? "0 8px 28px -10px rgba(0,0,0,0.55)"
+    : "0 6px 24px -8px rgba(16,26,46,0.12), 0 2px 8px -4px rgba(16,26,46,0.08)";
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -273,17 +290,28 @@ export default function Assistant() {
   };
 
   return (
-    <>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        maxWidth: 900,
+        mx: "auto",
+        // Lấp đầy chiều cao thực: 100dvh − toolbar (70) − padding của AppLayout (xs 32 / md 48).
+        height: { xs: "calc(100dvh - 70px - 32px)", md: "calc(100dvh - 70px - 48px)" },
+      }}
+    >
       <PageHeader title={t("pages.assistant")} description={t("pages.assistantDesc")} />
 
       <Paper
         sx={{
-          maxWidth: 720,
-          borderRadius: 3,
+          flex: 1,
+          minHeight: 0,
+          borderRadius: "22px",
           border: (th) => `1px solid ${th.palette.divider}`,
+          boxShadow: cardShadow,
           display: "flex",
           flexDirection: "column",
-          height: { xs: "calc(100vh - 220px)", md: "calc(100vh - 200px)" },
+          overflow: "hidden",
         }}
       >
         <Box sx={{ flex: 1, overflowY: "auto", p: 2, display: "flex", flexDirection: "column" }}>
@@ -354,13 +382,16 @@ export default function Assistant() {
               disabled={sending || !input.trim()}
               aria-label={t("assistant.send")}
               sx={{
-                bgcolor: "primary.main",
+                background: userBubble,
                 color: "#fff",
                 flexShrink: 0,
-                "&:hover": { bgcolor: "primary.dark" },
+                boxShadow: `0 8px 18px -8px ${alpha(JADE, 0.7)}`,
+                "&:hover": { background: userBubble, filter: "brightness(1.05)" },
                 "&.Mui-disabled": {
+                  background: "none",
                   bgcolor: "action.disabledBackground",
                   color: "action.disabled",
+                  boxShadow: "none",
                 },
               }}
             >
@@ -388,6 +419,6 @@ export default function Assistant() {
           {toast}
         </Alert>
       </Snackbar>
-    </>
+    </Box>
   );
 }

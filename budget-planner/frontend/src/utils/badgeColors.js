@@ -40,6 +40,43 @@ export function lighten(hex, amt) {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+/** Độ sáng tương đối (0..1) theo công thức WCAG. */
+function relLuminance(r, g, b) {
+  const lin = (c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+/**
+ * Đậm hoá hex (trộn về đen) cho tới khi độ sáng ≤ `max`, giữ nguyên sắc (hue).
+ * Mục đích: chữ badge trên nền pastel luôn đủ tương phản — màu quá sáng (cyan,
+ * vàng, lục) bị làm tối lại, màu vốn đã tối (đỏ, tím, lam) gần như không đổi.
+ *
+ * @param {string} hex mã màu accent.
+ * @param {number} max ngưỡng độ sáng tối đa (mặc định 0.18).
+ * @returns {string} mã hex đã đậm vừa đủ.
+ */
+export function darkenForText(hex, max = 0.18) {
+  const num = parseInt(normalizeHex(hex), 16);
+  const r0 = (num >> 16) & 255;
+  const g0 = (num >> 8) & 255;
+  const b0 = num & 255;
+  let k = 1;
+  let r = r0;
+  let g = g0;
+  let b = b0;
+  while (k > 0.2 && relLuminance(r, g, b) > max) {
+    k -= 0.05;
+    r = Math.round(r0 * k);
+    g = Math.round(g0 * k);
+    b = Math.round(b0 * k);
+  }
+  const toHex = (c) => c.toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 /**
  * Tái dựng palette badge `{ color, bg, border }` theo mode. Dark mode: accent
  * hex thành nền translucent + chữ sáng hơn. Light mode giữ nguyên.

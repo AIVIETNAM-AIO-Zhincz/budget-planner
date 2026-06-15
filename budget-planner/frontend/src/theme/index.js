@@ -41,7 +41,7 @@ export function buildTheme(mode = "light", language = "vi") {
           "0 24px 48px -12px rgba(15, 23, 42, 0.25), 0 8px 16px -8px rgba(15, 23, 42, 0.18)",
       },
       typography: {
-        fontFamily: "'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif",
+        fontFamily: "'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif",
         fontSize: 16,
         htmlFontSize: 16,
         h1: { fontSize: 36, fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.028em" },

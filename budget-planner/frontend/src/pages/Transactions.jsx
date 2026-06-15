@@ -16,7 +16,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -45,14 +45,9 @@ import { listCategories } from "../api/categories.js";
 import { ApiError } from "../api/client.js";
 import { formatAmount, categoryColor } from "../utils/format.js";
 
-// Tông màu thu/chi (xanh / cam-đất) — êm hơn đỏ gắt, dùng cục bộ cho trang này.
-const POS = "#1F8A5B";
-const POS_SOFT = "#E6F4EC";
-const NEG = "#C2553E";
-const NEG_SOFT = "#FBEAE4";
 const FALLBACK_CAT = "#8B8C96";
-const MONO = '"JetBrains Mono", ui-monospace, monospace';
-const SERIF = '"Fraunces", Georgia, "Times New Roman", serif';
+// Font hiển thị cho số/tiêu đề số liệu — lining + tabular nums (số đứng, đều bề rộng).
+const DISPLAY = '"Bricolage Grotesque", "Be Vietnam Pro", system-ui, sans-serif';
 
 /** Định dạng tiền có dấu +/− và đơn vị ₫. */
 function signedAmount(value, isIncome) {
@@ -62,6 +57,16 @@ function signedAmount(value, isIncome) {
 /** Trang Giao dịch — hero số dư + sổ cái nhóm theo ngày + lọc/tìm thật. */
 export default function Transactions() {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  // Thu = jade (xanh ngọc), Chi = coral (cam-hồng); biến thể sáng hơn ở dark mode.
+  const POS = isDark ? "#2fcaa0" : "#0f9d74";
+  const NEG = isDark ? "#f0807f" : "#dc5757";
+  const POS_SOFT = isDark ? "rgba(47,202,160,0.16)" : "#e4f6ef";
+  const NEG_SOFT = isDark ? "rgba(240,128,127,0.16)" : "#fceaea";
+  const cardShadow = isDark
+    ? "0 8px 28px -10px rgba(0,0,0,0.55)"
+    : "0 6px 24px -8px rgba(16,26,46,0.12), 0 2px 8px -4px rgba(16,26,46,0.08)";
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -228,16 +233,17 @@ export default function Transactions() {
       >
         <Box
           sx={{
-            width: 38,
-            height: 38,
+            width: 42,
+            height: 42,
             flex: "none",
-            borderRadius: 2,
+            borderRadius: "13px",
             display: "grid",
             placeItems: "center",
+            fontFamily: DISPLAY,
             fontWeight: 700,
-            fontSize: 15,
+            fontSize: 17,
             color,
-            bgcolor: alpha(color, 0.14),
+            bgcolor: alpha(color, 0.16),
           }}
         >
           {(row.category_name || "?").charAt(0).toUpperCase()}
@@ -258,9 +264,10 @@ export default function Transactions() {
 
         <Typography
           sx={{
-            fontFamily: MONO,
-            fontVariantNumeric: "tabular-nums",
+            fontFamily: DISPLAY,
+            fontVariantNumeric: "lining-nums tabular-nums",
             fontWeight: 600,
+            fontSize: 15.5,
             whiteSpace: "nowrap",
             color: isIncome ? POS : NEG,
           }}
@@ -324,8 +331,9 @@ export default function Transactions() {
           sx={{
             mb: 2.5,
             p: { xs: 2.5, md: 3.5 },
-            borderRadius: 3,
+            borderRadius: "24px",
             border: (th) => `1px solid ${th.palette.divider}`,
+            boxShadow: cardShadow,
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "minmax(0,1fr) auto minmax(260px,1fr)" },
             gap: { xs: 3, md: 4 },
@@ -348,17 +356,21 @@ export default function Transactions() {
               <Typography
                 component="span"
                 sx={{
-                  fontFamily: SERIF,
-                  fontWeight: 500,
-                  fontSize: { xs: 40, md: 48 },
+                  fontFamily: DISPLAY,
+                  fontWeight: 700,
+                  fontSize: { xs: 42, md: 54 },
                   lineHeight: 1,
-                  letterSpacing: "-0.02em",
+                  letterSpacing: "-0.03em",
+                  fontVariantNumeric: "lining-nums tabular-nums",
                   color: negative ? NEG : "text.primary",
                 }}
               >
                 {formatAmount(summary.balance)}
               </Typography>
-              <Typography component="span" sx={{ fontFamily: SERIF, fontSize: 24, color: "text.secondary" }}>
+              <Typography
+                component="span"
+                sx={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 26, color: "text.secondary" }}
+              >
                 ₫
               </Typography>
               <Box
@@ -390,7 +402,14 @@ export default function Transactions() {
                   {t("transactions.hero.inflow")}
                 </Typography>
               </Stack>
-              <Typography sx={{ fontFamily: MONO, fontWeight: 600, color: POS }}>
+              <Typography
+                sx={{
+                  fontFamily: DISPLAY,
+                  fontVariantNumeric: "lining-nums tabular-nums",
+                  fontWeight: 600,
+                  color: POS,
+                }}
+              >
                 {signedAmount(summary.income, true)}
               </Typography>
             </Stack>
@@ -402,7 +421,14 @@ export default function Transactions() {
                   {t("transactions.hero.outflow")}
                 </Typography>
               </Stack>
-              <Typography sx={{ fontFamily: MONO, fontWeight: 600, color: NEG }}>
+              <Typography
+                sx={{
+                  fontFamily: DISPLAY,
+                  fontVariantNumeric: "lining-nums tabular-nums",
+                  fontWeight: 600,
+                  color: NEG,
+                }}
+              >
                 {signedAmount(summary.expense, false)}
               </Typography>
             </Stack>
@@ -414,7 +440,7 @@ export default function Transactions() {
                     height: "100%",
                     width: `${Math.min(spentPct, 100)}%`,
                     borderRadius: 6,
-                    background: `linear-gradient(90deg, #D98A5F, ${NEG})`,
+                    background: `linear-gradient(90deg, #E8744F, ${NEG})`,
                   }}
                 />
               </Box>
@@ -443,17 +469,24 @@ export default function Transactions() {
           value={type}
           onChange={(_e, v) => v !== null && setType(v)}
           sx={{
+            bgcolor: "background.subtle",
+            border: (th) => `1px solid ${th.palette.divider}`,
+            borderRadius: "12px",
+            p: 0.5,
+            gap: 0.25,
             "& .MuiToggleButton-root": {
               textTransform: "none",
-              fontWeight: 500,
+              fontWeight: 600,
               px: 1.75,
-              border: (th) => `1px solid ${th.palette.divider}`,
+              border: "none",
+              borderRadius: "9px !important",
+              color: "text.secondary",
             },
             "& .Mui-selected": {
-              bgcolor: "primary.main",
-              color: "#fff",
-              fontWeight: 600,
-              "&:hover": { bgcolor: "primary.dark" },
+              bgcolor: "background.paper",
+              color: "text.primary",
+              boxShadow: cardShadow,
+              "&:hover": { bgcolor: "background.paper" },
             },
           }}
         >
@@ -515,7 +548,14 @@ export default function Transactions() {
       </Stack>
 
       {/* Sổ cái */}
-      <Paper sx={{ borderRadius: 3, border: (th) => `1px solid ${th.palette.divider}`, overflow: "hidden" }}>
+      <Paper
+        sx={{
+          borderRadius: "20px",
+          border: (th) => `1px solid ${th.palette.divider}`,
+          boxShadow: cardShadow,
+          overflow: "hidden",
+        }}
+      >
         {loading &&
           Array.from({ length: 5 }).map((_, i) => (
             <Stack key={`sk-${i}`} direction="row" spacing={2} alignItems="center" sx={{ px: 3, py: 1.5 }}>
@@ -545,7 +585,15 @@ export default function Transactions() {
                       {weekdayLabel(date)}
                     </Typography>
                   </Stack>
-                  <Typography sx={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: "text.secondary" }}>
+                  <Typography
+                    sx={{
+                      fontFamily: DISPLAY,
+                      fontVariantNumeric: "lining-nums tabular-nums",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: net >= 0 ? POS : NEG,
+                    }}
+                  >
                     {signedAmount(Math.abs(net), net >= 0)}
                   </Typography>
                 </Stack>
