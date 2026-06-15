@@ -53,7 +53,7 @@ function FeasibilityLine({ f, t }) {
           size="small"
           color="warning"
           label={t("goals.feasibility.tight")}
-          sx={{ height: 20, fontWeight: 600 }}
+          sx={{ fontWeight: 600 }}
         />
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
           {t("goals.feasibility.needPerMonth", {
@@ -248,10 +248,10 @@ export default function Goals() {
                         variant="outlined"
                         color={FUND_COLOR[g.fund_type] === "default" ? undefined : FUND_COLOR[g.fund_type]}
                         label={t(`goals.fundTypes.${g.fund_type}`)}
-                        sx={{ height: 22, fontWeight: 600 }}
+                        sx={{ fontWeight: 600 }}
                       />
                       {done && (
-                        <Chip size="small" color="success" label={t("goals.completed")} sx={{ height: 22, fontWeight: 600 }} />
+                        <Chip size="small" color="success" label={t("goals.completed")} sx={{ fontWeight: 600 }} />
                       )}
                     </Stack>
                   </Box>

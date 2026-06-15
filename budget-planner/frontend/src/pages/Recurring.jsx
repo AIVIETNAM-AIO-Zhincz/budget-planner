@@ -237,7 +237,7 @@ export default function Recurring() {
                         label={r.active ? t("recurring.active") : t("recurring.inactive")}
                         color={r.active ? "success" : "default"}
                         variant="outlined"
-                        sx={{ height: 22, fontWeight: 600 }}
+                        sx={{ fontWeight: 600 }}
                       />
                     </TableCell>
                     {canManage && (

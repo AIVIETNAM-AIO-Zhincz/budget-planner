@@ -163,7 +163,7 @@ function CategoryRow({ category, child, onEdit, onDelete }) {
                 ? "warning"
                 : "default"
           }
-          sx={{ height: 20, fontWeight: 600 }}
+          sx={{ fontWeight: 600 }}
         />
       )}
 

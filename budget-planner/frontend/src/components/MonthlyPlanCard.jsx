@@ -49,7 +49,7 @@ function PlanRow({ label, planned, actual, goodWhenUp }) {
                     ? t("plan.notMet")
                     : t("plan.over")
               }
-              sx={{ height: 20, fontWeight: 600 }}
+              sx={{ fontWeight: 600 }}
             />
           )}
         </Stack>

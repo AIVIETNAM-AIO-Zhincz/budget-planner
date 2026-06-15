@@ -295,7 +295,7 @@ export default function Dashboard() {
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {w.name}
                       </Typography>
-                      <Chip size="small" label={t(`wallets.types.${w.type}`)} variant="outlined" sx={{ height: 20 }} />
+                      <Chip size="small" label={t(`wallets.types.${w.type}`)} variant="outlined" />
                     </Stack>
                     <Typography
                       sx={{
@@ -349,7 +349,7 @@ export default function Dashboard() {
                         <Chip
                           size="small"
                           label={tx.category_name}
-                          sx={{ height: 18, bgcolor: `${categoryColor(tx.category_name)}22`, color: categoryColor(tx.category_name), fontWeight: 600 }}
+                          sx={{ bgcolor: `${categoryColor(tx.category_name)}22`, color: categoryColor(tx.category_name), fontWeight: 600 }}
                         />
                       </Stack>
                     </Box>
@@ -426,7 +426,7 @@ export default function Dashboard() {
                           {g.name}
                         </Typography>
                         {done ? (
-                          <Chip size="small" color="success" label={t("goals.completed")} sx={{ height: 20, fontWeight: 600 }} />
+                          <Chip size="small" color="success" label={t("goals.completed")} sx={{ fontWeight: 600 }} />
                         ) : (
                           <Typography variant="caption" sx={{ color: "text.secondary" }}>
                             {Math.round(g.percent)}%

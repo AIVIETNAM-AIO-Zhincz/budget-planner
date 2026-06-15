@@ -227,7 +227,7 @@ export default function Members() {
                               label={t(`members.roles.${m.role}`)}
                               color={ROLE_COLOR[m.role] || "default"}
                               variant={m.role === "owner" ? "filled" : "outlined"}
-                              sx={{ height: 24, fontWeight: 600 }}
+                              sx={{ fontWeight: 600 }}
                             />
                           </Tooltip>
                         )}

@@ -154,7 +154,14 @@ export function buildTheme(mode = "light", language = "vi") {
             body: { fontSize: 13.5, color: mode === "dark" ? "#e2e8f0" : "#0f172a" },
           },
         },
-        MuiChip: { styleOverrides: { root: { letterSpacing: 0 } } },
+        MuiChip: {
+          styleOverrides: {
+            root: { letterSpacing: 0 },
+            // Chip nhỏ tự cao theo chữ → dấu tiếng Việt (huyền/ngã/nặng) không bị cắt viền.
+            sizeSmall: { height: "auto", minHeight: 22 },
+            labelSmall: { paddingTop: 3, paddingBottom: 3, lineHeight: 1.4 },
+          },
+        },
         MuiDialog: {
           styleOverrides: {
             paper: ({ theme }) => ({

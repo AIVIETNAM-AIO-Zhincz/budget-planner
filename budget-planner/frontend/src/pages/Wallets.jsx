@@ -217,7 +217,7 @@ export default function Wallets() {
                         label={t(`wallets.types.${w.type}`)}
                         color={TYPE_COLOR[w.type] || "default"}
                         variant="outlined"
-                        sx={{ height: 22, fontWeight: 600 }}
+                        sx={{ fontWeight: 600 }}
                       />
                     </TableCell>
                     <TableCell
