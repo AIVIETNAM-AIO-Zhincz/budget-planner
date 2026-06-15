@@ -11,7 +11,9 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, PencilSquareIcon, TrashIcon, TagIcon } from "@heroicons/react/24/outline";
+import EmptyState from "../components/EmptyState.jsx";
+import { formatAmount } from "../utils/format.js";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
 import CategoryFormDialog from "../components/CategoryFormDialog.jsx";
@@ -53,7 +55,19 @@ function CategoryRow({ category, child, onEdit, onDelete }) {
       }}
     >
       {child && <Box sx={{ color: "text.disabled", mr: 0.5 }}>└</Box>}
-      <Typography sx={{ flex: 1, fontWeight: child ? 400 : 600 }}>{category.name}</Typography>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography noWrap sx={{ fontWeight: child ? 400 : 600 }}>
+          {category.name}
+        </Typography>
+        {category.tx_count > 0 && (
+          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            {t("categories.txStats", {
+              count: category.tx_count,
+              total: formatAmount(category.tx_total),
+            })}
+          </Typography>
+        )}
+      </Box>
       {!isIncome && category.need_level && (
         <Chip
           size="small"
@@ -176,11 +190,11 @@ export default function Categories() {
       {loading ? (
         <Skeleton variant="rounded" height={220} sx={{ borderRadius: 3 }} />
       ) : items.length === 0 ? (
-        <Paper sx={{ p: 5, borderRadius: 3, textAlign: "center", border: (th) => `1px dashed ${th.palette.divider}` }}>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            {t("categories.empty")}
-          </Typography>
-        </Paper>
+        <EmptyState
+          icon={<TagIcon width={26} />}
+          title={t("categories.emptyTitle")}
+          description={t("categories.empty")}
+        />
       ) : (
         <Paper sx={{ borderRadius: 3, border: (th) => `1px solid ${th.palette.divider}`, overflow: "hidden" }}>
           {tree.map((root) => (

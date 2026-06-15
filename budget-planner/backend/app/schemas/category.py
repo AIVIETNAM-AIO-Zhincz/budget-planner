@@ -28,9 +28,11 @@ class CategoryUpdate(BaseModel):
 
 
 class CategoryRead(CategoryBase):
-    """Danh mục trả về client."""
+    """Danh mục trả về client (kèm thống kê giao dịch)."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id: str
     space_id: str
+    tx_count: int = 0
+    tx_total: float = 0.0

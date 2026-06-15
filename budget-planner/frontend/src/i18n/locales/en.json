@@ -155,6 +155,8 @@
   },
   "categories": {
     "add": "Add category",
+    "emptyTitle": "No categories",
+    "txStats": "{{count}} transactions · {{total}} ₫",
     "empty": "No categories yet. Click \"Add category\" to start.",
     "expense": "Expense",
     "income": "Income",
@@ -279,6 +281,7 @@
   },
   "wallets": {
     "add": "Add wallet",
+    "emptyTitle": "No wallets",
     "empty": "No wallets yet. Click \"Add wallet\" to start.",
     "total": "Total balance",
     "transfer": "Transfer",
@@ -329,6 +332,7 @@
   },
   "annual": {
     "year": "Year",
+    "month": "Month",
     "empty": "No data for {{year}}",
     "totalIncome": "Year income",
     "totalExpense": "Year expense",
@@ -395,6 +399,9 @@
     "add": "Add recurring rule",
     "runNow": "Run now",
     "ranDone": "Created {{count}} transactions",
+    "emptyTitle": "No recurring rules",
+    "monthlyExpense": "Recurring expense/mo",
+    "monthlyIncome": "Recurring income/mo",
     "empty": "No recurring rules yet. Click \"Add recurring rule\" to start.",
     "colName": "Name",
     "colAmount": "Amount",

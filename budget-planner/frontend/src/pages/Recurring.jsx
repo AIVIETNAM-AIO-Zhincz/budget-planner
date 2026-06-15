@@ -20,6 +20,7 @@ import {
 import { PlusIcon, PencilSquareIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 import RecurringFormDialog from "../components/RecurringFormDialog.jsx";
 import {
@@ -117,6 +118,20 @@ export default function Recurring() {
     }
   };
 
+  // Tổng định kỳ quy đổi về mỗi tháng (chỉ tính khoản đang chạy).
+  const monthlyTotals = useMemo(() => {
+    const factor = { daily: 30, weekly: 4.33, monthly: 1 };
+    let income = 0;
+    let expense = 0;
+    for (const r of items) {
+      if (!r.active) continue;
+      const m = (Number(r.amount) || 0) * (factor[r.frequency] || 1);
+      if (r.type === "income") income += m;
+      else expense += m;
+    }
+    return { income, expense };
+  }, [items]);
+
   return (
     <>
       <PageHeader
@@ -155,6 +170,23 @@ export default function Recurring() {
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
           {error}
         </Alert>
+      )}
+
+      {!loading && items.length > 0 && (
+        <Stack direction="row" spacing={1.5} sx={{ mb: 2, flexWrap: "wrap", gap: 1 }}>
+          <Chip
+            color="error"
+            variant="outlined"
+            label={`${t("recurring.monthlyExpense")}: ${formatAmount(Math.round(monthlyTotals.expense))} ₫`}
+            sx={{ fontWeight: 600 }}
+          />
+          <Chip
+            color="success"
+            variant="outlined"
+            label={`${t("recurring.monthlyIncome")}: ${formatAmount(Math.round(monthlyTotals.income))} ₫`}
+            sx={{ fontWeight: 600 }}
+          />
+        </Stack>
       )}
 
       <Paper sx={{ borderRadius: 3, border: (th) => `1px solid ${th.palette.divider}`, overflow: "hidden" }}>
@@ -237,11 +269,12 @@ export default function Recurring() {
         </TableContainer>
 
         {!loading && items.length === 0 && (
-          <Box sx={{ py: 6, textAlign: "center" }}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {t("recurring.empty")}
-            </Typography>
-          </Box>
+          <EmptyState
+            bare
+            icon={<ArrowPathIcon width={26} />}
+            title={t("recurring.emptyTitle")}
+            description={t("recurring.empty")}
+          />
         )}
       </Paper>
 
