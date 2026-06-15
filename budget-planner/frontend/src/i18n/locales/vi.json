@@ -272,6 +272,15 @@
       "saved": "Đã cập nhật không gian",
       "readonly": "Chỉ owner/admin mới sửa được không gian."
     },
+    "notifications": {
+      "title": "Cài đặt thông báo",
+      "desc": "Chọn loại thông báo muốn nhận cho không gian này",
+      "budget": "Cảnh báo vượt ngân sách",
+      "member": "Khi có thành viên được mời",
+      "recurring": "Khi giao dịch định kỳ chạy",
+      "saved": "Đã cập nhật cài đặt thông báo",
+      "readonly": "Chỉ owner/admin mới đổi được cài đặt thông báo."
+    },
     "createSpace": {
       "title": "Tạo không gian mới",
       "desc": "Bạn sẽ là owner của không gian mới",

@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -45,6 +45,10 @@ class Space(Base):
     name: Mapped[str] = mapped_column(String(255))
     owner_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     currency: Mapped[str] = mapped_column(String(8), default="VND")
+    # Cài đặt thông báo (per-space, mặc định bật): vượt ngân sách / mời thành viên / định kỳ.
+    notify_budget: Mapped[bool] = mapped_column(default=True, server_default=text("1"))
+    notify_member: Mapped[bool] = mapped_column(default=True, server_default=text("1"))
+    notify_recurring: Mapped[bool] = mapped_column(default=True, server_default=text("1"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 

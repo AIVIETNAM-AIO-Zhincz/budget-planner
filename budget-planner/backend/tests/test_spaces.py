@@ -46,3 +46,21 @@ def test_update_space_cross_404(client: TestClient, owner: dict, register) -> No
     other = register(email="o2@x.com")
     r = client.patch(f"/spaces/{owner['space_id']}", json={"name": "X"}, headers=other["headers"])
     assert r.status_code == 404
+
+
+def test_update_space_notification_flags(client: TestClient, owner: dict) -> None:
+    """PATCH cờ thông báo → SpaceRead (PATCH + GET) trả đúng; mặc định bật."""
+    h = owner["headers"]
+    r = client.patch(
+        f"/spaces/{owner['space_id']}",
+        json={"notify_member": False, "notify_recurring": False},
+        headers=h,
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["notify_member"] is False
+    assert body["notify_recurring"] is False
+    assert body["notify_budget"] is True
+
+    sp = next(s for s in client.get("/spaces", headers=h).json() if s["id"] == owner["space_id"])
+    assert sp["notify_member"] is False and sp["notify_budget"] is True

@@ -272,6 +272,15 @@
       "saved": "Space updated",
       "readonly": "Only owner/admin can edit the space."
     },
+    "notifications": {
+      "title": "Notification settings",
+      "desc": "Choose which notifications to receive for this space",
+      "budget": "Budget overspend alerts",
+      "member": "When a member is invited",
+      "recurring": "When a recurring transaction runs",
+      "saved": "Notification settings updated",
+      "readonly": "Only owner/admin can change notification settings."
+    },
     "createSpace": {
       "title": "Create new space",
       "desc": "You will be the owner of the new space",

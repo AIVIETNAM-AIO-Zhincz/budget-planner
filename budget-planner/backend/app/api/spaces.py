@@ -14,6 +14,20 @@ from app.schemas.space import SpaceCreate, SpaceRead, SpaceUpdate
 router = APIRouter(prefix="/spaces", tags=["spaces"])
 
 
+def _to_read(space: Space, role: str) -> SpaceRead:
+    """Dựng SpaceRead kèm vai trò + cài đặt thông báo của không gian."""
+    return SpaceRead(
+        id=space.id,
+        name=space.name,
+        owner_id=space.owner_id,
+        currency=space.currency,
+        role=role,
+        notify_budget=space.notify_budget,
+        notify_member=space.notify_member,
+        notify_recurring=space.notify_recurring,
+    )
+
+
 @router.get("", response_model=list[SpaceRead])
 def list_spaces(
     user: User = Depends(get_current_user),
@@ -25,16 +39,7 @@ def list_spaces(
         .join(Membership, Membership.space_id == Space.id)
         .where(Membership.user_id == user.id, Membership.status == "active")
     ).all()
-    return [
-        SpaceRead(
-            id=space.id,
-            name=space.name,
-            owner_id=space.owner_id,
-            currency=space.currency,
-            role=role,
-        )
-        for space, role in rows
-    ]
+    return [_to_read(space, role) for space, role in rows]
 
 
 @router.post("", response_model=SpaceRead, status_code=status.HTTP_201_CREATED)
@@ -50,9 +55,7 @@ def create_space(
     db.add(Membership(user_id=user.id, space_id=space.id, role="owner", status="active"))
     db.commit()
     db.refresh(space)
-    return SpaceRead(
-        id=space.id, name=space.name, owner_id=space.owner_id, currency=space.currency, role="owner"
-    )
+    return _to_read(space, "owner")
 
 
 @router.patch("/{space_id}", response_model=SpaceRead)
@@ -72,10 +75,4 @@ def update_space(
         setattr(space, field, value)
     db.commit()
     db.refresh(space)
-    return SpaceRead(
-        id=space.id,
-        name=space.name,
-        owner_id=space.owner_id,
-        currency=space.currency,
-        role=current.role,
-    )
+    return _to_read(space, current.role)

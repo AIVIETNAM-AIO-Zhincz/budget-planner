@@ -3,9 +3,12 @@ import {
   Alert,
   Box,
   Button,
+  FormControlLabel,
+  FormGroup,
   Paper,
   Snackbar,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -17,6 +20,13 @@ import { changePassword, updateProfile } from "../api/auth.js";
 import { getProfile, saveProfile } from "../api/profile.js";
 import { createSpace, updateSpace } from "../api/spaces.js";
 import { ApiError } from "../api/client.js";
+
+/** 3 loại thông báo bật/tắt được (per-space). */
+const NOTIFY_OPTIONS = [
+  { key: "notify_budget", label: "settings.notifications.budget" },
+  { key: "notify_member", label: "settings.notifications.member" },
+  { key: "notify_recurring", label: "settings.notifications.recurring" },
+];
 
 /** Thẻ một mục cài đặt. */
 function SettingCard({ title, desc, children }) {
@@ -111,6 +121,10 @@ export default function Settings() {
   const [savingSpace, setSavingSpace] = useState(false);
   const [spaceErr, setSpaceErr] = useState("");
 
+  // Cài đặt thông báo (per-space)
+  const [savingNotify, setSavingNotify] = useState(false);
+  const [notifyErr, setNotifyErr] = useState("");
+
   // Tạo không gian mới
   const [newSpaceName, setNewSpaceName] = useState("");
   const [newSpaceCurrency, setNewSpaceCurrency] = useState("VND");
@@ -172,6 +186,20 @@ export default function Settings() {
     }
   };
 
+  const toggleNotify = async (key, value) => {
+    setSavingNotify(true);
+    setNotifyErr("");
+    try {
+      await updateSpace(spaceId, { [key]: value });
+      await reload();
+      setToast(t("settings.notifications.saved"));
+    } catch (err) {
+      setNotifyErr(err instanceof ApiError ? err.message : t("settings.saveError"));
+    } finally {
+      setSavingNotify(false);
+    }
+  };
+
   const createNewSpace = async (e) => {
     e.preventDefault();
     setCreating(true);
@@ -195,6 +223,71 @@ export default function Settings() {
       <PageHeader title={t("pages.settings")} description={t("pages.settingsDesc")} />
 
       <Stack spacing={2.5} sx={{ maxWidth: 560 }}>
+        {/* Không gian hiện tại (tiền tệ) — đặt đầu vì ảnh hưởng toàn app */}
+        <SettingCard title={t("settings.space.title")} desc={t("settings.space.desc")}>
+          {canEditSpace ? (
+            <Box component="form" onSubmit={saveSpace}>
+              <Stack spacing={2}>
+                {spaceErr && <Alert severity="error">{spaceErr}</Alert>}
+                <TextField
+                  label={t("settings.space.name")}
+                  value={spaceName}
+                  onChange={(e) => setSpaceName(e.target.value)}
+                  size="small"
+                  required
+                  fullWidth
+                />
+                <CurrencySelect
+                  label={t("settings.space.currency")}
+                  value={spaceCurrency}
+                  onChange={setSpaceCurrency}
+                />
+                <Box>
+                  <Button type="submit" variant="contained" disabled={savingSpace}>
+                    {t("settings.space.save")}
+                  </Button>
+                </Box>
+              </Stack>
+            </Box>
+          ) : (
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              {t("settings.space.readonly")} ({currentSpace?.name} · {currentSpace?.currency})
+            </Typography>
+          )}
+        </SettingCard>
+
+        {/* Cài đặt thông báo (per-space) */}
+        <SettingCard
+          title={t("settings.notifications.title")}
+          desc={t("settings.notifications.desc")}
+        >
+          {notifyErr && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {notifyErr}
+            </Alert>
+          )}
+          {!canEditSpace && (
+            <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+              {t("settings.notifications.readonly")}
+            </Typography>
+          )}
+          <FormGroup>
+            {NOTIFY_OPTIONS.map((opt) => (
+              <FormControlLabel
+                key={opt.key}
+                control={
+                  <Switch
+                    checked={Boolean(currentSpace?.[opt.key])}
+                    onChange={(e) => toggleNotify(opt.key, e.target.checked)}
+                    disabled={!canEditSpace || savingNotify}
+                  />
+                }
+                label={t(opt.label)}
+              />
+            ))}
+          </FormGroup>
+        </SettingCard>
+
         {/* Hồ sơ */}
         <SettingCard title={t("settings.profile.title")} desc={t("settings.profile.desc")}>
           <Box component="form" onSubmit={saveProfile}>
@@ -312,39 +405,6 @@ export default function Settings() {
               </Box>
             </Stack>
           </Box>
-        </SettingCard>
-
-        {/* Không gian hiện tại */}
-        <SettingCard title={t("settings.space.title")} desc={t("settings.space.desc")}>
-          {canEditSpace ? (
-            <Box component="form" onSubmit={saveSpace}>
-              <Stack spacing={2}>
-                {spaceErr && <Alert severity="error">{spaceErr}</Alert>}
-                <TextField
-                  label={t("settings.space.name")}
-                  value={spaceName}
-                  onChange={(e) => setSpaceName(e.target.value)}
-                  size="small"
-                  required
-                  fullWidth
-                />
-                <CurrencySelect
-                  label={t("settings.space.currency")}
-                  value={spaceCurrency}
-                  onChange={setSpaceCurrency}
-                />
-                <Box>
-                  <Button type="submit" variant="contained" disabled={savingSpace}>
-                    {t("settings.space.save")}
-                  </Button>
-                </Box>
-              </Stack>
-            </Box>
-          ) : (
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {t("settings.space.readonly")} ({currentSpace?.name} · {currentSpace?.currency})
-            </Typography>
-          )}
         </SettingCard>
 
         {/* Tạo không gian mới */}

@@ -19,16 +19,22 @@ class SpaceUpdate(BaseModel):
 
     name: str | None = Field(default=None, min_length=1, max_length=255)
     currency: str | None = Field(default=None, max_length=8)
+    notify_budget: bool | None = None
+    notify_member: bool | None = None
+    notify_recurring: bool | None = None
 
 
 class SpaceRead(BaseModel):
-    """Không gian trả về kèm vai trò của user hiện tại."""
+    """Không gian trả về kèm vai trò của user hiện tại + cài đặt thông báo."""
 
     id: str
     name: str
     owner_id: str | None
     currency: str
     role: str
+    notify_budget: bool = True
+    notify_member: bool = True
+    notify_recurring: bool = True
 
 
 class MemberRead(BaseModel):
