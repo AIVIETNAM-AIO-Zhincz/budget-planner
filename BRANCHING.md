@@ -1,6 +1,6 @@
 # Branching Strategy — GitFlow
 
-Repo **AIO Conquer 2026** (Budget Planner) theo mô hình **GitFlow** (Vincent Driessen), bản gọn cho team nhỏ.
+Repo **Budget Planner** theo mô hình **GitFlow** (Vincent Driessen), bản gọn.
 
 ## Nhánh dài hạn (long-lived)
 
