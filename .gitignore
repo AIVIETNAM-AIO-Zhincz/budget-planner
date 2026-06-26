@@ -1,0 +1,28 @@
+# Agent OS — công cụ lập kế hoạch nội bộ, không thuộc sản phẩm
+agent-os/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+*.sqlite3
+*.db
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# Môi trường & bí mật
+.env
+.env.*
+!.env.example
+
+# Hệ điều hành / editor
+.DS_Store
+.idea/
+.vscode/

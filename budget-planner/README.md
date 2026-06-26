@@ -12,8 +12,7 @@
 ![Tests](https://img.shields.io/badge/Tests-pytest%20139-success)
 
 > 📄 Tài liệu sản phẩm: [`../docs/product-description.md`](../docs/product-description.md) ·
-> Backlog: [`../docs/product-backlog.md`](../docs/product-backlog.md) ·
-> Spec: [`../../agent-os/specs/`](../../agent-os/specs/)
+> Backlog: [`../docs/product-backlog.md`](../docs/product-backlog.md)
 
 ---
 
